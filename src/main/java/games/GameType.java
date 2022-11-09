@@ -12,8 +12,10 @@ import games.cantstop.CantStopGameState;
 import games.cantstop.gui.CantStopGUIManager;
 import games.catan.CatanForwardModel;
 import games.catan.CatanGameState;
-import games.catan.CatanParameters;
 import games.catan.gui.CatanGUI;
+import games.checkers.CheckersForwardModel;
+import games.checkers.gui.CheckersGUIManager;
+import games.checkers.CheckersGameState;
 import games.coltexpress.ColtExpressForwardModel;
 import games.coltexpress.ColtExpressGameState;
 import games.coltexpress.gui.ColtExpressGUIManager;
@@ -311,6 +313,14 @@ public enum GameType {
             }},
             new ArrayList<Mechanic>() {{
                 add(PushYourLuck);
+            }}),
+    Checkers(2,2,
+            new ArrayList<Category>() {{
+                add(Abstract);
+                add(Strategy);
+            }},
+            new ArrayList<Mechanic>() {{
+                add(TakeThat);
             }}
     );
 
@@ -365,6 +375,8 @@ public enum GameType {
                 return Stratego;
             case "cantstop":
                 return CantStop;
+            case "checkers":
+                return Checkers;
         }
         System.out.println("Game type not found, returning null. ");
         return null;
@@ -476,6 +488,10 @@ public enum GameType {
                 forwardModel = new CantStopForwardModel();
                 gameState = new CantStopGameState(params, nPlayers);
                 break;
+            case Checkers:
+                forwardModel = new CheckersForwardModel();
+                gameState = new CheckersGameState(params, nPlayers);
+                break;
             default:
                 throw new AssertionError("Game not yet supported : " + this);
         }
@@ -566,6 +582,9 @@ public enum GameType {
                 break;
             case CantStop:
                 gui = new CantStopGUIManager(parent, game, ac);
+                break;
+            case Checkers:
+                gui = new CheckersGUIManager(parent, game, ac);
                 break;
         }
 
