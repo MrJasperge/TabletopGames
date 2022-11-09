@@ -6,6 +6,7 @@ import games.battlelore.BattleloreGameParameters;
 import games.blackjack.BlackjackParameters;
 import games.cantstop.CantStopParameters;
 import games.catan.CatanParameters;
+import games.checkers.CheckersGameParameters;
 import games.coltexpress.ColtExpressParameters;
 import games.connect4.Connect4GameParameters;
 import games.diamant.DiamantParameters;
@@ -71,6 +72,8 @@ public class ParameterFactory {
                 return new TMGameParameters(seed);
             case CantStop:
                 return new CantStopParameters(seed);
+            case Checkers:
+                return new CheckersGameParameters(seed);
         }
         throw new AssertionError("No default Parameters specified for Game " + game);
 

@@ -22,6 +22,27 @@ public class CheckersForwardModel extends AbstractForwardModel {
         int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
         CheckersGameState chgs = (CheckersGameState) firstState;
         chgs.gridBoard = new GridBoard<>(gridWidth, gridHeight, new Token(CheckersConstants.emptyCell));
+
+        // TODO: add correct starting positions
+
+        // add two layers per player
+
+        for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
+            for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
+                switch (y) {
+                    case 0:
+                    case 1:
+                        chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(0));
+                        break;
+                    case 6:
+                    case 7:
+                        chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 
     @Override
