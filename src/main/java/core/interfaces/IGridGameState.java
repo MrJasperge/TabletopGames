@@ -10,4 +10,6 @@ public interface IGridGameState<T extends Component> {
     default int getHeight() { return getGridBoard().getHeight(); }
 
     GridBoard<T> getGridBoard();
+
+    void printToConsole();
 }

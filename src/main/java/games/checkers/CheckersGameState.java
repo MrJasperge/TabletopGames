@@ -3,38 +3,42 @@ package games.checkers;
 import core.AbstractGameState;
 import core.AbstractParameters;
 import core.components.Component;
+import core.components.GridBoard;
+import core.components.Token;
+import core.interfaces.IGridGameState;
 import core.interfaces.IStateHeuristic;
 import core.turnorders.AlternatingTurnOrder;
 import games.GameType;
-import games.dotsboxes.DotsAndBoxesHeuristic;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class CheckersGameState extends AbstractGameState {
+public class CheckersGameState extends AbstractGameState implements IGridGameState<Token> {
 
-    //TODO: implement methods
+    GridBoard<Token> gridBoard;
 
-    IStateHeuristic heuristic;
     public CheckersGameState(AbstractParameters gameParameters, int nPlayers) {
         super(gameParameters, new AlternatingTurnOrder(nPlayers), GameType.Checkers);
     }
 
     @Override
     protected List<Component> _getAllComponents() {
-        return null;
+        return new ArrayList<Component>() {{
+            add(gridBoard);
+        }};
     }
 
     @Override
     protected AbstractGameState _copy(int playerId) {
-        return null;
+        CheckersGameState chgs = new CheckersGameState(gameParameters.copy(), getNPlayers());
+        chgs.gridBoard = gridBoard.copy();
+        return chgs;
     }
 
     @Override
     protected double _getHeuristicScore(int playerId) {
-        if (heuristic == null) { // lazy initialization
-            heuristic = new DotsAndBoxesHeuristic();
-        }
-        return heuristic.evaluateState(this, playerId);
+        return new CheckersHeuristic().evaluateState(this, playerId);
     }
 
     @Override
@@ -44,11 +48,41 @@ public class CheckersGameState extends AbstractGameState {
 
     @Override
     protected void _reset() {
-
+        gridBoard = null;
     }
 
     @Override
     protected boolean _equals(Object o) {
-        return false;
+        if (this == o) return true;
+        if (!(o instanceof CheckersGameState)) return false;
+        CheckersGameState that = (CheckersGameState) o;
+        return Objects.equals(gridBoard, that.gridBoard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), gridBoard);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(Objects.hash(gameParameters)).append("|");
+        sb.append(Objects.hash(turnOrder)).append("|");
+        sb.append(Objects.hash(getAllComponents())).append("|");
+        sb.append(Objects.hash(gameStatus)).append("|");
+        sb.append(Objects.hash(gamePhase)).append("|*|");
+        sb.append(Objects.hash(gridBoard));
+        return sb.toString();
+    }
+
+    @Override
+    public GridBoard<Token> getGridBoard() {
+        return gridBoard;
+    }
+
+    @Override
+    public void printToConsole() {
+        System.out.println(gridBoard.toString());
     }
 }
