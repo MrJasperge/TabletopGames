@@ -25,21 +25,17 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
         // TODO: add correct starting positions
 
-        // add two layers per player
-
         for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
             for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
-                switch (y) {
-                    case 0:
-                    case 1:
+                if (y < 3) {    // black pieces
+                    if ((x + y) % 2 == 1) {
                         chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(0));
-                        break;
-                    case 6:
-                    case 7:
+                    }
+                }
+                if (y > 4) {    // white pieces
+                    if ((x + y) % 2 == 1) {
                         chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
-                        break;
-                    default:
-                        break;
+                    }
                 }
             }
         }
@@ -51,15 +47,63 @@ public class CheckersForwardModel extends AbstractForwardModel {
         ArrayList<AbstractAction> actions = new ArrayList<>();
         int player = gameState.getTurnOrder().getCurrentPlayer(gameState);
 
-        if (gameState.isNotTerminal())
-            // NOTE: for now, every empty cell is marked as available action
-            for (int x = 0; x < chgs.gridBoard.getWidth(); x++)
-                for (int y = 0; y < chgs.gridBoard.getHeight(); y++)
-                    if (chgs.gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.emptyCell))
-                        actions.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), x, y, CheckersConstants.playerMapping.get(player)));
-            // TODO: compute actual available actions
+        if (gameState.isNotTerminal()){
 
+            // TODO: compute actual available actions correctly
+
+            // all pieces of the player
+            ArrayList<IntPair> pPieces = new ArrayList<>();
+            ArrayList<IntPair> oPieces = new ArrayList<>();
+
+            for (int x = 0; x < chgs.gridBoard.getWidth(); x++)
+                for (int y = 0; y < chgs.gridBoard.getHeight(); y++) {
+                    if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(player))) {
+                        pPieces.add(new IntPair(x, y));  // player's pieces
+                    }
+                    if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(1 - player))) {
+                        oPieces.add(new IntPair(x, y));  // player's pieces
+                    }
+                }
+            // TODO: soft code boundaries
+            // TODO: check direction of player
+            // TODO: remove piece after move
+            // TODO: implement jump over opponent
+            // TODO: implement multi-jumps
+            // TODO: implement king piece
+            for (IntPair p : pPieces) {
+                if (p.x > 0 && p.y > 0) {   // up left
+                    if (chgs.gridBoard.getElement(p.x-1, p.y-1).equals(CheckersConstants.emptyCell)) {
+                        actions.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x - 1, p.y - 1, CheckersConstants.playerMapping.get(player)));
+                    }
+                }
+
+                if (p.x < 8 && p.y > 0) {   // up right
+                    if (chgs.gridBoard.getElement(p.x+1, p.y-1).equals(CheckersConstants.emptyCell)) {
+                        actions.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x + 1, p.y - 1, CheckersConstants.playerMapping.get(player)));
+                    }
+                }
+
+                if (p.x > 0 && p.y < 8) {   // down left
+                    if (chgs.gridBoard.getElement(p.x-1, p.y+1).equals(CheckersConstants.emptyCell)) {
+                        actions.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x - 1, p.y + 1, CheckersConstants.playerMapping.get(player)));
+                    }
+                }
+
+                if (p.x < 8 && p.y < 8) {   // down right
+                    if (chgs.gridBoard.getElement(p.x+1, p.y+1).equals(CheckersConstants.emptyCell)) {
+                        actions.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x + 1, p.y + 1, CheckersConstants.playerMapping.get(player)));
+                    }
+                }
+            }
+
+        }
         return actions;
+    }
+
+    class IntPair {
+        final int x;
+        final int y;
+        IntPair(int x, int y) {this.x = x; this.y = y;}
     }
 
     @Override
