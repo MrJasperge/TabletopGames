@@ -7,6 +7,7 @@ import core.actions.AbstractAction;
 import core.actions.SetGridValueAction;
 import core.components.Token;
 import games.checkers.CheckersGameState;
+import games.checkers.actions.Move;
 import games.tictactoe.TicTacToeConstants;
 import gui.AbstractGUIManager;
 import gui.GamePanel;
@@ -61,12 +62,18 @@ public class CheckersGUIManager extends AbstractGUIManager {
             if (highlight.size() > 0) {
                 Rectangle r = highlight.get(0);
                 for (AbstractAction abstractAction : actions) {
-                    SetGridValueAction<Token> action = (SetGridValueAction<Token>) abstractAction;
-                    if (action.getX() == r.x/defaultItemSize && action.getY() == r.y/defaultItemSize) {
-                        actionButtons[0].setVisible(true);
-                        actionButtons[0].setButtonAction(action, "Play " + TicTacToeConstants.playerMapping.get(player.getPlayerID()));
-                        break;
+                    if (abstractAction instanceof Move) {
+                        Move action = (Move) abstractAction;
+                        if (action.getToX() == r.x/defaultItemSize && action.getToY() == r.y/defaultItemSize) {
+                            actionButtons[0].setVisible(true);
+                            actionButtons[0].setButtonAction(action, "Play " + TicTacToeConstants.playerMapping.get(player.getPlayerID()));
+                            break;
+                        }
                     }
+//                    SetGridValueAction<Token> action = (SetGridValueAction<Token>) abstractAction;
+//                    if (action.getX() == r.x/defaultItemSize && action.getY() == r.y/defaultItemSize) {
+
+//                    }
                 }
             } else {
                 actionButtons[0].setVisible(false);

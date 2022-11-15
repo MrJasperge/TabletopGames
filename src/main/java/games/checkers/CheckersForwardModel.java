@@ -6,6 +6,8 @@ import core.actions.AbstractAction;
 import core.actions.SetGridValueAction;
 import core.components.GridBoard;
 import core.components.Token;
+import games.checkers.actions.Move;
+import utilities.Pair;
 import utilities.Utils;
 
 import java.lang.reflect.Array;
@@ -47,8 +49,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
     @Override
     protected List<AbstractAction> _computeAvailableActions(AbstractGameState gameState) {
         CheckersGameState chgs = (CheckersGameState) gameState;
-        ArrayList<AbstractAction> action = new ArrayList<>();
-        ArrayList<ArrayList<AbstractAction>> actions = new ArrayList<>();
+        ArrayList<AbstractAction> actions = new ArrayList<>();
         int player = gameState.getTurnOrder().getCurrentPlayer(gameState);
 
         if (gameState.isNotTerminal()){
@@ -77,39 +78,30 @@ public class CheckersForwardModel extends AbstractForwardModel {
             for (IntPair p : pPieces) {
                 if (p.x > 0 && p.y > 0) {   // up left
                     if (chgs.gridBoard.getElement(p.x-1, p.y-1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x - 1, p.y - 1, CheckersConstants.playerMapping.get(player)));
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x, p.y, new Token(CheckersConstants.emptyCell)));
-                        actions.add(action);
+                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x-1, p.y-1), new Pair<Integer,Integer>(p.x, p.y)));
                     }
                 }
 
                 if (p.x < 7 && p.y > 0) {   // up right
                     if (chgs.gridBoard.getElement(p.x+1, p.y-1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x + 1, p.y - 1, CheckersConstants.playerMapping.get(player)));
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x, p.y, new Token(CheckersConstants.emptyCell)));
-                        actions.add(action);
+                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x+1, p.y-1), new Pair<Integer,Integer>(p.x, p.y)));
                     }
                 }
 
                 if (p.x > 0 && p.y < 7) {   // down left
                     if (chgs.gridBoard.getElement(p.x-1, p.y+1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x - 1, p.y + 1, CheckersConstants.playerMapping.get(player)));
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x, p.y, new Token(CheckersConstants.emptyCell)));
-                        actions.add(action);
+                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x-1, p.y+1), new Pair<Integer,Integer>(p.x, p.y)));
                     }
                 }
 
                 if (p.x < 7 && p.y < 7) {   // down right
                     if (chgs.gridBoard.getElement(p.x+1, p.y+1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x + 1, p.y + 1, CheckersConstants.playerMapping.get(player)));
-                        action.add(new SetGridValueAction<>(chgs.gridBoard.getComponentID(), p.x, p.y, new Token(CheckersConstants.emptyCell)));
-                        actions.add(action);
+                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x+1, p.y+1), new Pair<Integer,Integer>(p.x, p.y)));
                     }
                 }
             }
-
         }
-        return action;  // TODO: return actions
+        return actions;  // TODO: return actions
     }
 
 
