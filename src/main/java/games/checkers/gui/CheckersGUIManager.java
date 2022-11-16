@@ -66,7 +66,10 @@ public class CheckersGUIManager extends AbstractGUIManager {
                         Move action = (Move) abstractAction;
                         if (action.getToX() == r.x/defaultItemSize && action.getToY() == r.y/defaultItemSize) {
                             actionButtons[0].setVisible(true);
-                            actionButtons[0].setButtonAction(action, "Play " + TicTacToeConstants.playerMapping.get(player.getPlayerID()));
+                            actionButtons[0].setButtonAction(action, "Play "
+                                    + TicTacToeConstants.playerMapping.get(player.getPlayerID())
+                                    + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
+                                    + action.getToX() + "," + action.getToY() + "]");
                             break;
                         }
                     }

@@ -3,6 +3,7 @@ package games.checkers.actions;
 import core.AbstractGameState;
 import core.actions.AbstractAction;
 import core.actions.SetGridValueAction;
+import core.components.Token;
 import core.interfaces.IPrintable;
 import games.checkers.CheckersConstants;
 import games.checkers.CheckersGameParameters;
@@ -23,9 +24,16 @@ public class Move extends AbstractAction {
 
     @Override
     public boolean execute(AbstractGameState gs) {
+//        System.out.println("Execute ");
+//        System.out.print("([" + getFromX() + "," + getFromY() + "] to ["
+//                + getToX() + "," + getToY() + "])\n");
+
         CheckersGameState chgs = (CheckersGameState) gs;
-        chgs.getGridBoard().getElement(fromCell.a, fromCell.b).setTokenType(CheckersConstants.emptyCell);
-        chgs.getGridBoard().getElement(toCell.a, toCell.b).setTokenType(CheckersConstants.playerMapping.get(playerID).getTokenType());
+
+        chgs.getGridBoard().setElement(getFromX(), getFromY(), new Token(CheckersConstants.emptyCell));
+        chgs.getGridBoard().setElement(getToX(), getToY(),CheckersConstants.playerMapping.get(playerID));
+        chgs.getTurnOrder().endPlayerTurn(chgs);
+
         return true;
     }
 
@@ -35,6 +43,14 @@ public class Move extends AbstractAction {
 
     public int getToY() {
         return toCell.b;
+    }
+
+    public int getFromX() {
+        return fromCell.a;
+    }
+
+    public int getFromY() {
+        return fromCell.b;
     }
 
     @Override

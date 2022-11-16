@@ -19,6 +19,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
     //TODO: implement available actions
 
+    final boolean debug = false;
+
     @Override
     protected void _setup(AbstractGameState firstState) {
         CheckersGameParameters chgp = (CheckersGameParameters) firstState.getGameParameters();
@@ -44,8 +46,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
         }
     }
 
-
-    // TODO: figure out actions return
     @Override
     protected List<AbstractAction> _computeAvailableActions(AbstractGameState gameState) {
         CheckersGameState chgs = (CheckersGameState) gameState;
@@ -64,11 +64,14 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 for (int y = 0; y < chgs.gridBoard.getHeight(); y++) {
                     if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(player))) {
                         pPieces.add(new IntPair(x, y));  // player's pieces
+
                     }
                     if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(1 - player))) {
                         oPieces.add(new IntPair(x, y));  // player's pieces
                     }
                 }
+            if (debug)  System.out.println("Pieces:\n" + pPieces);
+
             // TODO: soft code boundaries
             // TODO: check direction of player
             // TODO: remove piece after move
@@ -78,29 +81,42 @@ public class CheckersForwardModel extends AbstractForwardModel {
             for (IntPair p : pPieces) {
                 if (p.x > 0 && p.y > 0) {   // up left
                     if (chgs.gridBoard.getElement(p.x-1, p.y-1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x-1, p.y-1), new Pair<Integer,Integer>(p.x, p.y)));
+                        actions.add(new Move(player, new Pair<Integer,Integer>(p.x, p.y), new Pair<Integer, Integer>(p.x-1, p.y-1)));
                     }
                 }
 
                 if (p.x < 7 && p.y > 0) {   // up right
                     if (chgs.gridBoard.getElement(p.x+1, p.y-1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x+1, p.y-1), new Pair<Integer,Integer>(p.x, p.y)));
+                        actions.add(new Move(player, new Pair<Integer,Integer>(p.x, p.y), new Pair<Integer, Integer>(p.x+1, p.y-1)));
                     }
                 }
 
                 if (p.x > 0 && p.y < 7) {   // down left
                     if (chgs.gridBoard.getElement(p.x-1, p.y+1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x-1, p.y+1), new Pair<Integer,Integer>(p.x, p.y)));
+                        actions.add(new Move(player, new Pair<Integer,Integer>(p.x, p.y), new Pair<Integer, Integer>(p.x-1, p.y+1)));
                     }
                 }
 
                 if (p.x < 7 && p.y < 7) {   // down right
                     if (chgs.gridBoard.getElement(p.x+1, p.y+1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                        actions.add(new Move(player, new Pair<Integer, Integer>(p.x+1, p.y+1), new Pair<Integer,Integer>(p.x, p.y)));
+                        actions.add(new Move(player, new Pair<Integer,Integer>(p.x, p.y), new Pair<Integer, Integer>(p.x+1, p.y+1)));
                     }
                 }
             }
         }
+        if (debug) {
+            System.out.println("Actions:");
+            for (AbstractAction a : actions) {
+                if (a instanceof Move) {
+                    Move m = (Move) a;
+                    System.out.print("([" + m.getFromX() + "," + m.getFromY() + "] to ["
+                            + m.getToX() + "," + m.getToY() + "]) ");
+                }
+            }
+            System.out.println("");
+        }
+
+        if (actions.size() == 0) actions.add(new Move(player, new Pair<Integer, Integer>(0, 0), new Pair<Integer, Integer>(0, 0)));
         return actions;  // TODO: return actions
     }
 
@@ -121,6 +137,11 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
         // Pairs of Integers
         IntPair(int x, int y) {this.x = x; this.y = y;}
+
+        @Override
+        public String toString() {
+            return "[" + this.x + "," + this.y + "]";
+        }
     }
 
     @Override
@@ -131,13 +152,13 @@ public class CheckersForwardModel extends AbstractForwardModel {
     @Override
     protected void _next(AbstractGameState currentState, AbstractAction action) {
         action.execute(currentState);
-        CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
-        int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
-
-        if (checkGameEnd((CheckersGameState) currentState)) {
-            return;
-        }
-        currentState.getTurnOrder().endPlayerTurn(currentState);
+//        CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
+//        int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
+//
+//        if (checkGameEnd((CheckersGameState) currentState)) {
+//            return;
+//        }
+//        currentState.getTurnOrder().endPlayerTurn(currentState);
     }
 
     private boolean checkGameEnd(CheckersGameState gameState) {
