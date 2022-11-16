@@ -1,13 +1,13 @@
 package games.checkers;
 
-import core.components.Token;
+import games.checkers.components.Piece;
 
 import java.util.ArrayList;
 
 public class CheckersConstants {
-    public static final ArrayList<Token> playerMapping = new ArrayList<Token>() {{
-        add(new Token("x"));    // black piece
-        add(new Token("o"));    // white piece
+    public static final ArrayList<Piece> playerMapping = new ArrayList<Piece>() {{
+        add(new Piece("x"));    // black piece
+        add(new Piece("o"));    // white piece
     }};
 
     public static final String emptyCell = ".";

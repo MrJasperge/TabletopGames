@@ -4,19 +4,18 @@ import core.AbstractGameState;
 import core.AbstractParameters;
 import core.components.Component;
 import core.components.GridBoard;
-import core.components.Token;
 import core.interfaces.IGridGameState;
-import core.interfaces.IStateHeuristic;
 import core.turnorders.AlternatingTurnOrder;
 import games.GameType;
+import games.checkers.components.Piece;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CheckersGameState extends AbstractGameState implements IGridGameState<Token> {
+public class CheckersGameState extends AbstractGameState implements IGridGameState<Piece> {
 
-    GridBoard<Token> gridBoard;
+    GridBoard<Piece> gridBoard;
 
     public CheckersGameState(AbstractParameters gameParameters, int nPlayers) {
         super(gameParameters, new AlternatingTurnOrder(nPlayers), GameType.Checkers);
@@ -77,7 +76,7 @@ public class CheckersGameState extends AbstractGameState implements IGridGameSta
     }
 
     @Override
-    public GridBoard<Token> getGridBoard() {
+    public GridBoard<Piece> getGridBoard() {
         return gridBoard;
     }
 

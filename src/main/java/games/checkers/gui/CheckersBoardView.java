@@ -1,8 +1,8 @@
 package games.checkers.gui;
 
-import core.components.Component;
 import core.components.GridBoard;
 import core.components.Token;
+import games.checkers.components.Piece;
 import gui.ScreenHighlight;
 import gui.views.ComponentView;
 
@@ -18,7 +18,7 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
     Rectangle[] rects;
     ArrayList<Rectangle> highlight;
 
-    public CheckersBoardView(GridBoard<Token> gridBoard) {
+    public CheckersBoardView(GridBoard<Piece> gridBoard) {
         super(gridBoard, gridBoard.getWidth() * defaultItemSize, gridBoard.getHeight() * defaultItemSize);
         rects = new Rectangle[gridBoard.getWidth() * gridBoard.getHeight()];
         highlight = new ArrayList<>();
@@ -45,7 +45,7 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
 
     @Override
     protected void paintComponent(Graphics g) {
-        drawGridBoard((Graphics2D)g, (GridBoard<Token>) component, 0, 0);
+        drawGridBoard((Graphics2D)g, (GridBoard<Piece>) component, 0, 0);
 
         if (highlight.size() > 0) {
             g.setColor(Color.green);
@@ -58,7 +58,7 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
         }
     }
 
-    public void drawGridBoard(Graphics2D g, GridBoard<Token> gridBoard, int x, int y) {
+    public void drawGridBoard(Graphics2D g, GridBoard<Piece> gridBoard, int x, int y) {
         int width = gridBoard.getWidth() * defaultItemSize;
         int height = gridBoard.getHeight() * defaultItemSize;
 
