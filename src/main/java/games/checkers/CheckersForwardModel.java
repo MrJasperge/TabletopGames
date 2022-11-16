@@ -179,7 +179,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
             System.out.println("");
         }
 
-        if (actions.size() == 0) actions.add(new Move(player, new Pair<Integer, Integer>(0, 0), new Pair<Integer, Integer>(0, 0)));
         return actions;  // TODO: return actions
     }
 
@@ -231,13 +230,10 @@ public class CheckersForwardModel extends AbstractForwardModel {
     @Override
     protected void _next(AbstractGameState currentState, AbstractAction action) {
         action.execute(currentState);
-//        CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
-//        int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
-//
-//        if (checkGameEnd((CheckersGameState) currentState)) {
-//            return;
-//        }
-//        currentState.getTurnOrder().endPlayerTurn(currentState);
+        CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
+        int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
+
+        checkGameEnd((CheckersGameState) currentState);
     }
 
     private boolean checkGameEnd(CheckersGameState gameState) {
@@ -252,10 +248,12 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
         if (bPiece == 0) {
             registerWinner(gameState, 0);
+            gameState.setGameStatus(Utils.GameResult.GAME_END);
             return true;
         }
         if (wPiece == 0) {
             registerWinner(gameState, 1);
+            gameState.setGameStatus(Utils.GameResult.GAME_END);
             return true;
         }
         return false;
