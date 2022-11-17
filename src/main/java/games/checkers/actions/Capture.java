@@ -7,19 +7,21 @@ import games.checkers.CheckersGameState;
 import games.checkers.components.Piece;
 import utilities.Pair;
 
+import java.util.ArrayList;
+
 public class Capture extends AbstractAction {
 
     private final int playerID;
     private final Pair<Integer, Integer> fromCell;
     private final Pair<Integer, Integer> toCell;
-    private final Pair<Integer, Integer> capturedCell;
+    private final ArrayList<Pair<Integer, Integer>> capturedCells;
     private final boolean endOfTurn;
 
-    public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, Pair<Integer, Integer> capturedCell, boolean endOfTurn) {
+    public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, ArrayList<Pair<Integer, Integer>> capturedCells, boolean endOfTurn) {
         this.playerID = playerID;
         this.fromCell = fromCell;
         this.toCell = toCell;
-        this.capturedCell = capturedCell;
+        this.capturedCells = capturedCells;
         this.endOfTurn = endOfTurn;
     }
     @Override
@@ -49,12 +51,17 @@ public class Capture extends AbstractAction {
         return toCell.b;
     }
 
+    // TODO: return list of captured cells
+    public ArrayList<Pair<Integer, Integer>> getCapturedCells() {
+        return capturedCells;
+    }
+
     public int getCapturedX() {
-        return capturedCell.a;
+        return 0;
     }
 
     public int getCapturedY() {
-        return capturedCell.b;
+        return 0;
     }
 
     @Override
@@ -67,7 +74,7 @@ public class Capture extends AbstractAction {
         if (this == obj) return true;
         if (!(obj instanceof Capture)) return false;
         Capture capt = (Capture) obj;
-        return playerID == capt.playerID && fromCell == capt.fromCell && toCell == capt.toCell && capturedCell == capt.capturedCell;
+        return playerID == capt.playerID && fromCell == capt.fromCell && toCell == capt.toCell && capturedCells == capt.capturedCells;
     }
 
     @Override

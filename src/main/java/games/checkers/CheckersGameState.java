@@ -8,6 +8,7 @@ import core.interfaces.IGridGameState;
 import core.turnorders.AlternatingTurnOrder;
 import games.GameType;
 import games.checkers.components.Piece;
+import utilities.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,5 +84,11 @@ public class CheckersGameState extends AbstractGameState implements IGridGameSta
     @Override
     public void printToConsole() {
         System.out.println(gridBoard.toString());
+    }
+
+    public class Capture extends games.checkers.actions.Capture {
+        public Capture(int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, ArrayList<Pair<Integer, Integer>> capturedCells, boolean endOfTurn) {
+            super(playerID, fromCell, toCell, capturedCells, endOfTurn);
+        }
     }
 }
