@@ -28,7 +28,9 @@ public class Capture extends AbstractAction {
     public boolean execute(AbstractGameState gs) {
         CheckersGameState chgs = (CheckersGameState) gs;
         chgs.getGridBoard().setElement(getFromX(), getFromY(), new Piece(CheckersConstants.emptyCell));
-        chgs.getGridBoard().setElement(getCapturedX(), getCapturedY(), new Piece(CheckersConstants.emptyCell));
+        for (Pair<Integer, Integer> cell : capturedCells) {
+            chgs.getGridBoard().setElement(cell.a, cell.b, new Piece(CheckersConstants.emptyCell));
+        }
         chgs.getGridBoard().setElement(getToX(), getToY(), CheckersConstants.playerMapping.get(playerID));
 
         if (endOfTurn)  chgs.getTurnOrder().endPlayerTurn(chgs);
