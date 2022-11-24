@@ -18,7 +18,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
     //TODO: implement available actions
 
     final boolean debug = true;
-    private boolean hasRequiredCapture = false;
+    private final boolean hasRequiredCapture = false;
     private ArrayList<AbstractAction> actions;
 
     @Override
@@ -26,7 +26,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
         CheckersGameParameters chgp = (CheckersGameParameters) firstState.getGameParameters();
         int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
         CheckersGameState chgs = (CheckersGameState) firstState;
-        chgs.gridBoard = new GridBoard<>(gridWidth, gridHeight, new Piece(CheckersConstants.emptyCell));
+        chgs.gridBoard = new GridBoard<>(gridWidth, gridHeight, new Piece(CheckersConstants.emptyCell, false));
 
         // TODO: add correct starting positions
 
@@ -65,7 +65,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
             for (int x = 0; x < chgs.gridBoard.getWidth(); x++)
                 for (int y = 0; y < chgs.gridBoard.getHeight(); y++) {
                     if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(player))) {
-                        pPieces.add(new Pair<Integer, Integer>(x, y));  // player's pieces
+                        pPieces.add(new Pair<>(x, y));  // player's pieces
                     }
                 }
 
@@ -101,25 +101,25 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 for (Pair<Integer, Integer> p : pPieces) {
                     if (p.a > 0 && p.b > 0) {   // up left
                         if (chgs.gridBoard.getElement(p.a - 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<Integer, Integer>(p.a, p.b), new Pair<Integer, Integer>(p.a - 1, p.b - 1)));
+                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b - 1)));
                         }
                     }
 
                     if (p.a < 7 && p.b > 0) {   // up right
                         if (chgs.gridBoard.getElement(p.a + 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<Integer, Integer>(p.a, p.b), new Pair<Integer, Integer>(p.a + 1, p.b - 1)));
+                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b - 1)));
                         }
                     }
 
                     if (p.a > 0 && p.b < 7) {   // down left
                         if (chgs.gridBoard.getElement(p.a - 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<Integer, Integer>(p.a, p.b), new Pair<Integer, Integer>(p.a - 1, p.b + 1)));
+                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b + 1)));
                         }
                     }
 
                     if (p.a < 7 && p.b < 7) {   // down right
                         if (chgs.gridBoard.getElement(p.a + 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<Integer, Integer>(p.a, p.b), new Pair<Integer, Integer>(p.a + 1, p.b + 1)));
+                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b + 1)));
                         }
                     }
                 }
@@ -149,10 +149,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
         }
 
         return actions;  // TODO: return actions
-    }
-
-    private ArrayList<Integer> getMoves (CheckersGameState gs, Pair<Integer, Integer> p) {
-        return null;
     }
 
     private ArrayList<Integer> getCaptures (CheckersGameState gs, Pair<Integer, Integer> p) {
@@ -253,9 +249,11 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
             // check if end of turn
             isEndOfTurn = (dir = getCaptures(newGSCopy, q)).isEmpty();
-            if (!dir.isEmpty())
-                System.out.println("Possible capture: " + dir);
-            else System.out.println("No possible capture");
+            if (debug) {
+                if (!dir.isEmpty())
+                    System.out.println("Possible capture: " + dir);
+                else System.out.println("No possible capture");
+            }
             actions.add(new Capture(player, p, q, r, isEndOfTurn));
         }
 

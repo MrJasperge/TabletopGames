@@ -26,7 +26,7 @@ public class CheckersGUIManager extends AbstractGUIManager {
     CheckersBoardView view;
 
     public CheckersGUIManager(GamePanel parent, Game game, ActionController ac) {
-        super(parent, ac, 1);
+        super(parent, ac, 4);
         if (game == null) return;
 
         // Checkers GameState
@@ -57,6 +57,8 @@ public class CheckersGUIManager extends AbstractGUIManager {
             List<core.actions.AbstractAction> actions = player.getForwardModel().computeAvailableActions(gameState);
             ArrayList<Rectangle> highlight = view.getHighlight();
 
+            List<AbstractAction> actionList = new ArrayList<>();
+
             int start = actions.size();
             if (highlight.size() > 0) {
                 Rectangle r = highlight.get(0);
@@ -64,33 +66,49 @@ public class CheckersGUIManager extends AbstractGUIManager {
                     if (abstractAction instanceof Move) {
                         Move action = (Move) abstractAction;
                         if (action.getToX() == r.x/defaultItemSize && action.getToY() == r.y/defaultItemSize) {
-                            actionButtons[0].setVisible(true);
-                            actionButtons[0].setButtonAction(action, "Move "
-                                    + TicTacToeConstants.playerMapping.get(player.getPlayerID())
-                                    + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
-                                    + action.getToX() + "," + action.getToY() + "]");
-                            break;
+                            actionList.add(abstractAction);
+//                            actionButtons[0].setVisible(true);
+//                            actionButtons[0].setButtonAction(action, "Move "
+//                                    + TicTacToeConstants.playerMapping.get(player.getPlayerID())
+//                                    + " from[" + action.getFromX() + "," + action.getFromY() + "] to ["
+//                                    + action.getToX() + "," + action.getToY() + "]");
                         }
                     }
                     if (abstractAction instanceof Capture) {
                         Capture action = (Capture) abstractAction;
                         if (action.getToX() == r.x/defaultItemSize && action.getToY() == r.y/defaultItemSize) {
-                            actionButtons[0].setVisible(true);
-                            actionButtons[0].setButtonAction(action, "Capture "
-                                    + TicTacToeConstants.playerMapping.get(1 - player.getPlayerID())
-                                    + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
-                                    + action.getToX() + "," + action.getToY() + "]");
-                            break;
+                            actionList.add(abstractAction);
+//                            actionButtons[0].setVisible(true);
+//                            actionButtons[0].setButtonAction(action, "Capture "
+//                                    + TicTacToeConstants.playerMapping.get(1 - player.getPlayerID())
+//                                    + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
+//                                    + action.getToX() + "," + action.getToY() + "]");
                         }
                     }
-//                    SetGridValueAction<Token> action = (SetGridValueAction<Token>) abstractAction;
-//                    if (action.getX() == r.x/defaultItemSize && action.getY() == r.y/defaultItemSize) {
-
-//                    }
                 }
-            } else {
-                actionButtons[0].setVisible(false);
-                actionButtons[0].setButtonAction(null, "");
+            }
+            for (int i = 0; i < 4; i++) {
+                actionButtons[i].setVisible(false);
+                actionButtons[i].setButtonAction(null, "");
+            }
+            for (int i = 0; i < actionList.size(); i++) {
+                AbstractAction abstractAction = actionList.get(i);
+                if (abstractAction instanceof Move) {
+                    Move action = (Move) abstractAction;
+                    actionButtons[i].setVisible(true);
+                    actionButtons[i].setButtonAction(action, "Move "
+                            + TicTacToeConstants.playerMapping.get(player.getPlayerID())
+                            + " from[" + action.getFromX() + "," + action.getFromY() + "] to ["
+                            + action.getToX() + "," + action.getToY() + "]");
+                }
+                if (abstractAction instanceof Capture) {
+                    Capture action = (Capture) abstractAction;
+                    actionButtons[i].setVisible(true);
+                    actionButtons[i].setButtonAction(action, "Capture "
+                            + TicTacToeConstants.playerMapping.get(1 - player.getPlayerID())
+                            + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
+                            + action.getToX() + "," + action.getToY() + "]");
+                }
             }
         }
     }
