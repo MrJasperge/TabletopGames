@@ -201,89 +201,62 @@ public class CheckersForwardModel extends AbstractForwardModel {
         // all possible captures path head
         ArrayList<Integer> possibleCaptures = getCaptures(gs, path.peekLast());
 
-        boolean isEndOfTurn = true;
+        boolean isEndOfTurn;
 
         // for every possible capture
         for (int i : possibleCaptures) {
+            // create copy of gamestate
+            CheckersGameState newGSCopy = (CheckersGameState) gs.copy();
+            Pair<Integer, Integer> capCell;
+            // array of captured cells
+            ArrayList<Pair<Integer, Integer>> r = new ArrayList<>();
+            Pair<Integer, Integer> q;
+            Capture newCap;
+            ArrayList<Integer> dir;
             switch (i){
                 case 1:     // up left
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyUL = (CheckersGameState) gs.copy();
                     // captured cell
-                    Pair<Integer, Integer> capCellUL = new Pair<>(p.a-1, p.b-1);
+                    capCell = new Pair<>(p.a-1, p.b-1);
                     // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rUL = new ArrayList<>();
-                    rUL.add(capCellUL);
+                    r.add(capCell);
                     // to cell
-                    Pair<Integer, Integer> qUL = new Pair<>(p.a-2, p.b-2);
-                    // create capture action from p to q capturing r
-                    Capture newCapUL = new Capture(player, p, qUL, rUL,false);
-                    // execute action in copy
-                    newCapUL.execute(newGSCopyUL);
-
-                    // check if end of turn
-                    isEndOfTurn = !getCaptures(newGSCopyUL, p).isEmpty();
-                    actions.add(new Capture(player, p, qUL, rUL, isEndOfTurn));
-
+                    q = new Pair<>(p.a-2, p.b-2);
                     break;
                 case 2:     // up right
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyUR = (CheckersGameState) gs.copy();
                     // captured cell
-                    Pair<Integer, Integer> capCellUR = new Pair<>(p.a+1, p.b-1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rUR = new ArrayList<>();
-                    rUR.add(capCellUR);
+                    capCell = new Pair<>(p.a+1, p.b-1);
+                    r.add(capCell);
                     // to cell
-                    Pair<Integer, Integer> qUR = new Pair<>(p.a+2, p.b-2);
-                    // create capture action from p to q capturing r
-                    Capture newCapUR = new Capture(player, p, qUR, rUR,false);
-                    // execute action in copy
-                    newCapUR.execute(newGSCopyUR);
-
-                    // check if end of turn
-                    isEndOfTurn = !getCaptures(newGSCopyUR, p).isEmpty();
-                    actions.add(new Capture(player, p, qUR, rUR, isEndOfTurn));
+                    q = new Pair<>(p.a+2, p.b-2);
                     break;
                 case 3:     // down left
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyDL = (CheckersGameState) gs.copy();
                     // captured cell
-                    Pair<Integer, Integer> capCellDL = new Pair<>(p.a-1, p.b+1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rDL = new ArrayList<>();
-                    rDL.add(capCellDL);
+                    capCell = new Pair<>(p.a-1, p.b+1);
+                    r.add(capCell);
                     // to cell
-                    Pair<Integer, Integer> qDL = new Pair<>(p.a-2, p.b+2);
-                    // create capture action from p to q capturing r
-                    Capture newCapDL = new Capture(player, p, qDL, rDL,false);
-                    // execute action in copy
-                    newCapDL.execute(newGSCopyDL);
-
-                    // check if end of turn
-                    isEndOfTurn = !getCaptures(newGSCopyDL, p).isEmpty();
-                    actions.add(new Capture(player, p, qDL, rDL, isEndOfTurn));
+                    q = new Pair<>(p.a-2, p.b+2);
                     break;
                 case 4:     // down right
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyDR = (CheckersGameState) gs.copy();
                     // captured cell
-                    Pair<Integer, Integer> capCellDR = new Pair<>(p.a+1, p.b+1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rDR = new ArrayList<>();
-                    rDR.add(capCellDR);
+                    capCell = new Pair<>(p.a+1, p.b+1);
+                    r.add(capCell);
                     // to cell
-                    Pair<Integer, Integer> qDR = new Pair<>(p.a+2, p.b+2);
-                    // create capture action from p to q capturing r
-                    Capture newCapDR = new Capture(player, p, qDR, rDR,false);
-                    // execute action in copy
-                    newCapDR.execute(newGSCopyDR);
-
-                    // check if end of turn
-                    isEndOfTurn = !getCaptures(newGSCopyDR, p).isEmpty();
-                    actions.add(new Capture(player, p, qDR, rDR, isEndOfTurn));
+                    q = new Pair<>(p.a+2, p.b+2);
                     break;
+                default:
+                    q = null;
             }
+            // create capture action from p to q capturing r
+            newCap = new Capture(player, p, q, r,false);
+            // execute action in copy
+            newCap.execute(newGSCopy);
+
+            // check if end of turn
+            isEndOfTurn = (dir = getCaptures(newGSCopy, q)).isEmpty();
+            if (!dir.isEmpty())
+                System.out.println("Possible capture: " + dir);
+            else System.out.println("No possible capture");
+            actions.add(new Capture(player, p, q, r, isEndOfTurn));
         }
 
     }
