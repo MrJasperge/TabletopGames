@@ -38,7 +38,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
                         chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(0));
                     }
                 }
-                if (y > 4) {    // white pieces
+                if (y > (gridHeight - 4)) {    // white pieces
                     if ((x + y) % 2 == 1) {
                         chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
                     }
