@@ -18,13 +18,14 @@ public class CheckersForwardModel extends AbstractForwardModel {
     //TODO: implement available actions
 
     final boolean debug = true;
-    private final boolean hasRequiredCapture = false;
     private ArrayList<AbstractAction> actions;
+    private static int gridWidth, gridHeight;
 
     @Override
     protected void _setup(AbstractGameState firstState) {
         CheckersGameParameters chgp = (CheckersGameParameters) firstState.getGameParameters();
-        int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
+        gridWidth = chgp.gridWidth;
+        gridHeight = chgp.gridHeight;
         CheckersGameState chgs = (CheckersGameState) firstState;
         chgs.gridBoard = new GridBoard<>(gridWidth, gridHeight, new Piece(CheckersConstants.emptyCell, false));
 
@@ -164,21 +165,22 @@ public class CheckersForwardModel extends AbstractForwardModel {
             }
         }
         // up right
-        if (p.a < 6 && p.b > 1) {
+        if (p.a < (gridWidth-2) && p.b > 1) {
             if (gs.gridBoard.getElement(p.a + 1, p.b - 1).equals(CheckersConstants.playerMapping.get(1 - player))
                     && gs.gridBoard.getElement(p.a + 2, p.b - 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(2);
+                System.out.println("up right gridWidth: " + gridWidth);
             }
         }
         // down left
-        if (p.a > 1 && p.b < 6) {
+        if (p.a > 1 && p.b < (gridHeight-2)) {
             if (gs.gridBoard.getElement(p.a - 1, p.b + 1).equals(CheckersConstants.playerMapping.get(1 - player))
                     && gs.gridBoard.getElement(p.a - 2, p.b + 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(3);
             }
         }
         // down right
-        if (p.a < 6 && p.b < 6) {
+        if (p.a < (gridWidth-2) && p.b < (gridHeight-2)) {
             if (gs.gridBoard.getElement(p.a + 1, p.b + 1).equals(CheckersConstants.playerMapping.get(1 - player))
                     && gs.gridBoard.getElement(p.a + 2, p.b + 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(4);
@@ -258,156 +260,157 @@ public class CheckersForwardModel extends AbstractForwardModel {
         }
 
     }
-    private void calculateCapturesRecursive (CheckersGameState prevGSCopy, Deque<Pair<Integer, Integer>> path) {
 
-        if (debug) {
-            System.out.println("\ncalculateCaptures path:");
-            for (Pair<Integer, Integer> p : path) {
-                System.out.print("([" + p.a + "," + p.b + "]) ");
-            }
-            System.out.println("");
-        }
-
-        // player
-        int player = prevGSCopy.getCurrentPlayer();
-        // piece at head of path
-        Pair<Integer, Integer> p = path.peek();
-
-        // all possible captures path head
-        ArrayList<Integer> possibleCaptures = getCaptures(prevGSCopy, path.peekLast());
-
-        // if no available actions
-        if (possibleCaptures.isEmpty()) {
-            // if path is not empty
-            if (path.size() > 2) {
-                Pair<Integer, Integer> fromCell, toCell;
-
-                toCell = path.removeFirst();
-                fromCell = path.removeLast();
-
-                ArrayList<Pair<Integer, Integer>> capturedCells = new ArrayList<>(path);
-
-                // add new Capture action
-                actions.add(new Capture(player, fromCell, toCell, capturedCells, true));
-                System.out.println("capture found");
-            } else {
-                System.out.println("no captures");
-            }
-            return;
-        }
-
-        // for every possible capture
-        for (int i : possibleCaptures) {
-            switch (i){
-                case 1:     // up left
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyUL = (CheckersGameState) prevGSCopy.copy();
-                    // captured cell
-                    Pair<Integer, Integer> capCellUL = new Pair<>(p.a-1, p.b-1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rUL = new ArrayList<>();
-                    rUL.add(capCellUL);
-                    // to cell
-                    Pair<Integer, Integer> qUL = new Pair<>(p.a-2, p.b-2);
-                    // create capture action from p to q capturing r
-                    Capture newCapUL = new Capture(player, p, qUL, rUL,true);
-                    // execute action in copy
-                    newCapUL.execute(newGSCopyUL);
-
-                    // create copy of path
-                    Deque<Pair<Integer, Integer>> qCopyUL = new LinkedList<>(path);
-                    // remove head of queue
-                    qCopyUL.removeFirst();
-                    // add new captured cell to path
-                    qCopyUL.addFirst(capCellUL);
-                    // add new head to queue
-                    qCopyUL.addFirst(qUL);
-                    // recursive call
-                    calculateCaptures(newGSCopyUL, qCopyUL);
-                    break;
-                case 2:     // up right
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyUR = (CheckersGameState) prevGSCopy.copy();
-                    // captured cell
-                    Pair<Integer, Integer> capCellUR = new Pair<>(p.a+1, p.b-1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rUR = new ArrayList<>();
-                    rUR.add(capCellUR);
-                    // to cell
-                    Pair<Integer, Integer> qUR = new Pair<>(p.a+2, p.b-2);
-                    // create capture action from p to q capturing r
-                    Capture newCapUR = new Capture(player, p, qUR, rUR,true);
-                    // execute action in copy
-                    newCapUR.execute(newGSCopyUR);
-
-                    // create copy of path
-                    Deque<Pair<Integer, Integer>> qCopyUR = new LinkedList<>(path);
-                    // remove head of queue
-                    qCopyUR.removeFirst();
-                    // add new captured cell to path
-                    qCopyUR.addFirst(capCellUR);
-                    // add new head to queue
-                    qCopyUR.addFirst(qUR);
-                    // recursive call
-                    calculateCaptures(newGSCopyUR, qCopyUR);
-                    break;
-                case 3:     // down left
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyDL = (CheckersGameState) prevGSCopy.copy();
-                    // captured cell
-                    Pair<Integer, Integer> capCellDL = new Pair<>(p.a-1, p.b+1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rDL = new ArrayList<>();
-                    rDL.add(capCellDL);
-                    // to cell
-                    Pair<Integer, Integer> qDL = new Pair<>(p.a-2, p.b+2);
-                    // create capture action from p to q capturing r
-                    Capture newCapDL = new Capture(player, p, qDL, rDL,true);
-                    // execute action in copy
-                    newCapDL.execute(newGSCopyDL);
-
-                    // create copy of path
-                    Deque<Pair<Integer, Integer>> qCopyDL = new LinkedList<>(path);
-                    // remove head of queue
-                    qCopyDL.removeFirst();
-                    // add new captured cell to path
-                    qCopyDL.addFirst(capCellDL);
-                    // add new head to queue
-                    qCopyDL.addFirst(qDL);
-                    // recursive call
-                    calculateCaptures(newGSCopyDL, qCopyDL);
-                    break;
-                case 4:     // down right
-                    // create copy of gamestate
-                    CheckersGameState newGSCopyDR = (CheckersGameState) prevGSCopy.copy();
-                    // captured cell
-                    Pair<Integer, Integer> capCellDR = new Pair<>(p.a+1, p.b+1);
-                    // array of captured cells
-                    ArrayList<Pair<Integer, Integer>> rDR = new ArrayList<>();
-                    rDR.add(capCellDR);
-                    // to cell
-                    Pair<Integer, Integer> qDR = new Pair<>(p.a+2, p.b+2);
-                    // create capture action from p to q capturing r
-                    Capture newCapDR = new Capture(player, p, qDR, rDR,true);
-                    // execute action in copy
-                    newCapDR.execute(newGSCopyDR);
-
-                    // create copy of path
-                    Deque<Pair<Integer, Integer>> qCopyDR = new LinkedList<>(path);
-                    // remove head of queue
-                    qCopyDR.removeFirst();
-                    // add new captured cell to path
-                    qCopyDR.addFirst(capCellDR);
-                    // add new head to queue
-                    qCopyDR.addFirst(qDR);
-                    // recursive call
-                    calculateCaptures(newGSCopyDR, qCopyDR);
-                    break;
-                default:    // no possible captures, this should not be reached
-                    return;
-            }
-        }
-    }
+//    private void calculateCapturesRecursive (CheckersGameState prevGSCopy, Deque<Pair<Integer, Integer>> path) {
+//
+//        if (debug) {
+//            System.out.println("\ncalculateCaptures path:");
+//            for (Pair<Integer, Integer> p : path) {
+//                System.out.print("([" + p.a + "," + p.b + "]) ");
+//            }
+//            System.out.println("");
+//        }
+//
+//        // player
+//        int player = prevGSCopy.getCurrentPlayer();
+//        // piece at head of path
+//        Pair<Integer, Integer> p = path.peek();
+//
+//        // all possible captures path head
+//        ArrayList<Integer> possibleCaptures = getCaptures(prevGSCopy, path.peekLast());
+//
+//        // if no available actions
+//        if (possibleCaptures.isEmpty()) {
+//            // if path is not empty
+//            if (path.size() > 2) {
+//                Pair<Integer, Integer> fromCell, toCell;
+//
+//                toCell = path.removeFirst();
+//                fromCell = path.removeLast();
+//
+//                ArrayList<Pair<Integer, Integer>> capturedCells = new ArrayList<>(path);
+//
+//                // add new Capture action
+//                actions.add(new Capture(player, fromCell, toCell, capturedCells, true));
+//                System.out.println("capture found");
+//            } else {
+//                System.out.println("no captures");
+//            }
+//            return;
+//        }
+//
+//        // for every possible capture
+//        for (int i : possibleCaptures) {
+//            switch (i){
+//                case 1:     // up left
+//                    // create copy of gamestate
+//                    CheckersGameState newGSCopyUL = (CheckersGameState) prevGSCopy.copy();
+//                    // captured cell
+//                    Pair<Integer, Integer> capCellUL = new Pair<>(p.a-1, p.b-1);
+//                    // array of captured cells
+//                    ArrayList<Pair<Integer, Integer>> rUL = new ArrayList<>();
+//                    rUL.add(capCellUL);
+//                    // to cell
+//                    Pair<Integer, Integer> qUL = new Pair<>(p.a-2, p.b-2);
+//                    // create capture action from p to q capturing r
+//                    Capture newCapUL = new Capture(player, p, qUL, rUL,true);
+//                    // execute action in copy
+//                    newCapUL.execute(newGSCopyUL);
+//
+//                    // create copy of path
+//                    Deque<Pair<Integer, Integer>> qCopyUL = new LinkedList<>(path);
+//                    // remove head of queue
+//                    qCopyUL.removeFirst();
+//                    // add new captured cell to path
+//                    qCopyUL.addFirst(capCellUL);
+//                    // add new head to queue
+//                    qCopyUL.addFirst(qUL);
+//                    // recursive call
+//                    calculateCaptures(newGSCopyUL, qCopyUL);
+//                    break;
+//                case 2:     // up right
+//                    // create copy of gamestate
+//                    CheckersGameState newGSCopyUR = (CheckersGameState) prevGSCopy.copy();
+//                    // captured cell
+//                    Pair<Integer, Integer> capCellUR = new Pair<>(p.a+1, p.b-1);
+//                    // array of captured cells
+//                    ArrayList<Pair<Integer, Integer>> rUR = new ArrayList<>();
+//                    rUR.add(capCellUR);
+//                    // to cell
+//                    Pair<Integer, Integer> qUR = new Pair<>(p.a+2, p.b-2);
+//                    // create capture action from p to q capturing r
+//                    Capture newCapUR = new Capture(player, p, qUR, rUR,true);
+//                    // execute action in copy
+//                    newCapUR.execute(newGSCopyUR);
+//
+//                    // create copy of path
+//                    Deque<Pair<Integer, Integer>> qCopyUR = new LinkedList<>(path);
+//                    // remove head of queue
+//                    qCopyUR.removeFirst();
+//                    // add new captured cell to path
+//                    qCopyUR.addFirst(capCellUR);
+//                    // add new head to queue
+//                    qCopyUR.addFirst(qUR);
+//                    // recursive call
+//                    calculateCaptures(newGSCopyUR, qCopyUR);
+//                    break;
+//                case 3:     // down left
+//                    // create copy of gamestate
+//                    CheckersGameState newGSCopyDL = (CheckersGameState) prevGSCopy.copy();
+//                    // captured cell
+//                    Pair<Integer, Integer> capCellDL = new Pair<>(p.a-1, p.b+1);
+//                    // array of captured cells
+//                    ArrayList<Pair<Integer, Integer>> rDL = new ArrayList<>();
+//                    rDL.add(capCellDL);
+//                    // to cell
+//                    Pair<Integer, Integer> qDL = new Pair<>(p.a-2, p.b+2);
+//                    // create capture action from p to q capturing r
+//                    Capture newCapDL = new Capture(player, p, qDL, rDL,true);
+//                    // execute action in copy
+//                    newCapDL.execute(newGSCopyDL);
+//
+//                    // create copy of path
+//                    Deque<Pair<Integer, Integer>> qCopyDL = new LinkedList<>(path);
+//                    // remove head of queue
+//                    qCopyDL.removeFirst();
+//                    // add new captured cell to path
+//                    qCopyDL.addFirst(capCellDL);
+//                    // add new head to queue
+//                    qCopyDL.addFirst(qDL);
+//                    // recursive call
+//                    calculateCaptures(newGSCopyDL, qCopyDL);
+//                    break;
+//                case 4:     // down right
+//                    // create copy of gamestate
+//                    CheckersGameState newGSCopyDR = (CheckersGameState) prevGSCopy.copy();
+//                    // captured cell
+//                    Pair<Integer, Integer> capCellDR = new Pair<>(p.a+1, p.b+1);
+//                    // array of captured cells
+//                    ArrayList<Pair<Integer, Integer>> rDR = new ArrayList<>();
+//                    rDR.add(capCellDR);
+//                    // to cell
+//                    Pair<Integer, Integer> qDR = new Pair<>(p.a+2, p.b+2);
+//                    // create capture action from p to q capturing r
+//                    Capture newCapDR = new Capture(player, p, qDR, rDR,true);
+//                    // execute action in copy
+//                    newCapDR.execute(newGSCopyDR);
+//
+//                    // create copy of path
+//                    Deque<Pair<Integer, Integer>> qCopyDR = new LinkedList<>(path);
+//                    // remove head of queue
+//                    qCopyDR.removeFirst();
+//                    // add new captured cell to path
+//                    qCopyDR.addFirst(capCellDR);
+//                    // add new head to queue
+//                    qCopyDR.addFirst(qDR);
+//                    // recursive call
+//                    calculateCaptures(newGSCopyDR, qCopyDR);
+//                    break;
+//                default:    // no possible captures, this should not be reached
+//                    return;
+//            }
+//        }
+//    }
 
     @Override
     protected AbstractForwardModel _copy() {
@@ -418,8 +421,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
     protected void _next(AbstractGameState currentState, AbstractAction action) {
         action.execute(currentState);
         CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
-        int gridWidth = chgp.gridWidth, gridHeight = chgp.gridHeight;
-
+        gridWidth = chgp.gridWidth;
+        gridHeight = chgp.gridHeight;
         checkGameEnd((CheckersGameState) currentState);
     }
 
