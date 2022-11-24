@@ -65,7 +65,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
             // get all pieces
             for (int x = 0; x < chgs.gridBoard.getWidth(); x++)
                 for (int y = 0; y < chgs.gridBoard.getHeight(); y++) {
-                    if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(player))) {
+                    if (chgs.gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.playerMapping.get(player).getTokenType())) {
                         pPieces.add(new Pair<>(x, y));  // player's pieces
                     }
                 }
@@ -79,11 +79,11 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 System.out.println("");
             }
 
-            // TODO: soft code boundaries
+            // DONE: soft code boundaries
             // TODO: check direction of player
-            // TODO: remove piece after move
-            // TODO: implement jump over opponent
-            // TODO: implement multi-jumps
+            // DONE: remove piece after move
+            // DONE: implement jump over opponent
+            // DONE: implement multi-jumps
             // TODO: implement king piece
 
 
@@ -100,25 +100,26 @@ public class CheckersForwardModel extends AbstractForwardModel {
             if (actions.isEmpty()) {
                 // calculate available moves
                 for (Pair<Integer, Integer> p : pPieces) {
-                    if (p.a > 0 && p.b > 0) {   // up left
+                    boolean isKing = chgs.gridBoard.getElement(p.a, p.b).isKing();
+                    if ((player == 0 && isKing || player == 1) && (p.a > 0 && p.b > 0)) {   // up left
                         if (chgs.gridBoard.getElement(p.a - 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
                             actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b - 1)));
                         }
                     }
 
-                    if (p.a < 7 && p.b > 0) {   // up right
+                    if ((player == 0 && isKing || player == 1) && (p.a < 7 && p.b > 0)) {   // up right
                         if (chgs.gridBoard.getElement(p.a + 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
                             actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b - 1)));
                         }
                     }
 
-                    if (p.a > 0 && p.b < 7) {   // down left
+                    if ((player == 1 && isKing || player == 0) && (p.a > 0 && p.b < 7)) {   // down left
                         if (chgs.gridBoard.getElement(p.a - 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
                             actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b + 1)));
                         }
                     }
 
-                    if (p.a < 7 && p.b < 7) {   // down right
+                    if ((player == 1 && isKing || player == 0) && (p.a < 7 && p.b < 7)) {   // down right
                         if (chgs.gridBoard.getElement(p.a + 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
                             actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b + 1)));
                         }
@@ -159,14 +160,14 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
         // up left
         if (p.a > 1 && p.b > 1) {
-            if (gs.gridBoard.getElement(p.a - 1, p.b - 1).equals(CheckersConstants.playerMapping.get(1 - player))
+            if (gs.gridBoard.getElement(p.a - 1, p.b - 1).getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())
                     && gs.gridBoard.getElement(p.a - 2, p.b - 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(1);
             }
         }
         // up right
         if (p.a < (gridWidth-2) && p.b > 1) {
-            if (gs.gridBoard.getElement(p.a + 1, p.b - 1).equals(CheckersConstants.playerMapping.get(1 - player))
+            if (gs.gridBoard.getElement(p.a + 1, p.b - 1).getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())
                     && gs.gridBoard.getElement(p.a + 2, p.b - 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(2);
                 System.out.println("up right gridWidth: " + gridWidth);
@@ -174,14 +175,14 @@ public class CheckersForwardModel extends AbstractForwardModel {
         }
         // down left
         if (p.a > 1 && p.b < (gridHeight-2)) {
-            if (gs.gridBoard.getElement(p.a - 1, p.b + 1).equals(CheckersConstants.playerMapping.get(1 - player))
+            if (gs.gridBoard.getElement(p.a - 1, p.b + 1).getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())
                     && gs.gridBoard.getElement(p.a - 2, p.b + 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(3);
             }
         }
         // down right
         if (p.a < (gridWidth-2) && p.b < (gridHeight-2)) {
-            if (gs.gridBoard.getElement(p.a + 1, p.b + 1).equals(CheckersConstants.playerMapping.get(1 - player))
+            if (gs.gridBoard.getElement(p.a + 1, p.b + 1).getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())
                     && gs.gridBoard.getElement(p.a + 2, p.b + 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(4);
             }
@@ -432,8 +433,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
         int bPiece = 0, wPiece = 0;
         for (int x = 0; x < gridBoard.getWidth(); x++)
             for (int y = 0; y < gridBoard.getHeight(); y++) {
-                if (gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(0))) bPiece++;
-                if (gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(1))) wPiece++;
+                if (gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.playerMapping.get(0).getTokenType())) bPiece++;
+                if (gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.playerMapping.get(1).getTokenType())) wPiece++;
             }
 
         if (bPiece == 0) {
