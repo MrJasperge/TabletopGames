@@ -45,7 +45,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 }
             }
         }
-
     }
 
     @Override
@@ -57,7 +56,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
         if (gameState.isNotTerminal()){
 
-            // TODO: compute actual available actions correctly
+            // DONE: compute actual available actions correctly
 
             // all pieces of the player
             ArrayList<Pair<Integer, Integer>> pPieces = new ArrayList<>();
@@ -80,11 +79,12 @@ public class CheckersForwardModel extends AbstractForwardModel {
             }
 
             // DONE: soft code boundaries
-            // TODO: check direction of player
+            // DONE: check direction of player
             // DONE: remove piece after move
             // DONE: implement jump over opponent
             // DONE: implement multi-jumps
-            // TODO: implement king piece
+            // DONE: implement king piece backwards move
+            // TODO: implement king piece unlimited distance move
 
 
             // calculate captures
@@ -150,7 +150,12 @@ public class CheckersForwardModel extends AbstractForwardModel {
             System.out.println("");
         }
 
-        return actions;  // TODO: return actions
+//        if (!actions.isEmpty())
+            return actions;
+
+        // TODO: no available moves, game ends with other player winning
+
+//        return null;
     }
 
     private ArrayList<Integer> getCaptures (CheckersGameState gs, Pair<Integer, Integer> p) {
