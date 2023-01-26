@@ -160,6 +160,51 @@ public class CheckersForwardModel extends AbstractForwardModel {
 //        return null;
     }
 
+    private ArrayList<Capture> getCaptureActions (CheckersGameState gs, Pair<Integer, Integer> p) {
+        ArrayList<Capture> captures = new ArrayList<>();
+
+        int player = gs.getCurrentPlayer();
+        GridBoard<Piece> board = gs.getGridBoard();
+        boolean isKing = board.getElement(p.a, p.b).isKing();
+
+        if(true)
+            System.out.println(": "+p.a +","+p.b);
+
+        // 4 directions
+        for(int i = -1; i <= 1; i+=2) {
+            for(int j = -1; j<=1; j+=2) {
+                int dist = 1;
+
+                // check if inside board area
+                while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
+                    Piece piece = board.getElement(p.a+i*dist, p.b+j*dist);
+
+
+                    // check if own piece
+                    if(piece.getOwnerId() == player) { // TODO: fix deze regel
+                        // stop checking this direction
+                        break;
+                    }
+
+//                    if(piece.getTokenType().equals(CheckersConstants.emptyCell))
+                        // do nothing
+
+                    if(true)
+                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
+
+                    // TODO: verwerken
+
+                    dist++;
+                }
+            }
+        }
+
+        if(debug)
+            System.out.println();
+
+
+        return captures;
+    }
     private ArrayList<Integer> getCaptures (CheckersGameState gs, Pair<Integer, Integer> p) {
         ArrayList<Integer> captures = new ArrayList<>();
         int player = gs.getCurrentPlayer();
@@ -199,6 +244,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
     }
 
     private void calculateCaptures (CheckersGameState gs, Deque<Pair<Integer, Integer>> path) {
+
+        getCaptureActions(gs, path.peekLast());
 
         // player
         int player = gs.getCurrentPlayer();
