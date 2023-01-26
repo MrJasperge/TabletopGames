@@ -17,7 +17,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
     //TODO: implement available actions
 
-    final boolean debug = true;
+    final boolean debug = false;
     private ArrayList<AbstractAction> actions;
     private static int gridWidth, gridHeight;
 
@@ -124,6 +124,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
                             actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b + 1)));
                         }
                     }
+
+
                 }
             }
         }
@@ -175,7 +177,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
             if (gs.gridBoard.getElement(p.a + 1, p.b - 1).getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())
                     && gs.gridBoard.getElement(p.a + 2, p.b - 2).getTokenType().equals(CheckersConstants.emptyCell)) {
                 captures.add(2);
-                System.out.println("up right gridWidth: " + gridWidth);
             }
         }
         // down left
@@ -192,6 +193,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 captures.add(4);
             }
         }
+
+
         return captures;
     }
 
@@ -264,6 +267,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
             }
             actions.add(new Capture(player, p, q, r, isEndOfTurn));
         }
+
 
     }
 
@@ -441,6 +445,13 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 if (gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.playerMapping.get(0).getTokenType())) bPiece++;
                 if (gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.playerMapping.get(1).getTokenType())) wPiece++;
             }
+
+        // check if moves available
+        if (_computeAvailableActions(gameState).isEmpty()) {
+            registerWinner(gameState, 1-gameState.getCurrentPlayer());
+            gameState.setGameStatus(Utils.GameResult.GAME_END);
+            return true;
+        }
 
         if (bPiece == 0) {
             registerWinner(gameState, 0);
