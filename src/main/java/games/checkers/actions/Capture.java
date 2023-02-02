@@ -24,6 +24,14 @@ public class Capture extends AbstractAction {
         this.capturedCells = capturedCells;
         this.endOfTurn = endOfTurn;
     }
+    public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, Pair<Integer, Integer> capturedCell, boolean endOfTurn) {
+        this.playerID = playerID;
+        this.fromCell = fromCell;
+        this.toCell = toCell;
+        this.capturedCells = new ArrayList<>();
+        this.capturedCells.add(capturedCell);
+        this.endOfTurn = endOfTurn;
+    }
     @Override
     public boolean execute(AbstractGameState gs) {
         CheckersGameState chgs = (CheckersGameState) gs;

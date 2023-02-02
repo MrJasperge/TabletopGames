@@ -165,32 +165,58 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
         int player = gs.getCurrentPlayer();
         GridBoard<Piece> board = gs.getGridBoard();
+        Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
         boolean isKing = board.getElement(p.a, p.b).isKing();
 
-        if(true)
+        if (true)
             System.out.println(": "+p.a +","+p.b);
 
         // 4 directions
-        for(int i = -1; i <= 1; i+=2) {
-            for(int j = -1; j<=1; j+=2) {
+        for (int i = -1; i <= 1; i+=2) {
+            for (int j = -1; j<=1; j+=2) {
                 int dist = 1;
+                boolean markCaptured = false;
+                Pair<Integer, Integer> capturedPiece = new Pair<>(0,0);
 
                 // check if inside board area
                 while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
                     Piece piece = board.getElement(p.a+i*dist, p.b+j*dist);
 
+                    if (true)
+                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
 
                     // check if own piece
-                    if(piece.getOwnerId() == player) { // TODO: fix deze regel
+                    if (piece.getTokenType().equals(CheckersConstants.playerMapping.get(player).getTokenType())) {
                         // stop checking this direction
+                        System.out.print("p");
                         break;
                     }
+                    // check if opponent piece
+                    if (piece.getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())) {
+                        if (markCaptured) {
+                            System.out.print("c");
+                            break;
+                        }
+                        System.out.print("O");
+                        capturedPiece = new Pair<>(p.a+i*dist, p.b+j*dist);
+                        markCaptured = true;
+                    }
 
-//                    if(piece.getTokenType().equals(CheckersConstants.emptyCell))
-                        // do nothing
-
-                    if(true)
-                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
+                    // check if empty cell
+                    if (piece.getTokenType().equals(CheckersConstants.emptyCell)) {
+                        // if no king
+                        if (!isKing && !markCaptured) {
+                            System.out.print("nk");
+                            break;
+                        }
+                        // capture action possible
+                        if (markCaptured && (captures.isEmpty() || isKing)) {
+                            System.out.print("C");
+                            Pair<Integer, Integer> endPiece = new Pair<>(p.a + i * dist, p.b + j * dist);
+                            Capture c = new Capture(player, startPiece, endPiece, capturedPiece, true);
+                            captures.add(c);
+                        }
+                    }
 
                     // TODO: verwerken
 
@@ -199,7 +225,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
             }
         }
 
-        if(debug)
+        if(true)
             System.out.println();
 
 
