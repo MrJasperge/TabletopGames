@@ -36,11 +36,13 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 if (y < 3) {    // black pieces
                     if ((x + y) % 2 == 1) {
                         chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(0));
+//                        chgs.gridBoard.getElement(x, y).makeKing();
                     }
                 }
                 if (y > (gridHeight - 4)) {    // white pieces
                     if ((x + y) % 2 == 1) {
                         chgs.gridBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
+//                        chgs.gridBoard.getElement(x, y).makeKing();
                     }
                 }
             }
@@ -85,47 +87,54 @@ public class CheckersForwardModel extends AbstractForwardModel {
             // DONE: implement multi-jumps
             // DONE: implement king piece backwards move
             // TODO: implement king piece unlimited distance move
-
+            // DONE: implement king piece unlimited distance capture
 
             // calculate captures
             for (Pair<Integer, Integer> p : pPieces) {
                 // calculate required captures
-                Deque<Pair<Integer, Integer>> path = new LinkedList<>();
-                path.addFirst(p);
-                path.addFirst(p);
-                calculateCaptures(chgs, path);
+                ArrayList<Capture> captures = getCaptureActions(chgs, p);
+                for (Capture c : captures) {
+                    CheckersGameState gsCopy = (CheckersGameState) chgs.copy();
+                    c.execute(gsCopy);
+                    // check if capture possible after action is executed to determine end of turn
+                    c.setEndOfTurn(getCaptureActions(gsCopy, c.getToCell()).isEmpty());
+                    actions.add(c);
+                }
             }
 
             // if no captures
             if (actions.isEmpty()) {
                 // calculate available moves
                 for (Pair<Integer, Integer> p : pPieces) {
-                    boolean isKing = chgs.gridBoard.getElement(p.a, p.b).isKing();
-                    if ((player == 0 && isKing || player == 1) && (p.a > 0 && p.b > 0)) {   // up left
-                        if (chgs.gridBoard.getElement(p.a - 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b - 1)));
-                        }
+                    ArrayList<Move> moves = getMoveActions(chgs, p);
+                    for (Move m : moves) {
+                        actions.add(m);
                     }
 
-                    if ((player == 0 && isKing || player == 1) && (p.a < 7 && p.b > 0)) {   // up right
-                        if (chgs.gridBoard.getElement(p.a + 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b - 1)));
-                        }
-                    }
-
-                    if ((player == 1 && isKing || player == 0) && (p.a > 0 && p.b < 7)) {   // down left
-                        if (chgs.gridBoard.getElement(p.a - 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b + 1)));
-                        }
-                    }
-
-                    if ((player == 1 && isKing || player == 0) && (p.a < 7 && p.b < 7)) {   // down right
-                        if (chgs.gridBoard.getElement(p.a + 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
-                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b + 1)));
-                        }
-                    }
-
-
+//                    boolean isKing = chgs.gridBoard.getElement(p.a, p.b).isKing();
+//                    if ((player == 0 && isKing || player == 1) && (p.a > 0 && p.b > 0)) {   // up left
+//                        if (chgs.gridBoard.getElement(p.a - 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
+//                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b - 1)));
+//                        }
+//                    }
+//
+//                    if ((player == 0 && isKing || player == 1) && (p.a < 7 && p.b > 0)) {   // up right
+//                        if (chgs.gridBoard.getElement(p.a + 1, p.b - 1).getTokenType().equals(CheckersConstants.emptyCell)) {
+//                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b - 1)));
+//                        }
+//                    }
+//
+//                    if ((player == 1 && isKing || player == 0) && (p.a > 0 && p.b < 7)) {   // down left
+//                        if (chgs.gridBoard.getElement(p.a - 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
+//                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a - 1, p.b + 1)));
+//                        }
+//                    }
+//
+//                    if ((player == 1 && isKing || player == 0) && (p.a < 7 && p.b < 7)) {   // down right
+//                        if (chgs.gridBoard.getElement(p.a + 1, p.b + 1).getTokenType().equals(CheckersConstants.emptyCell)) {
+//                            actions.add(new Move(player, new Pair<>(p.a, p.b), new Pair<>(p.a + 1, p.b + 1)));
+//                        }
+//                    }
                 }
             }
         }
@@ -160,6 +169,40 @@ public class CheckersForwardModel extends AbstractForwardModel {
 //        return null;
     }
 
+    private ArrayList<Move> getMoveActions(CheckersGameState gs, Pair<Integer, Integer> p) {
+        ArrayList<Move> moves = new ArrayList<>();
+
+        int player = gs.getCurrentPlayer();
+        GridBoard<Piece> board = gs.getGridBoard();
+        Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
+        boolean isKing = board.getElement(p.a, p.b).isKing();
+
+        for (int i = -1; i <= 1; i+=2) {
+            for (int j = -1; j <= 1; j += 2) {
+                int dist = 1;
+                while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
+                    int x = p.a+i*dist, y = p.b+j*dist;
+                    Piece piece = board.getElement(x, y);
+
+                    // check if empty cell
+                    if (!piece.getTokenType().equals(CheckersConstants.emptyCell)) {
+                        break;
+                    }
+
+                    // only king can go backwards
+                    if ((p.b < y == (player == 1)) && !isKing)  break;
+
+                    // only one step for regular piece
+                    if (dist == 1 || isKing) {
+                        moves.add(new Move(player, startPiece, new Pair<>(p.a+i*dist, p.b+j*dist)));
+                    }
+                    dist++;
+                }
+            }
+        }
+        return moves;
+    }
+
     private ArrayList<Capture> getCaptureActions (CheckersGameState gs, Pair<Integer, Integer> p) {
         ArrayList<Capture> captures = new ArrayList<>();
 
@@ -168,7 +211,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
         boolean isKing = board.getElement(p.a, p.b).isKing();
 
-        if (true)
+        if (debug)
             System.out.println(": "+p.a +","+p.b);
 
         // 4 directions
@@ -176,28 +219,29 @@ public class CheckersForwardModel extends AbstractForwardModel {
             for (int j = -1; j<=1; j+=2) {
                 int dist = 1;
                 boolean markCaptured = false;
+                boolean markAction = false;
                 Pair<Integer, Integer> capturedPiece = new Pair<>(0,0);
 
                 // check if inside board area
                 while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
                     Piece piece = board.getElement(p.a+i*dist, p.b+j*dist);
 
-                    if (true)
+                    if (debug)
                         System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
 
                     // check if own piece
                     if (piece.getTokenType().equals(CheckersConstants.playerMapping.get(player).getTokenType())) {
                         // stop checking this direction
-                        System.out.print("p");
+                        if (debug)   System.out.print("p");
                         break;
                     }
                     // check if opponent piece
                     if (piece.getTokenType().equals(CheckersConstants.playerMapping.get(1 - player).getTokenType())) {
                         if (markCaptured) {
-                            System.out.print("c");
+                            if (debug)  System.out.print("c");
                             break;
                         }
-                        System.out.print("O");
+                        if (debug)  System.out.print("O");
                         capturedPiece = new Pair<>(p.a+i*dist, p.b+j*dist);
                         markCaptured = true;
                     }
@@ -206,15 +250,16 @@ public class CheckersForwardModel extends AbstractForwardModel {
                     if (piece.getTokenType().equals(CheckersConstants.emptyCell)) {
                         // if no king
                         if (!isKing && !markCaptured) {
-                            System.out.print("nk");
+                            if (debug)  System.out.print("nk");
                             break;
                         }
                         // capture action possible
-                        if (markCaptured && (captures.isEmpty() || isKing)) {
-                            System.out.print("C");
+                        if (markCaptured && (!markAction || isKing)) {
+                            if (debug)  System.out.print("C");
                             Pair<Integer, Integer> endPiece = new Pair<>(p.a + i * dist, p.b + j * dist);
-                            Capture c = new Capture(player, startPiece, endPiece, capturedPiece, true);
+                            Capture c = new Capture(player, startPiece, endPiece, capturedPiece, false);
                             captures.add(c);
+                            markAction = true;
                         }
                     }
 
@@ -225,12 +270,20 @@ public class CheckersForwardModel extends AbstractForwardModel {
             }
         }
 
-        if(true)
+        if (debug)
             System.out.println();
 
-
+        if (debug)  System.out.println(captures.size() + " captures");
         return captures;
     }
+
+    private boolean endOfTurn(CheckersGameState gs, Capture capture) {
+        CheckersGameState gsCopy = (CheckersGameState) gs.copy();
+        capture.execute(gsCopy);
+
+        return false;
+    }
+
     private ArrayList<Integer> getCaptures (CheckersGameState gs, Pair<Integer, Integer> p) {
         ArrayList<Integer> captures = new ArrayList<>();
         int player = gs.getCurrentPlayer();

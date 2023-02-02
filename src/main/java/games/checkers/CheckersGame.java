@@ -27,7 +27,7 @@ public class CheckersGame extends Game {
 
         ArrayList<AbstractPlayer> agents = new ArrayList<>();
         ActionController ac = new ActionController();
-        agents.add(new HumanGUIPlayer(ac));
+        agents.add(new RandomPlayer());
         agents.add(new RandomPlayer());
 
         CheckersGameParameters params = new CheckersGameParameters();
