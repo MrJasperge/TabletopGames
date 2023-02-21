@@ -33,9 +33,17 @@ public class CheckersGame extends Game {
 
         CheckersGameParameters params = new CheckersGameParameters();
         CheckersFileManager chfm = new CheckersFileManager();
-        chfm.CreateFile("test");
-        runOne(GameType.Checkers, null, agents, System.currentTimeMillis() + 1000,
-                false, null, ac, 10);
+
+        System.out.println("CheckersGame: CreateFile");
+        chfm.CreateFile(params.fileName);
+        chfm.WriteHeaders();
+
+        for (int i = 0; i < 1000; i++) {
+            chfm.WriteData(i + ",");
+            runOne(GameType.Checkers, null, agents, System.currentTimeMillis() + 1000,
+                    false, null, null, 0);
+        }
+
 //        Game game = new CheckersGame(agents, params);
 //        game.run();
     }

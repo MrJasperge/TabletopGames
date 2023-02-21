@@ -10,6 +10,7 @@ import games.checkers.components.Piece;
 import utilities.Pair;
 import utilities.Utils;
 
+import java.io.FileWriter;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -17,10 +18,14 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
     final boolean debug = false;
     private static int gridWidth, gridHeight;
+    private CheckersFileManager chfm;
 
     @Override
     protected void _setup(AbstractGameState firstState) {
         CheckersGameParameters chgp = (CheckersGameParameters) firstState.getGameParameters();
+        chfm = new CheckersFileManager();
+//        System.out.println("CheckersForwardModel: CreateFile");
+        chfm.CreateFile(chgp.fileName);
         gridWidth = chgp.gridWidth;
         gridHeight = chgp.gridHeight;
         CheckersGameState chgs = (CheckersGameState) firstState;
@@ -262,14 +267,11 @@ public class CheckersForwardModel extends AbstractForwardModel {
     @Override
     protected void _next(AbstractGameState currentState, AbstractAction action) {
         action.execute(currentState);
+        CheckersGameState chgs = (CheckersGameState) currentState;
         CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
         gridWidth = chgp.gridWidth;
         gridHeight = chgp.gridHeight;
-        if(checkGameEnd((CheckersGameState) currentState)) {
-//            CheckersFileManager chfm = new CheckersFileManager();
-            System.out.println("Game end");
-        }
-//        ((CheckersGameState) currentState).printToConsole();
+        checkGameEnd(chgs);
     }
 
     private boolean checkGameEnd(CheckersGameState gameState) {
@@ -310,6 +312,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
     }
 
     private void registerWinner(CheckersGameState gameState, int winningPlayer) {
+        chfm.WriteData(winningPlayer+"\n");
         gameState.setGameStatus(Utils.GameResult.GAME_END);
         gameState.setPlayerResult(Utils.GameResult.WIN, winningPlayer);
         gameState.setPlayerResult(Utils.GameResult.LOSE, 1 - winningPlayer);

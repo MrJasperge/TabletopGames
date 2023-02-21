@@ -9,6 +9,7 @@ import java.util.Objects;
 public class CheckersGameParameters extends TunableParameters {
 
     public int gridWidth = 8, gridHeight = 8;
+    public String fileName = "test.txt";
 
     public CheckersGameParameters() {
         this(0);
@@ -18,6 +19,7 @@ public class CheckersGameParameters extends TunableParameters {
         super(seed);
         addTunableParameter("gridWidth", 8, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
         addTunableParameter("gridHeight", 8, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
+        addTunableParameter("fileName", fileName);
         _reset();
     }
 
@@ -25,6 +27,7 @@ public class CheckersGameParameters extends TunableParameters {
     public void _reset() {
         gridWidth = (int) getParameterValue("gridWidth");
         gridHeight = (int) getParameterValue("gridHeight");
+        fileName = (String) getParameterValue("fileName");
     }
 
     @Override
@@ -32,6 +35,7 @@ public class CheckersGameParameters extends TunableParameters {
         CheckersGameParameters chgp = new CheckersGameParameters(getRandomSeed());
         chgp.gridWidth = gridWidth;
         chgp.gridHeight = gridHeight;
+        chgp.fileName = fileName;
         return chgp;
     }
 
@@ -41,12 +45,12 @@ public class CheckersGameParameters extends TunableParameters {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         CheckersGameParameters that = (CheckersGameParameters) o;
-        return gridWidth == that.gridWidth && gridHeight == that.gridHeight;
+        return gridWidth == that.gridWidth && gridHeight == that.gridHeight && fileName.equals(that.fileName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), gridWidth, gridHeight);
+        return Objects.hash(super.hashCode(), gridWidth, gridHeight, fileName);
     }
 
     @Override
