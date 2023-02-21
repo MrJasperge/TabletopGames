@@ -25,14 +25,17 @@ public class CheckersGame extends Game {
     public static void main(String[] args) {
 //        boolean useGUI = Utils.getArg(args, "gui", true);
 
+
         ArrayList<AbstractPlayer> agents = new ArrayList<>();
         ActionController ac = new ActionController();
         agents.add(new RandomPlayer());
         agents.add(new RandomPlayer());
 
         CheckersGameParameters params = new CheckersGameParameters();
+        CheckersFileManager chfm = new CheckersFileManager();
+        chfm.CreateFile("test");
         runOne(GameType.Checkers, null, agents, System.currentTimeMillis() + 1000,
-                false, null, ac, 0);
+                false, null, ac, 10);
 //        Game game = new CheckersGame(agents, params);
 //        game.run();
     }
