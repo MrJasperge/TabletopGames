@@ -9,6 +9,7 @@ import players.mcts.MCTSPlayer;
 import players.simple.RandomPlayer;
 import utilities.Utils;
 
+import javax.sound.midi.SysexMessage;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,21 +29,27 @@ public class CheckersGame extends Game {
 
         ArrayList<AbstractPlayer> agents = new ArrayList<>();
         ActionController ac = new ActionController();
-        agents.add(new RandomPlayer());
+        agents.add(new MCTSPlayer());
         agents.add(new RandomPlayer());
 
         CheckersGameParameters params = new CheckersGameParameters();
         CheckersFileManager chfm = new CheckersFileManager();
 
-        System.out.println("CheckersGame: CreateFile");
+//        System.out.println("CheckersGame: CreateFile");
         chfm.CreateFile(params.fileName);
         chfm.WriteHeaders();
 
-        for (int i = 0; i < 1000; i++) {
+//        System.out.print("Executing game: ");
+
+        for (int i = 0; i < 1; i++) {
+//            System.out.print(i + ",");
             chfm.WriteData(i + ",");
+            if (i % 1000 == 0) System.out.println(i);
             runOne(GameType.Checkers, null, agents, System.currentTimeMillis() + 1000,
-                    false, null, null, 0);
+                    false, null, ac, 100);
+            chfm.WriteData("\n");
         }
+//        System.out.print('\n');
 
 //        Game game = new CheckersGame(agents, params);
 //        game.run();

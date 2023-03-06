@@ -9,7 +9,7 @@ import java.util.Objects;
 public class CheckersGameParameters extends TunableParameters {
 
     public int gridWidth = 8, gridHeight = 8;
-    public String fileName = "test.txt";
+    public String fileName = "rnd-rnd-reg.txt";
 
     public CheckersGameParameters() {
         this(0);

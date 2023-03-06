@@ -284,21 +284,25 @@ public class CheckersForwardModel extends AbstractForwardModel {
                 if (gridBoard.getElement(x, y).getTokenType().equals(CheckersConstants.playerMapping.get(1).getTokenType())) wPiece++;
             }
 
-        // check if moves available
-        if (_computeAvailableActions(gameState).isEmpty()) {
-            registerWinner(gameState, 1-gameState.getCurrentPlayer());
-            gameState.setGameStatus(Utils.GameResult.GAME_END);
-            return true;
-        }
+//        System.out.println("bPiece: " + bPiece + ", wPiece: " + wPiece + "\n");
 
-        if (bPiece == 0) {
-            registerWinner(gameState, 0);
-            gameState.setGameStatus(Utils.GameResult.GAME_END);
-            return true;
-        }
+        // first player wins
         if (wPiece == 0) {
             registerWinner(gameState, 1);
-            gameState.setGameStatus(Utils.GameResult.GAME_END);
+            if (chfm != null) chfm.WriteData(Integer.toString(bPiece));
+            return true;
+        }
+        // second player wins
+        if (bPiece == 0) {
+            registerWinner(gameState, 0);
+            if (chfm != null) chfm.WriteData(Integer.toString(wPiece));
+            return true;
+        }
+        // check if draw
+        if (_computeAvailableActions(gameState).isEmpty()) {
+            int winner = 1 - gameState.getCurrentPlayer();
+            registerWinner(gameState, winner);
+            if (chfm != null) chfm.WriteData("0");
             return true;
         }
         return false;
@@ -312,7 +316,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
     }
 
     private void registerWinner(CheckersGameState gameState, int winningPlayer) {
-        chfm.WriteData(winningPlayer+"\n");
+        if (chfm != null) chfm.WriteData(winningPlayer+",");
         gameState.setGameStatus(Utils.GameResult.GAME_END);
         gameState.setPlayerResult(Utils.GameResult.WIN, winningPlayer);
         gameState.setPlayerResult(Utils.GameResult.LOSE, 1 - winningPlayer);
