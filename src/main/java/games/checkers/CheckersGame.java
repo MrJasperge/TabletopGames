@@ -29,8 +29,8 @@ public class CheckersGame extends Game {
 
         ArrayList<AbstractPlayer> agents = new ArrayList<>();
         ActionController ac = new ActionController();
-        agents.add(new MCTSPlayer());
         agents.add(new RandomPlayer());
+        agents.add(new MCTSPlayer());
 
         CheckersGameParameters params = new CheckersGameParameters();
         CheckersFileManager chfm = new CheckersFileManager();
@@ -39,14 +39,14 @@ public class CheckersGame extends Game {
         chfm.CreateFile(params.fileName);
         chfm.WriteHeaders();
 
-//        System.out.print("Executing game: ");
+        System.out.print("Executing game: ");
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 100; i++) {
 //            System.out.print(i + ",");
             chfm.WriteData(i + ",");
-            if (i % 1000 == 0) System.out.println(i);
+            if (i % 10 == 9) System.out.println(i+1);
             runOne(GameType.Checkers, null, agents, System.currentTimeMillis() + 1000,
-                    false, null, ac, 100);
+                    false, null, null, 0);
             chfm.WriteData("\n");
         }
 //        System.out.print('\n');
