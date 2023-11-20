@@ -10,15 +10,15 @@ import games.checkers.components.Piece;
 import utilities.Pair;
 import utilities.Utils;
 
-import java.io.FileWriter;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class CheckersForwardModel extends AbstractForwardModel {
 
-    final boolean debug = false;
+    final boolean debug = true;
     private static int gridWidth, gridHeight;
     private CheckersFileManager chfm;
+    private int moves = 0;
+    public ArrayList<AbstractAction> prevActions;
 
     @Override
     protected void _setup(AbstractGameState firstState) {
@@ -28,6 +28,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
         chfm.CreateFile(chgp.fileName);
         gridWidth = chgp.gridWidth;
         gridHeight = chgp.gridHeight;
+        prevActions = new ArrayList<>();
         CheckersGameState chgs = (CheckersGameState) firstState;
         chgs.gridBoard = new GridBoard<>(gridWidth, gridHeight, new Piece(CheckersConstants.emptyCell, false));
 
@@ -136,6 +137,8 @@ public class CheckersForwardModel extends AbstractForwardModel {
             System.out.println("");
         }
 
+        prevActions = actions;
+
 //        if (!actions.isEmpty())
             return actions;
 
@@ -237,9 +240,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
                             markAction = true;
                         }
                     }
-
-                    // TODO: verwerken
-
                     dist++;
                 }
             }
@@ -252,13 +252,6 @@ public class CheckersForwardModel extends AbstractForwardModel {
         return captures;
     }
 
-    private boolean endOfTurn(CheckersGameState gs, Capture capture) {
-        CheckersGameState gsCopy = (CheckersGameState) gs.copy();
-        capture.execute(gsCopy);
-
-        return false;
-    }
-
     @Override
     protected AbstractForwardModel _copy() {
         return new CheckersForwardModel();
@@ -266,6 +259,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
     @Override
     protected void _next(AbstractGameState currentState, AbstractAction action) {
+        moves++;
         action.execute(currentState);
         CheckersGameState chgs = (CheckersGameState) currentState;
         CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
@@ -274,7 +268,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
         checkGameEnd(chgs);
     }
 
-    private boolean checkGameEnd(CheckersGameState gameState) {
+    private void checkGameEnd(CheckersGameState gameState) {
         GridBoard<Piece> gridBoard = gameState.getGridBoard();
         // count number of pieces
         int bPiece = 0, wPiece = 0;
@@ -289,23 +283,21 @@ public class CheckersForwardModel extends AbstractForwardModel {
         // first player wins
         if (wPiece == 0) {
             registerWinner(gameState, 1);
-            if (chfm != null) chfm.WriteData(Integer.toString(bPiece));
-            return true;
+            if (chfm != null) chfm.WriteData(Integer.toString(bPiece) + "," + moves);
+            return;
         }
         // second player wins
         if (bPiece == 0) {
             registerWinner(gameState, 0);
-            if (chfm != null) chfm.WriteData(Integer.toString(wPiece));
-            return true;
+            if (chfm != null) chfm.WriteData(Integer.toString(wPiece) + "," + moves);
+            return;
         }
         // check if draw
         if (_computeAvailableActions(gameState).isEmpty()) {
             int winner = 1 - gameState.getCurrentPlayer();
             registerWinner(gameState, winner);
-            if (chfm != null) chfm.WriteData("0");
-            return true;
+            if (chfm != null) chfm.WriteData("0,"  + moves);
         }
-        return false;
     }
 
     @Override

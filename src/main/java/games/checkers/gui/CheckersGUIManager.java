@@ -11,6 +11,7 @@ import games.tictactoe.TicTacToeConstants;
 import gui.AbstractGUIManager;
 import gui.GamePanel;
 import gui.ScreenHighlight;
+
 import players.human.ActionController;
 import utilities.Utils;
 
@@ -56,6 +57,9 @@ public class CheckersGUIManager extends AbstractGUIManager {
         if (gameState.getGameStatus() == Utils.GameResult.GAME_ONGOING) {
             List<core.actions.AbstractAction> actions = player.getForwardModel().computeAvailableActions(gameState);
             ArrayList<Rectangle> highlight = view.getHighlight();
+
+            view.setActions(actions);
+            ArrayList<Rectangle> moveHighlight = view.getMoveHighlight();
 
             List<AbstractAction> actionList = new ArrayList<>();
 

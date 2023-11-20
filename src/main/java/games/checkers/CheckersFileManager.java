@@ -40,7 +40,7 @@ public class CheckersFileManager {
         }
 
         try {
-            writer.write("Game #,Winner\n");
+            writer.write("Game,Winner,Checkers left,Moves\n");
             writer.close();
         } catch (IOException e) {
             System.out.println("WriteHeaders(): Writer error");

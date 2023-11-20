@@ -1,8 +1,12 @@
 package games.checkers.gui;
 
+import core.actions.AbstractAction;
 import core.components.GridBoard;
 import core.components.Token;
+import games.checkers.actions.Capture;
+import games.checkers.actions.Move;
 import games.checkers.components.Piece;
+import games.checkers.CheckersForwardModel;
 import gui.ScreenHighlight;
 import gui.views.ComponentView;
 
@@ -10,6 +14,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.List;
 
 import static gui.GUI.defaultItemSize;
 
@@ -17,11 +22,17 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
 
     Rectangle[] rects;
     ArrayList<Rectangle> highlight;
+    ArrayList<Rectangle> moveHighlight;
+    ArrayList<Rectangle> captureHighlight;
+    List<AbstractAction> actions;
+
 
     public CheckersBoardView(GridBoard<Piece> gridBoard) {
         super(gridBoard, gridBoard.getWidth() * defaultItemSize, gridBoard.getHeight() * defaultItemSize);
         rects = new Rectangle[gridBoard.getWidth() * gridBoard.getHeight()];
         highlight = new ArrayList<>();
+        moveHighlight = new ArrayList<>();
+        captureHighlight = new ArrayList<>();
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -55,6 +66,27 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
             Rectangle r = highlight.get(0);
             g.drawRect(r.x, r.y, r.width, r.height);
             ((Graphics2D) g).setStroke(s);
+        }
+
+        if (moveHighlight.size() > 0) {
+            g.setColor(Color.yellow);
+            Stroke s = ((Graphics2D) g).getStroke();
+            ((Graphics2D) g).setStroke(new BasicStroke(3));
+
+            for (Rectangle r : moveHighlight) {
+                g.drawRect(r.x, r.y, r.width, r.height);
+                ((Graphics2D) g).setStroke(s);
+            }
+        }
+        if (captureHighlight.size() > 0) {
+            g.setColor(Color.red);
+            Stroke s = ((Graphics2D) g).getStroke();
+            ((Graphics2D) g).setStroke(new BasicStroke(3));
+
+            for (Rectangle r : captureHighlight) {
+                g.drawRect(r.x, r.y, r.width, r.height);
+                ((Graphics2D) g).setStroke(s);
+            }
         }
     }
 
@@ -99,8 +131,37 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
         }
     }
 
+    public void setActions(List<AbstractAction> a) {
+        actions = a;
+        moveHighlight.clear();
+        captureHighlight.clear();
+        for (AbstractAction abAction : actions) {
+            if (abAction instanceof Move) {
+                Move action = (Move) abAction;
+                Rectangle r = new Rectangle();
+                r.x = action.getToX() * defaultItemSize;
+                r.y = action.getToY() * defaultItemSize;
+                r.height = defaultItemSize; r.width = defaultItemSize;
+
+                moveHighlight.add(r);
+            }
+            if (abAction instanceof Capture) {
+                Capture action = (Capture) abAction;
+                Rectangle r = new Rectangle();
+                r.x = action.getToX() * defaultItemSize;
+                r.y = action.getToY() * defaultItemSize;
+                r.height = defaultItemSize; r.width = defaultItemSize;
+
+                captureHighlight.add(r);
+            }
+        }
+    }
+
     public ArrayList<Rectangle> getHighlight() {
         return highlight;
+    }
+    public ArrayList<Rectangle> getMoveHighlight() {
+        return moveHighlight;
     }
 
     @Override
