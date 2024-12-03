@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class CheckersGameParameters extends TunableParameters {
 
-    public int gridWidth = 8, gridHeight = 8;
+    public int gridWidth = 10, gridHeight = 10;
     public String fileName = "rnd-rnd.txt";
 
     public CheckersGameParameters() {
@@ -17,8 +17,8 @@ public class CheckersGameParameters extends TunableParameters {
 
     public CheckersGameParameters(long seed) {
         super(seed);
-        addTunableParameter("gridWidth", 8, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
-        addTunableParameter("gridHeight", 8, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
+        addTunableParameter("gridWidth", 10, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
+        addTunableParameter("gridHeight", 10, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
         addTunableParameter("fileName", fileName);
         _reset();
     }

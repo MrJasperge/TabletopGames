@@ -224,7 +224,7 @@ public class CheckersForwardModel extends AbstractForwardModel {
                         markCaptured = true;
                     }
 
-                    // check if empty cell
+                    // check if empty square
                     if (piece.getTokenType().equals(CheckersConstants.emptyCell)) {
                         // if no king
                         if (!isKing && !markCaptured) {

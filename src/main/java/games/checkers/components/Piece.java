@@ -5,6 +5,8 @@ import utilities.Pair;
 
 public class Piece extends Token {
 
+    private boolean canCaptureBackwards;
+    private boolean canJumpAsKing;
     private boolean bKing;
     private Pair<Integer, Integer> currentPosition;
 

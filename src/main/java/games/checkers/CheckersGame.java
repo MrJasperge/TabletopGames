@@ -24,12 +24,12 @@ public class CheckersGame extends Game {
     }
 
     public static void main(String[] args) {
-//        boolean useGUI = Utils.getArg(args, "gui", true);
+        boolean useGUI = Utils.getArg(args, "gui", false);
 
 
         ArrayList<AbstractPlayer> agents = new ArrayList<>();
         ActionController ac = new ActionController();
-        agents.add(new HumanGUIPlayer(ac));
+        agents.add(new RandomPlayer());
         agents.add(new RandomPlayer());
 
 
