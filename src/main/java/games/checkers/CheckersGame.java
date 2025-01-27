@@ -23,6 +23,11 @@ public class CheckersGame extends Game {
         super(GameType.Checkers, agents, new CheckersForwardModel(), new CheckersGameState(params, agents.size()));
     }
 
+
+    public void experiment() {
+        
+    }
+
     public static void main(String[] args) {
         boolean useGUI = Utils.getArg(args, "gui", false);
 
