@@ -14,7 +14,7 @@ import java.util.*;
 
 public class CheckersForwardModel extends AbstractForwardModel {
 
-    final boolean debug = true;
+    final boolean debug = false;
     private static int gridWidth, gridHeight;
     private CheckersFileManager chfm;
     private int moves = 0;
@@ -280,23 +280,27 @@ public class CheckersForwardModel extends AbstractForwardModel {
 
 //        System.out.println("bPiece: " + bPiece + ", wPiece: " + wPiece + "\n");
 
-        // first player wins
+        // black "X" player wins
         if (wPiece == 0) {
             registerWinner(gameState, 1);
-            if (chfm != null) chfm.WriteData(Integer.toString(bPiece) + "," + moves);
+            if (chfm != null)
+                chfm.WriteData(Integer.toString(bPiece) + "," + moves + '\n'); // number of pieces and moves
+//            System.out.println("1," + bPiece + "," + moves);
             return;
         }
-        // second player wins
+        // white "O" player wins
         if (bPiece == 0) {
             registerWinner(gameState, 0);
-            if (chfm != null) chfm.WriteData(Integer.toString(wPiece) + "," + moves);
+            if (chfm != null)
+                chfm.WriteData(Integer.toString(wPiece) + "," + moves + '\n');
+//            System.out.println("0," + wPiece + "," + moves);
             return;
         }
         // check if draw
         if (_computeAvailableActions(gameState).isEmpty()) {
             int winner = 1 - gameState.getCurrentPlayer();
             registerWinner(gameState, winner);
-            if (chfm != null) chfm.WriteData("0,"  + moves);
+            if (chfm != null) chfm.WriteData(Integer.toString(bPiece + wPiece) + "," + moves + '\n');
         }
     }
 

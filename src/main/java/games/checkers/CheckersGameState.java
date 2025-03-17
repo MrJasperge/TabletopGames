@@ -91,4 +91,9 @@ public class CheckersGameState extends AbstractGameState implements IGridGameSta
             super(playerID, fromCell, toCell, capturedCells, endOfTurn);
         }
     }
+
+    public int getNumberOfPieces(int player) {
+
+        return 0;
+    }
 }

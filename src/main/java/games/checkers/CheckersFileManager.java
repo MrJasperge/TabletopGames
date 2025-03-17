@@ -33,14 +33,14 @@ public class CheckersFileManager {
         FileWriter writer;
 
         try {
-            writer = new FileWriter(fObj);
+            writer = new FileWriter(fObj, true);
         } catch (IOException e) {
             System.out.println("WriteHeaders(): FileWriter error");
             return false;
         }
 
         try {
-            writer.write("Game,Winner,Checkers left,Moves\n");
+            writer.write("Winner,Checkers_left,Moves\n");
             writer.close();
         } catch (IOException e) {
             System.out.println("WriteHeaders(): Writer error");
