@@ -302,7 +302,11 @@ public enum GameType {
     Saboteur(3, 10,
             Arrays.asList(Strategy, Abstract),
             Arrays.asList(TakeThat, VariablePlayerPowers),
-            SaboteurGameState.class, SaboteurForwardModel.class, SaboteurGameParameters.class, SaboteurGUIManager.class);
+            SaboteurGameState.class, SaboteurForwardModel.class, SaboteurGameParameters.class, SaboteurGUIManager.class),
+    Checkers(2, 2,
+            Arrays.asList(Abstract, Strategy),
+            Arrays.asList(TakeThat),
+            CheckersGameState.class, CheckersForwardModel.class, CheckersParameters.class, CheckersGUIManager.class);
 
     // Core classes where the game is defined
     final Class<? extends AbstractGameState> gameStateClass;
