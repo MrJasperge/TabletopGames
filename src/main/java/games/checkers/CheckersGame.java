@@ -5,7 +5,11 @@ import core.Game;
 import games.GameType;
 import players.human.ActionController;
 import players.human.HumanGUIPlayer;
+import players.mcts.MCTSEnums;
+import players.mcts.MCTSParams;
 import players.mcts.MCTSPlayer;
+import players.rhea.RHEAPlayer;
+import players.simple.OSLAPlayer;
 import players.simple.RandomPlayer;
 import utilities.Utils;
 
@@ -42,8 +46,12 @@ public class CheckersGame extends Game {
 
         ArrayList<AbstractPlayer> agents = new ArrayList<>();
         ActionController ac = new ActionController();
-        agents.add(new MCTSPlayer());
         agents.add(new RandomPlayer());
+
+        // MCTS
+        MCTSParams mctsParams = new MCTSParams();
+        mctsParams.rolloutType = MCTSEnums.Strategies.RANDOM;
+        agents.add(new MCTSPlayer(mctsParams));
 
 
         CheckersGameParameters params = new CheckersGameParameters();
@@ -54,14 +62,15 @@ public class CheckersGame extends Game {
 //        chfm.WriteData("RandomPlayer,RandomPlayer\n");
         chfm.WriteHeaders();
 
-        for (int i = 0; i < 900; i++) {
-            System.out.print(i + "\n");
+        for (int i = 0; i < 1; i++) {
+//            System.out.print(i + "\n");
 //            chfm.WriteData(i + ",");
 //            if (i % 10 == 9) System.out.println(i+1);
             runOne(GameType.Checkers, null, agents, System.currentTimeMillis() + 1000,
                     false, null, null, 0);
 //            chfm.WriteData("\n");
         }
+
 
 //        System.out.print('\n');
 

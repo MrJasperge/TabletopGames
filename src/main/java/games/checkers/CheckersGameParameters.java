@@ -8,9 +8,10 @@ import java.util.Objects;
 
 public class CheckersGameParameters extends TunableParameters {
 
-    public int gridWidth = 10, gridHeight = 10;
+    public int gridWidth = 10;
+    public int gridHeight = 10;
 
-    public String fileName = "experiments/test4.csv";
+    public String fileName = "experiments/test6.csv";
     public CheckersGameParameters() {
         this(0);
     }
