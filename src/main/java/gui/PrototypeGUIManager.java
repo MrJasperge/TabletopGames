@@ -2,6 +2,7 @@ package gui;
 
 import core.AbstractGameState;
 import core.AbstractPlayer;
+import core.Game;
 import core.components.Component;
 import core.components.Deck;
 import games.GameType;
@@ -13,6 +14,7 @@ import players.human.HumanGUIPlayer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Set;
 
 public class PrototypeGUIManager extends AbstractGUIManager {
     JComponent view;
@@ -21,26 +23,26 @@ public class PrototypeGUIManager extends AbstractGUIManager {
     protected ComponentView[] componentViews;
     protected int maxComponentsInDeck = 100;
 
-    public PrototypeGUIManager(GamePanel parent, GameType game, AbstractGameState gameState, ActionController ac, int maxActionSpace) {
-        this(parent, game, gameState, ac, maxActionSpace, defaultDisplayWidth, defaultDisplayHeight);
+    public PrototypeGUIManager(GamePanel parent, GameType gameType, Game game, ActionController ac, Set<Integer> humanId, int maxActionSpace) {
+        this(parent, gameType, game, ac, humanId, maxActionSpace, defaultDisplayWidth, defaultDisplayHeight);
     }
 
-    public PrototypeGUIManager(GamePanel parent, GameType game, AbstractGameState gameState, ActionController ac, int maxActionSpace,
+    public PrototypeGUIManager(GamePanel parent, GameType gameType, Game game, ActionController ac, Set<Integer> humanId, int maxActionSpace,
                                int displayWidth, int displayHeight) {
-        super(parent, ac, maxActionSpace);
+        super(parent, game, ac, humanId);
         this.width = displayWidth;
         this.height = displayHeight;
 
-        if (gameState != null) {
-            view = new AreaView(gameState.getAllComponents(), width, height);
+        if (game != null) {
+            view = new AreaView(game.getGameState(), game.getGameState().getAllComponents(), width, height);
         } else {
             view = new JPanel();
         }
         JPanel infoPanel = new JPanel();
-        if (game != null && gameState != null) {
-            infoPanel = createGameStateInfoPanel(game.name(), gameState, width, defaultInfoPanelHeight);
+        if (game != null) {
+            infoPanel = createGameStateInfoPanel(gameType.name(), game.getGameState(), width, defaultInfoPanelHeight);
         }
-        JComponent actionPanel = createActionPanel(new ScreenHighlight[0], width, defaultActionPanelHeight, true);
+        JComponent actionPanel = createActionPanelOpaque(new IScreenHighlight[0], width, defaultActionPanelHeight, true);
 
         JPanel deckView = new JPanel();
         componentViews = new ComponentView[maxComponentsInDeck];
@@ -87,12 +89,17 @@ public class PrototypeGUIManager extends AbstractGUIManager {
     }
 
     @Override
+    public int getMaxActionSpace() {
+        return 0;
+    }
+
+    @Override
     protected void _update(AbstractPlayer player, AbstractGameState gameState) {
         if (gameState != null) {
             if (view instanceof AreaView) {
                 ((AreaView) view).updateComponent(gameState.getAllComponents());
             } else {
-                view = new AreaView(gameState.getAllComponents(), width, height);
+                view = new AreaView(game.getGameState(), gameState.getAllComponents(), width, height);
             }
             if (player instanceof HumanGUIPlayer) {
                 updateActionButtons(player, gameState);

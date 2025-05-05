@@ -1,16 +1,39 @@
 package core;
 
 import core.actions.AbstractAction;
+import core.actions.ActionSpace;
+import core.actions.DoNothing;
+import core.interfaces.IPlayerDecorator;
+import utilities.ActionTreeNode;
 import utilities.ElapsedCpuChessTimer;
-import utilities.Utils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static core.CoreConstants.GameResult.*;
 
 public abstract class AbstractForwardModel {
 
+    public ActionTreeNode root;
+    public List<ActionTreeNode> leaves;
+
+    // Decorator modify (restrict) the actions available to the player.
+    // This enables the Forward Model to be passed to the decision algorithm (e.g. MCTS), and ensure that any
+    // restrictions are applied to the actions available to the player during search, and not just
+    // in the main game loop.
+    protected List<IPlayerDecorator> decorators;
+    protected int decisionPlayerID;
+
     /* Limited access/Final methods */
+
+    public AbstractForwardModel() {
+        this(new ArrayList<>(), -1);
+    }
+
+    public AbstractForwardModel(List<IPlayerDecorator> decorators, int playerID) {
+        this.decorators = new ArrayList<>(decorators);
+        this.decisionPlayerID = playerID;
+    }
 
     /**
      * Combines both super class and sub class setup methods. Called from the game loop.
@@ -18,10 +41,10 @@ public abstract class AbstractForwardModel {
      * @param firstState - initial state.
      */
     protected void abstractSetup(AbstractGameState firstState) {
-        firstState.gameStatus = Utils.GameResult.GAME_ONGOING;
-        firstState.playerResults = new Utils.GameResult[firstState.getNPlayers()];
-        Arrays.fill(firstState.playerResults, Utils.GameResult.GAME_ONGOING);
-        firstState.gamePhase = AbstractGameState.DefaultGamePhase.Main;
+        firstState.gameStatus = CoreConstants.GameResult.GAME_ONGOING;
+        firstState.playerResults = new CoreConstants.GameResult[firstState.getNPlayers()];
+        Arrays.fill(firstState.playerResults, CoreConstants.GameResult.GAME_ONGOING);
+        firstState.gamePhase = CoreConstants.DefaultGamePhase.Main;
         firstState.playerTimer = new ElapsedCpuChessTimer[firstState.getNPlayers()];
         for (int i = 0; i < firstState.getNPlayers(); i++) {
             firstState.playerTimer[i] = new ElapsedCpuChessTimer(firstState.gameParameters.thinkingTimeMins,
@@ -66,19 +89,11 @@ public abstract class AbstractForwardModel {
      */
     protected abstract List<AbstractAction> _computeAvailableActions(AbstractGameState gameState);
 
-    /**
-     * Gets a copy of the FM with a new random number generator.
-     *
-     * @return - new forward model with different random seed (keeping logic).
-     */
-    protected abstract AbstractForwardModel _copy();
-
-    /**
-     * Performs any end of game computations, as needed. Not necessary to be implemented in the subclass, but can be.
-     * The last thing to be called in the game loop, after the game is finished.
-     */
-    protected void endGame(AbstractGameState gameState) {
+    protected List<AbstractAction> _computeAvailableActions(AbstractGameState gameState, ActionSpace actionSpace) {
+        return _computeAvailableActions(gameState);
     }
+
+    protected abstract void endPlayerTurn(AbstractGameState state);
 
     /**
      * Current player tried to play an illegal action.
@@ -96,14 +111,16 @@ public abstract class AbstractForwardModel {
      * @param flag - boolean to check if player should be disqualified, or random action should be played
      * @param gameState - current game state
      */
-    protected final void disqualifyOrRandomAction(boolean flag, AbstractGameState gameState) {
+    protected final AbstractAction disqualifyOrRandomAction(boolean flag, AbstractGameState gameState) {
         if (flag) {
-            gameState.setPlayerResult(Utils.GameResult.DISQUALIFY, gameState.getCurrentPlayer());
-            gameState.turnOrder.endPlayerTurn(gameState);
+            gameState.setPlayerResult(CoreConstants.GameResult.DISQUALIFY, gameState.getCurrentPlayer());
+            endPlayerTurn(gameState);
+            return new DoNothing();
         } else {
             List<AbstractAction> possibleActions = computeAvailableActions(gameState);
             int randomAction = new Random(gameState.getGameParameters().getRandomSeed()).nextInt(possibleActions.size());
             next(gameState, possibleActions.get(randomAction));
+            return possibleActions.get(randomAction);
         }
     }
 
@@ -127,20 +144,16 @@ public abstract class AbstractForwardModel {
      */
     public final void next(AbstractGameState currentState, AbstractAction action) {
         if (action != null) {
-            if (currentState.isActionInProgress()) {
-                // we register the action with the currently active ActionSequence
-                currentState.currentActionInProgress().registerActionTaken(currentState, action);
-            }
+            int player = currentState.getCurrentPlayer();
+            currentState.recordAction(action, player);
             _next(currentState, action);
-            currentState.recordAction(action);
         } else {
             if (currentState.coreGameParameters.verbose) {
                 System.out.println("Invalid action.");
             }
             illegalActionPlayed(currentState, action);
         }
-
-        currentState.checkActionsInProgress();
+        currentState.advanceGameTick();
     }
 
     /**
@@ -150,19 +163,57 @@ public abstract class AbstractForwardModel {
      * @return - the list of actions available.
      */
     public final List<AbstractAction> computeAvailableActions(AbstractGameState gameState) {
+        return computeAvailableActions(gameState, gameState.coreGameParameters.actionSpace);
+    }
+
+    public final List<AbstractAction> computeAvailableActions(AbstractGameState gameState, ActionSpace actionSpace) {
         // If there is an action in progress (see IExtendedSequence), then delegate to that
+        List<AbstractAction> retValue;
         if (gameState.isActionInProgress()) {
-            return gameState.actionsInProgress.peek()._computeAvailableActions(gameState);
+            retValue = gameState.actionsInProgress.peek()._computeAvailableActions(gameState, actionSpace);
+        } else if (actionSpace != null && !actionSpace.isDefault()) {
+            retValue = _computeAvailableActions(gameState, actionSpace);
+        } else {
+            retValue = _computeAvailableActions(gameState);
         }
-        return _computeAvailableActions(gameState);
+
+        // Then apply Decorators regardless of source of actions
+        for (IPlayerDecorator decorator : decorators) {
+            if (decorator.decisionPlayerOnly() && gameState.getCurrentPlayer() != decisionPlayerID)
+                continue;
+            retValue = decorator.actionFilter(gameState, retValue);
+        }
+        return retValue;
     }
 
     /**
-     * Returns a copy of this forward model with a new random seed.
-     *
-     * @return a new Forward Model instance with a different random object.
+     * Performs any end of game computations, as needed.
+     * This should not normally need to be overriden - but can be. For example if a game is purely co-operative
+     * or has an insta-win situation without the concept of a game score.
+     * The last thing to be called in the game loop, after the game is finished.
      */
-    public final AbstractForwardModel copy() {
-        return _copy();
+    protected void endGame(AbstractGameState gs) {
+        gs.setGameStatus(CoreConstants.GameResult.GAME_END);
+        // If we have more than one person in Ordinal position of 1, then this is a draw
+        boolean drawn = IntStream.range(0, gs.getNPlayers()).map(gs::getOrdinalPosition).filter(i -> i == 1).count() > 1;
+        for (int p = 0; p < gs.getNPlayers(); p++) {
+            int o = gs.getOrdinalPosition(p);
+            if (o == 1 && drawn)
+                gs.setPlayerResult(DRAW_GAME, p);
+            else if (o == 1)
+                gs.setPlayerResult(WIN_GAME, p);
+            else
+                gs.setPlayerResult(LOSE_GAME, p);
+        }
+        if (gs.getCoreGameParameters().verbose) {
+            System.out.println(Arrays.toString(gs.getPlayerResults()));
+        }
+    }
+
+    public void addPlayerDecorator(IPlayerDecorator decorator) {
+        decorators.add(decorator);
+    }
+    public void clearPlayerDecorators() {
+        decorators.clear();
     }
 }

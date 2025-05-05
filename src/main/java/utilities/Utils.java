@@ -1,19 +1,20 @@
 package utilities;
 
-import org.apache.commons.lang3.reflect.ConstructorUtils;
-import org.json.simple.JSONArray;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
+import java.io.File;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Pattern;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 public abstract class Utils {
@@ -77,6 +78,36 @@ public abstract class Utils {
             }
         }
         return -1;
+    }
+
+    /**
+     * Given a total budget of games, and number of players and agents, calculates how many games should be played
+     * For each possible permutation of players.
+     * This is a helper function to avoid the need for users of Tournaments to (mis-)calculate this themselves.
+     *
+     * @param nPlayers        - the number of players in each game
+     * @param nAgents         - the number of agents we are comparing
+     * @param totalGameBudget - the desired total number of games to play
+     *                        //     * @param allowBudgetBreach - if true then we will return the value closest to the totalGameBudget, even if it exceeds it
+     *                        //     *                         if false then we will return the value that is less than or equal to the totalGameBudget
+     * @return the number of permutations possible
+     */
+    public static int gamesPerMatchup(int nPlayers, int nAgents, int totalGameBudget, boolean selfPlay) {
+        long permutationsOfPlayers = playerPermutations(nPlayers, nAgents, selfPlay);
+        return (int) (totalGameBudget / permutationsOfPlayers);
+    }
+
+    public static int playerPermutations(int nPlayers, int nAgents, boolean selfPlay) {
+        if (selfPlay) {
+            return (int) Math.pow(nAgents, nPlayers);
+        } else {
+            // nAgents! / (nAgents - nPlayers)!, without having to compute large factorials which may overflow an integer.
+            int ret = 1;
+            for (int i=0;i<nPlayers;i++) {
+                ret *= nAgents - i;
+            }
+            return ret;
+        }
     }
 
     /**
@@ -173,24 +204,46 @@ public abstract class Utils {
         return (input + epsilon) * (1.0 + epsilon * (random - 0.5));
     }
 
-    public static double entropyOf(double... data) {
-        double sum = Arrays.stream(data).sum();
-        double[] normalised = Arrays.stream(data).map(d -> d / sum).toArray();
-        return Arrays.stream(normalised).map(d -> -d * Math.log(d)).sum();
-    }
-
-    public static <T> Map<T, Double> normaliseMap(Map<T, ? extends Number> input) {
-        int lessThanZero = (int) input.values().stream().filter(n -> n.doubleValue() < 0.0).count();
-        if (lessThanZero > 0) throw new AssertionError("Probability has negative values!");
-        double sum = input.values().stream().mapToDouble(Number::doubleValue).sum();
-        if (sum == 0.0) {
-            // the sum is zero, with no negative values. Hence all values are zero, and we return a uniform distribution.
-            return input.keySet().stream().collect(toMap(key -> key, key -> 1.0 / input.size()));
+    public static int sampleFrom(double[] probabilities, double random) {
+        double cdf = 0.0;
+        for (int i = 0; i < probabilities.length; i++) {
+            cdf += probabilities[i];
+            if (cdf >= random)
+                return i;
         }
-        return input.keySet().stream().collect(toMap(key -> key, key -> input.get(key).doubleValue() / sum));
+        throw new AssertionError("Should never get here!");
     }
 
-    public static double range(double value, double min, double max) {
+    public static double[] pdf(double[] potentials) {
+        // convert potentials into legal pdf
+        double[] pdf = new double[potentials.length];
+        double sum = Arrays.stream(potentials).sum();
+        if (Double.isNaN(sum) || Double.isInfinite(sum) || sum <= 0.0)  // default to uniform distribution
+            return Arrays.stream(potentials).map(d -> 1.0 / potentials.length).toArray();
+        for (int i = 0; i < potentials.length; i++) {
+            if (potentials[i] < 0.0) {
+                throw new IllegalArgumentException("Negative potential in pdf");
+            }
+            pdf[i] = potentials[i] / sum;
+        }
+        return pdf;
+    }
+
+    public static double[] exponentiatePotentials(double[] potentials, double temperature) {
+        double[] positivePotentials = new double[potentials.length];
+        double largestPotential = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < potentials.length; i++) {
+            if (potentials[i] > largestPotential) {
+                largestPotential = potentials[i];
+            }
+        }
+        for (int i = 0; i < potentials.length; i++) {
+            positivePotentials[i] = Math.exp((potentials[i] - largestPotential) / temperature);
+        }
+        return positivePotentials;
+    }
+
+    public static double clamp(double value, double min, double max) {
         if (value > max) return max;
         if (value < min) return min;
         return value;
@@ -219,28 +272,59 @@ public abstract class Utils {
                 .collect(toMap(key -> key, key -> decay(map.get(key), gamma)));
     }
 
+    public static <T> T getArg(Object args, String name, T defaultValue) {
+        if (args instanceof JSONObject) return getArg((JSONObject) args, name, defaultValue);
+        else if (args instanceof String[]) return getArg((String[]) args, name, defaultValue);
+        else throw new IllegalArgumentException("Unknown args type " + args.getClass());
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T getArg(String[] args, String name, T defaultValue) {
         Optional<String> raw = Arrays.stream(args).filter(i -> i.toLowerCase().startsWith(name.toLowerCase() + "=")).findFirst();
         if (raw.isPresent()) {
             String[] temp = raw.get().split("=");
-            if (temp.length < 2)
-                throw new IllegalArgumentException("No value provided for argument " + temp[0]);
-            String rawString = temp[1];
+            if (temp.length > 1) { // if no value is specified, we just return the default value
+                String rawString = temp[1];
+                if (defaultValue instanceof Enum) {
+                    T[] constants = (T[]) defaultValue.getClass().getEnumConstants();
+                    for (T o : constants) {
+                        if (o.toString().equals(rawString))
+                            return o;
+                    }
+                } else if (defaultValue instanceof Integer) {
+                    return (T) Integer.valueOf(rawString);
+                } else if (defaultValue instanceof Double) {
+                    return (T) Double.valueOf(rawString);
+                } else if (defaultValue instanceof Boolean) {
+                    return (T) Boolean.valueOf(rawString);
+                } else if (defaultValue instanceof String) {
+                    return (T) rawString;
+                } else if (defaultValue instanceof Long) {
+                    return (T) Long.valueOf(rawString);
+                } else {
+                    throw new AssertionError("Unexpected type of defaultValue : " + defaultValue.getClass());
+                }
+            } else {
+                System.out.println("No value specified for " + name + ", using default value of " + defaultValue);
+            }
+        }
+        return defaultValue;
+    }
+
+    public static <T> T getArg(JSONObject args, String name, T defaultValue) {
+        if (args.containsKey(name)) {
+            Object rawObject = args.get(name);
             if (defaultValue instanceof Enum) {
                 T[] constants = (T[]) defaultValue.getClass().getEnumConstants();
                 for (T o : constants) {
-                    if (o.toString().equals(rawString))
+                    if (o.toString().equals(rawObject))
                         return o;
                 }
             } else if (defaultValue instanceof Integer) {
-                return (T) Integer.valueOf(rawString);
-            } else if (defaultValue instanceof Double) {
-                return (T) Double.valueOf(rawString);
-            } else if (defaultValue instanceof Boolean) {
-                return (T) Boolean.valueOf(rawString);
-            } else if (defaultValue instanceof String) {
-                return (T) rawString;
+                Integer number = (int) (long) rawObject;
+                return (T) number;
+            } else if (defaultValue instanceof Double || defaultValue instanceof Boolean || defaultValue instanceof String) {
+                return (T) rawObject;
             } else {
                 throw new AssertionError("Unexpected type of defaultValue : " + defaultValue.getClass());
             }
@@ -248,14 +332,24 @@ public abstract class Utils {
         return defaultValue;
     }
 
-    public static JSONObject loadJSONFile(String fileName) {
-        try {
-            FileReader reader = new FileReader(fileName);
-            JSONParser parser = new JSONParser();
-            return (JSONObject) parser.parse(reader);
-        } catch (IOException | ParseException e) {
-            throw new AssertionError("Error processing file " + fileName + " : " + e.getMessage() + " : " + e.toString());
+    public static String createDirectory(String[] nestedDirectories) {
+        String folder = "";
+        boolean success = true;
+        for (String nestedDir : nestedDirectories) {
+            folder = folder + nestedDir + File.separator;
+            File outFolder = new File(folder);
+            if (!outFolder.exists()) {
+                success = outFolder.mkdir();
+            }
+            if (!success)
+                throw new AssertionError("Unable to create output directory" + outFolder.getAbsolutePath());
         }
+        return folder;
+    }
+
+    public static String createDirectory(String fullDirectoryPath) {
+        String[] nestedDirectories = fullDirectoryPath.split(Pattern.quote(File.separator));
+        return createDirectory(nestedDirectories);
     }
 
     /**
@@ -270,6 +364,19 @@ public abstract class Utils {
      * @param r     ---> Size of a combination
      */
     public static void combinationUtil(int[] arr, int[] data, int start, int end, int index, int r, ArrayList<int[]> allData) {
+        if (index == r) {
+            allData.add(data.clone());
+            return;
+        }
+        if (allData.size() > 1000) return; // don't let the list get too big (1 million combinations is a lot!)
+
+        for (int i = start; i <= end && end - i + 1 >= r - index; i++) {
+            data[index] = arr[i];
+            combinationUtil(arr, data, i + 1, end, index + 1, r, allData);
+        }
+    }
+
+    public static void combinationUtil(Object[] arr, Object[] data, int start, int end, int index, int r, HashSet<Object[]> allData) {
         if (index == r) {
             allData.add(data.clone());
             return;
@@ -296,159 +403,107 @@ public abstract class Utils {
     }
 
     /**
-     * Given a JSONObject, this will load the instance of the class.
-     * this assumes that the JSON object has:
-     * - a "class" attribute with the full name of the Class
-     * - an (optional) "args" Array attribute with the values to feed into the class constructor
-     * - only int, double, boolean and string parameters are allowed
-     * - the relevant constructor of the class is then called, and the result returned
+     * Generate all combinations of objects in the given array, in sizes from min to max (capped 1 - array length)
+     *
+     * @param arr           - input array of objects, e.g. (Apple, Pear, Apple)
+     * @param minSizeOutput - minimum size of output array, e.g. 1
+     * @param maxSizeOutput - maximum size of output array, e.g. 2
+     * @return - All combinations of objects in arrays of different sizes, e.g. (Apple), (Pear), (Apple, Pear), (Pear, Apple)
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T loadClassFromJSON(JSONObject json) {
-        try {
-            String cl = (String) json.getOrDefault("class", "");
-            if (cl.isEmpty()) {
-                // look for an enum
-                String en = (String) json.getOrDefault("enum", "");
-                String val = (String) json.getOrDefault("value", "");
-                if (en.isEmpty() || val.isEmpty())
-                    throw new AssertionError("No class or enum/value tags found in " + json);
-                Class<? extends Enum> enumClass = (Class<? extends Enum>) Class.forName(en);
-                return (T) Enum.valueOf(enumClass, val);
-            }
-            Class<T> outputClass = (Class<T>) Class.forName(cl);
-            JSONArray argArray = (JSONArray) json.getOrDefault("args", new JSONArray());
-            Class<?>[] argClasses = new Class[argArray.size()];
-            Object[] args = new Object[argArray.size()];
-            for (int i = 0; i < argClasses.length; i++) {
-                Object arg = argArray.get(i);
-                if (arg instanceof JSONObject) {
-                    // we have recursion
-                    // we need to instantiate this, and then stick it in
-                    arg = loadClassFromJSON((JSONObject) arg);
-                    argClasses[i] = arg.getClass();
-                } else if (arg instanceof Long) {
-                    argClasses[i] = int.class;
-                    args[i] = ((Long) arg).intValue();
-                } else if (arg instanceof Double) {
-                    argClasses[i] = double.class;
-                } else if (arg instanceof Boolean) {
-                    argClasses[i] = boolean.class;
-                } else if (arg instanceof String) {
-                    argClasses[i] = String.class;
-                } else if (arg instanceof JSONArray) {
-                    Object first = ((JSONArray) arg).get(0);
-                    if (first instanceof JSONObject) {
-                        // we have recursion
-                        // we need to instantiate this, and then stick it in
-                        first = loadClassFromJSON((JSONObject) first);
-                        T[] arr = (T[]) Array.newInstance(first.getClass(),((JSONArray) arg).size());
-                        argClasses[i] = arr.getClass();
-                        for (int j = 0; j < ((JSONArray) arg).size(); j++) {
-                            arr[j] = loadClassFromJSON((JSONObject) ((JSONArray) arg).get(j));
-                        }
-                        arg = arr;
-                    } else if (first instanceof Long) {
-                        argClasses[i] = int[].class;
-                        args[i] = ((Long) first).intValue();
-                    } else if (first instanceof Double) {
-                        argClasses[i] = double[].class;
-                    } else if (first instanceof Boolean) {
-                        argClasses[i] = boolean[].class;
-                    } else if (first instanceof String) {
-                        argClasses[i] = String[].class;
-                    }
-                } else {
-                    throw new AssertionError("Unexpected arg " + arg + " in " + json.toJSONString());
-                }
-                args[i] = arg;
-            }
-            Class<?> clazz = Class.forName(cl);
-            Constructor<?> constructor = ConstructorUtils.getMatchingAccessibleConstructor(clazz, argClasses);
-            Object retValue = constructor.newInstance(args);
-            return outputClass.cast(retValue);
-        } catch (ClassNotFoundException e) {
-            throw new AssertionError("Unknown class in " + json.toJSONString() + " : " + e.getMessage());
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            throw new AssertionError("Error constructing class using " + json.toJSONString() + " : " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            throw new AssertionError("Unknown argument in " + json.toJSONString() + " : " + e.getMessage());
+    public static HashSet<Object[]> generateCombinations(Object[] arr, int minSizeOutput, int maxSizeOutput) {
+        HashSet<Object[]> allData = new HashSet<>();
+        if (minSizeOutput < 1) minSizeOutput = 1;
+        if (maxSizeOutput > arr.length) maxSizeOutput = arr.length;
+        for (int r = minSizeOutput; r <= maxSizeOutput; r++) {
+            Object[] data = new Object[r];
+            combinationUtil(arr, data, 0, arr.length - 1, 0, r, allData);
+        }
+        return allData;
+    }
+
+    /**
+     * Returns a list of objects arrays, each one a combination of elements from the param
+     * Example: input [[1, 2] [3] [4, 5]] ===> output [[1, 3, 4], [2, 3, 4], [1, 3, 5], [2, 3, 5]]
+     * Algorithm from <a href="https://www.geeksforgeeks.org/combinations-from-n-arrays-picking-one-element-from-each-array/">here</a>
+     *
+     * @param arr A list of array objects to combine/
+     * @return the combination of elements.
+     */
+    public static List<Object[]> generateCombinations(List<Object[]> arr) {
+        ArrayList<Object[]> combinations = new ArrayList<>();
+
+        // Number of arrays
+        int n = arr.size();
+
+        // To keep track of next element in each of the n arrays
+        int[] indices = new int[n];
+
+        // Initialize with first element's index
+        for (int i = 0; i < n; i++) indices[i] = 0;
+
+        while (true) {
+            // Add current combination
+            Object[] objs = new Object[n];
+            for (int i = 0; i < n; i++) objs[i] = arr.get(i)[indices[i]];
+            combinations.add(objs);
+
+            // Find the rightmost array that has more elements left after the current element in that array
+            int next = n - 1;
+            while (next >= 0 && (indices[next] + 1 >= arr.get(next).length))
+                next--;
+
+            // No such array is found so no more combinations left
+            if (next < 0)
+                return combinations;
+
+            // If found move to next element in that array
+            indices[next]++;
+
+            // For all arrays to the right of this array current index again points to first element
+            for (int i = next + 1; i < n; i++)
+                indices[i] = 0;
         }
     }
 
-    public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
-        for (T each : enumeration.getEnumConstants()) {
-            if (each.name().compareToIgnoreCase(search) == 0) {
-                return each;
+    /*
+        * Returns the standard error on the difference between two means.
+        * The inputs are the sums of the values, the sums of the squares of the values, and the number of values for each set of data.
+     */
+    public static double meanDiffStandardError(double sum1, double sum2, double sumSq1, double sumSq2, int n1, int n2) {
+        double mean1 = sum1 / n1;
+        double mean2 = sum2 / n2;
+        double variance1 = sumSq1 / n1 - mean1 * mean1;
+        double variance2 = sumSq2 / n2 - mean2 * mean2;
+        double pooledVariance = ((n1 - 1) * variance1 + (n2 - 1) * variance2) / (n1 + n2 - 2);
+        return Math.sqrt(pooledVariance * (1.0 / n1 + 1.0 / n2));
+    }
+
+    /*
+    * Given a required confidence level, alpha, and the number of (independent) tests that are being conducted, N, this function
+    * returns the standard z-score that should be used for each test individually to determine if a result is statistically significant.
+     */
+    public static double standardZScore(double alpha, int N) {
+        double adjustedAlpha = 1.0 - Math.pow(1.0 - alpha, 1.0 / N);
+        NormalDistribution nd = new NormalDistribution();
+        return nd.inverseCumulativeProbability(1.0 - adjustedAlpha);
+    }
+
+    public static double standardTScore(double alpha, int N, int df) {
+        // n1 and n2 are the numbers in the two samples
+        TDistribution tDist = new TDistribution(df);
+        double adjustedAlpha = 1.0 - Math.pow(1.0 - alpha, 1.0 / N);
+        return tDist.inverseCumulativeProbability(1.0 - adjustedAlpha);
+    }
+
+
+    public static Object searchEnum(Object[] enumConstants, String search) {
+        for (Object obj : enumConstants) {
+            if (obj.toString().compareToIgnoreCase(search) == 0) {
+                return obj;
             }
         }
         return null;
     }
-
-    /**
-     * Given a filename that contains only a single class, this will instantiate the class
-     * This opens the file, extracts the JSONObject, and then uses Utils.loadClassFromJSON() to
-     * find and call the relevant constructor
-     *
-     * @param filename - the filename
-     * @param <T>      - the Class type that is to be instantiated
-     * @return
-     */
-    public static <T> T loadClassFromFile(String filename) {
-        try {
-            FileReader reader = new FileReader(filename);
-            JSONParser jsonParser = new JSONParser();
-            JSONObject rawData = (JSONObject) jsonParser.parse(reader);
-            // We expect a class field to tell us the Class to use
-            // then a set of parameter values
-            return Utils.loadClassFromJSON(rawData);
-
-        } catch (FileNotFoundException e) {
-            throw new AssertionError("File not found to load : " + filename);
-        } catch (IOException e) {
-            throw new AssertionError("Problem reading file " + filename + " : " + e);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            throw new AssertionError("Problem parsing JSON in " + filename);
-        }
-    }
-
-    /**
-     * Given a string that contains the JSON for a single class, this will instantiate the class
-     *
-     * @param rawData - the JSON as a raw string
-     * @param <T>     - the Class type that is to be instantiated
-     * @return
-     */
-    public static <T> T loadClassFromString(String rawData) {
-        try {
-            if (!rawData.contains("{")) {
-                // we assume this is a class name with a no-arg constructor as a special case
-                Class<?> clazz = Class.forName(rawData);
-                Constructor<?> constructor = clazz.getConstructor();
-                return (T) constructor.newInstance();
-            }
-            Reader reader = new StringReader(rawData);
-            JSONParser jsonParser = new JSONParser();
-            JSONObject json = (JSONObject) jsonParser.parse(reader);
-            // We expect a class field to tell us the Class to use
-            // then a set of parameter values
-            return Utils.loadClassFromJSON(json);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-            throw new AssertionError("Problem parsing JSON in " + rawData);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new AssertionError("Problem processing String in " + rawData);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new AssertionError("Problem processing String as classname with no-arg constructor : " + rawData);
-        }
-    }
-
 
     public static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
         BufferedImage image;
@@ -474,30 +529,98 @@ public abstract class Utils {
         return img;
     }
 
-    public enum ComponentType {
-        DECK,
-        AREA,
-        BOARD,
-        BOARD_NODE,
-        CARD,
-        COUNTER,
-        DICE,
-        TOKEN
+    /**
+     * Accept a string, like aCamelString
+     *
+     * @param s - input string in camel case
+     * @return string with each word separated by a space
+     */
+    public static String splitCamelCaseString(String s) {
+        StringBuilder r = new StringBuilder();
+        for (String w : s.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")) {
+            r.append(w).append(" ");
+        }
+        return r.toString().trim();
     }
 
-    public enum GameResult {
-        WIN(1),
-        DRAW(0),
-        LOSE(-1),
-        DISQUALIFY(-2),
-        GAME_ONGOING(0),
-        GAME_END(3);
 
-        public final double value;
+    /**
+     * Rotates and scales an image clockwise by 90 degrees. Orientation says how many times the image should be rotated:
+     * 0 = 0 degrees
+     * 1 = 90 degrees
+     * 2 = 180 degrees
+     * 3 = 270 degrees
+     * @param image - image to rotate
+     * @param scaledWidthHeight - desired width and height of image after scaling
+     * @param orientation - as described above
+     * @return - new image, rotated and scaled (* does not modify original image)
+     */
+    public static BufferedImage rotateImage(BufferedImage image, Pair<Integer, Integer> scaledWidthHeight, int orientation) {
+        final double rads = Math.toRadians(90*orientation);
+        final double sin = Math.abs(Math.sin(rads));
+        final double cos = Math.abs(Math.cos(rads));
+        final int w = (int) Math.floor(scaledWidthHeight.a * cos + scaledWidthHeight.b * sin);
+        final int h = (int) Math.floor(scaledWidthHeight.b * cos + scaledWidthHeight.a * sin);
+        AffineTransform at;
+        if (orientation % 2 == 0) {
+            at = AffineTransform.getRotateInstance(rads, scaledWidthHeight.a/2., scaledWidthHeight.b/2.);
+            at.scale(scaledWidthHeight.a * 1.0 / image.getWidth(), scaledWidthHeight.b * 1.0 / image.getHeight());
+        } else {
+            at = AffineTransform.getTranslateInstance((scaledWidthHeight.b-scaledWidthHeight.a)/2., (scaledWidthHeight.a-scaledWidthHeight.b)/2.);
+            at.rotate(rads, scaledWidthHeight.a/2., scaledWidthHeight.b/2.);
+            at.scale(scaledWidthHeight.a * 1.0 / image.getWidth(), scaledWidthHeight.b * 1.0 / image.getHeight());
+        }
+        final AffineTransformOp rotateOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+        BufferedImage rotatedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        return rotateOp.filter(image, rotatedImage);
+    }
 
-        GameResult(double value) {
-            this.value = value;
+    /**
+     * Case-insensitive search for enum element given string.
+     */
+    public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
+        for (T each : enumeration.getEnumConstants()) {
+            if (each.name().compareToIgnoreCase(search) == 0) {
+                return each;
+            }
+        }
+        return null;
+    }
+
+    public static String getNumberSuffix(final int n) {
+        if (n >= 11 && n <= 13) {
+            return "th";
+        }
+        switch (n % 10) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
         }
     }
+
+
+    public static double[] enumToOneHot(Enum<?> e) {
+        return enumToOneHot(e, 1.0);
+    }
+
+    public static double[] enumToOneHot(Enum<?> e, double value) {
+        double[] retValue = new double[e.getClass().getEnumConstants().length];
+        retValue[e.ordinal()] = value;
+        return retValue;
+    }
+
+    public static List<String> enumNames(Class<? extends Enum<?>> e) {
+        return Arrays.stream(e.getEnumConstants()).map(Enum::name).collect(toList());
+    }
+
+    public static List<String> enumNames(Enum<?> e) {
+        return enumNames((Class<? extends Enum<?>>) e.getClass());
+    }
+
 
 }

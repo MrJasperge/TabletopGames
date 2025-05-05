@@ -2,12 +2,12 @@ package games.connect4;
 
 import core.AbstractGameState;
 import core.AbstractParameters;
+import core.components.BoardNode;
 import core.components.Component;
 import core.components.GridBoard;
 import core.components.Token;
 import core.interfaces.IGridGameState;
 import core.interfaces.IPrintable;
-import core.turnorders.AlternatingTurnOrder;
 import games.GameType;
 import utilities.Pair;
 
@@ -16,21 +16,35 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+public class Connect4GameState extends AbstractGameState implements IPrintable, IGridGameState {
 
-public class Connect4GameState extends AbstractGameState implements IPrintable, IGridGameState<Token> {
-
-    GridBoard<Token> gridBoard;
+    GridBoard gridBoard;
     LinkedList<Pair<Integer, Integer>> winnerCells;
 
     public Connect4GameState(AbstractParameters gameParameters, int nPlayers) {
-        super(gameParameters, new AlternatingTurnOrder(nPlayers), GameType.Connect4);
+        super(gameParameters, nPlayers);
         winnerCells = new LinkedList<>();
+        gridBoard = null;
+    }
+
+    /**
+     * This returns the player id of the token at the given position. Or -1 if this is empty.
+     */
+    public int getPlayerAt(int x, int y) {
+        BoardNode token = gridBoard.getElement(x, y);
+        return token == null ? -1 : token.getOwnerId();
+    }
+
+    @Override
+    protected GameType _getGameType() {
+        return GameType.Connect4;
     }
 
     @Override
     protected List<Component> _getAllComponents() {
-        return new ArrayList<Component>() {{
+        return new ArrayList<>() {{
             add(gridBoard);
+            addAll(Connect4Constants.playerMapping);
         }};
     }
 
@@ -52,12 +66,7 @@ public class Connect4GameState extends AbstractGameState implements IPrintable, 
     }
 
     /**
-     * This provides the current score in game turns. This will only be relevant for games that have the concept
-     * of victory points, etc.
-     * If a game does not support this directly, then just return 0.0
-     *
-     * @param playerId
-     * @return - double, score of current state
+     * Score is not relevant for Connect4. This will be 0.0 if a game is nto finished.
      */
     @Override
     public double getGameScore(int playerId) {
@@ -65,17 +74,30 @@ public class Connect4GameState extends AbstractGameState implements IPrintable, 
     }
 
     @Override
-    protected void _reset() {
-        gridBoard = null;
+    protected boolean _equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Connect4GameState that)) return false;
+        if (!super.equals(o)) return false;
+        return Objects.equals(gridBoard, that.gridBoard);
     }
 
     @Override
-    protected boolean _equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Connect4GameState)) return false;
-        if (!super.equals(o)) return false;
-        Connect4GameState that = (Connect4GameState) o;
-        return Objects.equals(gridBoard, that.gridBoard);
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+
+        for (int y = 0; y < gridBoard.getHeight(); y++) {
+            for (int x = 0; x < gridBoard.getWidth(); x++) {
+                if (y != 0 || x != 0) {
+                    sb.append(",");
+                }
+                BoardNode t = gridBoard.getElement(x, y);
+                sb.append("\"").append("Grid_").append(x).append('_').append(y).append("\":\"").append(t.toString()).append("\"");
+            }
+        }
+
+        sb.append("}");
+        return sb.toString();
     }
 
     @Override
@@ -84,7 +106,7 @@ public class Connect4GameState extends AbstractGameState implements IPrintable, 
     }
 
     @Override
-    public GridBoard<Token> getGridBoard() {
+    public GridBoard getGridBoard() {
         return gridBoard;
     }
 

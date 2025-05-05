@@ -3,7 +3,7 @@ package evaluation.testplayers;
 import core.AbstractGameState;
 import core.AbstractPlayer;
 import core.actions.AbstractAction;
-import utilities.TAGStatSummary;
+import evaluation.summarisers.TAGNumericStatSummary;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,22 +19,23 @@ public class RandomTestPlayer extends AbstractPlayer {
     // Random generator for action selection
     private Random random;
     // Record of branching factor
-    private TAGStatSummary bf;
+    private TAGNumericStatSummary bf;
     // Scores observed during the game
-    private TAGStatSummary scores;
+    private TAGNumericStatSummary scores;
 
     public RandomTestPlayer() {
         this(new Random());
     }
 
     public RandomTestPlayer(Random random) {
+        super(null, "RandomTestPlayer");
         this.random = random;
-        scores = new TAGStatSummary();
-        bf = new TAGStatSummary();
+        scores = new TAGNumericStatSummary();
+        bf = new TAGNumericStatSummary();
     }
 
     @Override
-    public AbstractAction getAction(AbstractGameState gs, List<AbstractAction> actions ) {
+    public AbstractAction _getAction(AbstractGameState gs, List<AbstractAction> actions) {
         // Iterate through all actions available to gather statistics
         HashSet<AbstractGameState> states = new HashSet<>();
         states.add(gs.copy());
@@ -55,11 +56,11 @@ public class RandomTestPlayer extends AbstractPlayer {
         return this;
     }
 
-    public TAGStatSummary getBranchingFactor() {
+    public TAGNumericStatSummary getBranchingFactor() {
         return bf;
     }
 
-    public TAGStatSummary getScores() {
+    public TAGNumericStatSummary getScores() {
         return scores;
     }
 }

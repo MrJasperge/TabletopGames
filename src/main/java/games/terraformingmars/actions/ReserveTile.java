@@ -62,7 +62,7 @@ public class ReserveTile extends TMAction implements IExtendedSequence {
             TMGameState gs = (TMGameState) state;
             for (int i = 0; i < gs.getBoard().getHeight(); i++) {
                 for (int j = 0; j < gs.getBoard().getWidth(); j++) {
-                    TMMapTile mt = gs.getBoard().getElement(j, i);
+                    TMMapTile mt = (TMMapTile) gs.getBoard().getElement(j, i);
                     // Check if we can place tile here
                     if (mt != null && mt.getTilePlaced() == null && (mt.getTileType() == mapType)) {
                         actions.add(new ReserveTile(player, mt.getComponentID(), true));
@@ -86,7 +86,7 @@ public class ReserveTile extends TMAction implements IExtendedSequence {
     }
 
     @Override
-    public void registerActionTaken(AbstractGameState state, AbstractAction action) {
+    public void _afterAction(AbstractGameState state, AbstractAction action) {
         placed = true;
     }
 

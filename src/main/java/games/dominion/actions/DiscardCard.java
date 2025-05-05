@@ -2,16 +2,12 @@ package games.dominion.actions;
 
 import core.AbstractGameState;
 import core.actions.AbstractAction;
-import core.components.Card;
-import games.dominion.DominionConstants;
-import games.dominion.DominionGame;
 import games.dominion.DominionGameState;
 import games.dominion.cards.CardType;
 import games.dominion.cards.DominionCard;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static games.dominion.DominionConstants.*;
 
@@ -55,8 +51,13 @@ public class DiscardCard extends AbstractAction {
     }
 
     @Override
-    public String getString(AbstractGameState state) {
+    public String toString() {
         return String.format("Player %d discards %s", player, type);
+    }
+
+    @Override
+    public String getString(AbstractGameState state) {
+        return toString();
     }
 
     @Override

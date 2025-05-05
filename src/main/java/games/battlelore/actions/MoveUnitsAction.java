@@ -33,15 +33,14 @@ public class MoveUnitsAction extends AbstractAction {
             return false;
         } else {
             MapTile tile = (MapTile) gameState.getComponentById(tileID);
-            ArrayList<Unit> units = state.getBoard().getElement(tile.getLocationX(), tile.getLocationY()).GetUnits();
+            ArrayList<Unit> units = ((MapTile)state.getBoard().getElement(tile.getLocationX(), tile.getLocationY())).GetUnits();
 
             for (Unit unit : units) {
-                state.getBoard().getElement(locationX, locationY).AddUnit(unit);
+                state.AddUnit(locationX, locationY, unit);
                 unit.SetCanMove(false);
             }
 
             state.RemoveUnit(tile.getLocationX(), tile.getLocationY());
-            state.IncrementTurn(playerID);
             return true;
         }
     }

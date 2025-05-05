@@ -1,11 +1,10 @@
 package games.stratego;
 
 import core.AbstractGameState;
+import core.CoreConstants;
+import core.components.BoardNode;
 import core.interfaces.IStateHeuristic;
 import games.stratego.components.Piece;
-import utilities.Utils;
-
-import java.util.ArrayList;
 
 public class StrategoHeuristic implements IStateHeuristic {
 
@@ -17,7 +16,7 @@ public class StrategoHeuristic implements IStateHeuristic {
     @Override
     public double evaluateState(AbstractGameState gs, int playerId) {
         StrategoGameState state = (StrategoGameState) gs;
-        Utils.GameResult playerResult = gs.getPlayerResults()[playerId];
+        CoreConstants.GameResult playerResult = gs.getPlayerResults()[playerId];
 
         if (maxRankSum == -1) {
             StrategoParams params = (StrategoParams) state.getGameParameters();
@@ -36,7 +35,8 @@ public class StrategoHeuristic implements IStateHeuristic {
         double sumP = 0.0;
         double sumOpp = 0.0;
 
-        for (Piece piece : state.gridBoard.getComponents()){
+        for (BoardNode p : state.gridBoard.getComponents()){
+            Piece piece = (Piece) p;
             if (piece != null){
                 double pieceValue = piece.getPieceRank();
                 if (piece.getPieceType() == Piece.PieceType.BOMB) pieceValue = bombValue;

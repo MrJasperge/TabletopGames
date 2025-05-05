@@ -2,14 +2,18 @@ package games.diamant;
 
 import core.AbstractGameState;
 import core.AbstractParameters;
+import core.actions.AbstractAction;
 import core.components.Component;
 import core.components.Counter;
 import core.components.Deck;
 import core.interfaces.IPrintable;
-import core.turnorders.StandardTurnOrder;
+import core.interfaces.IStateFeatureJSON;
+import core.interfaces.IStateFeatureNormVector;
 import games.GameType;
 import games.diamant.cards.DiamantCard;
 import games.diamant.components.ActionsPlayed;
+import org.apache.spark.internal.config.R;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +65,12 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
      * @param nPlayers      - number of players for this game.
      */
     public DiamantGameState(AbstractParameters gameParameters, int nPlayers) {
-        super(gameParameters, new StandardTurnOrder(nPlayers), GameType.Diamant);
+        super(gameParameters, nPlayers);
+    }
+
+    @Override
+    protected GameType _getGameType() {
+        return GameType.Diamant;
     }
 
     @Override
@@ -79,8 +88,6 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
     @Override
     protected AbstractGameState _copy(int playerId)
     {
-        Random r = new Random(getGameParameters().getRandomSeed());
-
         DiamantGameState dgs = new DiamantGameState(gameParameters.copy(), getNPlayers());
 
         dgs.mainDeck    = mainDeck.copy();
@@ -119,7 +126,7 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
         // mainDeck and is actionsPlayed are hidden.
         if (getCoreGameParameters().partialObservable && playerId != -1)
         {
-            dgs.mainDeck.shuffle(new Random(getGameParameters().getRandomSeed()));
+            dgs.mainDeck.shuffle(redeterminisationRnd);
 
             dgs.actionsPlayed.clear();
 
@@ -141,12 +148,7 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
         return new DiamantHeuristic().evaluateState(this, playerId);
     }
     /**
-     * This provides the current score in game turns. This will only be relevant for games that have the concept
-     * of victory points, etc.
-     * If a game does not support this directly, then just return 0.0
-     *
-     * @param playerId
-     * @return - double, score of current state
+     * Current score
      */
     @Override
     public double getGameScore(int playerId) {
@@ -161,7 +163,6 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
         return ids;
     }
 
-    @Override
     protected void _reset() {
         mainDeck       = null;
         discardDeck    = null;
@@ -210,7 +211,6 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
     /**
      * Returns the number of player already in the cave
     */
-
     public int getNPlayersInCave()
     {
         int n = 0;
@@ -258,7 +258,7 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
         }
     }
 
-    private int getNHazardCardsInMainDeck(DiamantCard.HazardType ht)
+    public int getNHazardCardsInMainDeck(DiamantCard.HazardType ht)
     {
         int n = 0;
         for (int i=0; i<mainDeck.getSize(); i++)
@@ -275,4 +275,7 @@ public class DiamantGameState extends AbstractGameState implements IPrintable {
     public List<Counter>     getTreasureChests() { return treasureChests; }
     public Deck<DiamantCard> getPath()           { return path;           }
     public ActionsPlayed     getActionsPlayed()  { return actionsPlayed;  }
+    public void setActionPlayed(int player, AbstractAction action) {
+        actionsPlayed.put(player, action);
+    }
 }

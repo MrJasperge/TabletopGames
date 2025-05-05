@@ -15,42 +15,13 @@ public class DominionCard extends Card {
     }
 
     public static DominionCard create(CardType type) {
-        switch (type) {
-            case GOLD:
-            case COPPER:
-            case SILVER:
-            case ESTATE:
-            case DUCHY:
-            case PROVINCE:
-            case CURSE:
-            case VILLAGE:
-            case SMITHY:
-            case LABORATORY:
-            case MARKET:
-            case FESTIVAL:
-            case CELLAR:
-            case MILITIA:
-            case MOAT:
-            case REMODEL:
-            case MERCHANT:
-            case MINE:
-            case WORKSHOP:
-            case ARTISAN:
-            case MONEYLENDER:
-            case POACHER:
-            case WITCH:
-            case CHAPEL:
-            case HARBINGER:
-            case THRONE_ROOM:
-            case BANDIT:
-            case BUREAUCRAT:
-            case SENTRY:
-                return new DominionCard(type);
-            case GARDENS:
-                return new Gardens();
-            default:
-                throw new AssertionError("Not yet implemented : " + type);
-        }
+        return switch (type) {
+            case GOLD, COPPER, SILVER, ESTATE, DUCHY, PROVINCE, CURSE, VILLAGE, SMITHY, LABORATORY, MARKET, FESTIVAL,
+                 CELLAR, MILITIA, MOAT, REMODEL, MERCHANT, MINE, WORKSHOP, ARTISAN, MONEYLENDER, POACHER, WITCH, CHAPEL,
+                 HARBINGER, THRONE_ROOM, BANDIT, BUREAUCRAT, SENTRY, VASSAL, LIBRARY, COUNCIL_ROOM -> new DominionCard(type);
+            case GARDENS -> new Gardens();
+            default -> throw new AssertionError("Not yet implemented : " + type);
+        };
     }
 
     public boolean isTreasureCard() {
@@ -66,6 +37,10 @@ public class DominionCard extends Card {
     }
 
     public DominionAction getAction(int playerId) {
+        return getAction(playerId, false);
+    }
+
+    public DominionAction getAction(int playerId, boolean dummy) {
         switch (type) {
             case VILLAGE:
             case SMITHY:
@@ -73,39 +48,45 @@ public class DominionCard extends Card {
             case FESTIVAL:
             case MARKET:
             case MOAT:
-                return new SimpleAction(type, playerId);
+                return new SimpleAction(type, playerId, dummy);
             case CELLAR:
-                return new Cellar(playerId);
+                return new Cellar(playerId, dummy);
             case MILITIA:
-                return new Militia(playerId);
+                return new Militia(playerId, dummy);
             case REMODEL:
-                return new Remodel(playerId);
+                return new Remodel(playerId, dummy);
             case MERCHANT:
-                return new Merchant(playerId);
+                return new Merchant(playerId, dummy);
             case MINE:
-                return new Mine(playerId);
+                return new Mine(playerId, dummy);
             case WORKSHOP:
-                return new Workshop(playerId);
+                return new Workshop(playerId, dummy);
             case ARTISAN:
-                return new Artisan(playerId);
+                return new Artisan(playerId, dummy);
             case MONEYLENDER:
-                return new Moneylender(playerId);
+                return new Moneylender(playerId, dummy);
             case POACHER:
-                return new Poacher(playerId);
+                return new Poacher(playerId, dummy);
             case WITCH:
-                return new Witch(playerId);
+                return new Witch(playerId, dummy);
             case CHAPEL:
-                return new Chapel(playerId);
+                return new Chapel(playerId, dummy);
             case HARBINGER:
-                return new Harbinger(playerId);
+                return new Harbinger(playerId, dummy);
             case THRONE_ROOM:
-                return new ThroneRoom(playerId);
+                return new ThroneRoom(playerId, dummy);
             case BANDIT:
-                return new Bandit(playerId);
+                return new Bandit(playerId, dummy);
             case BUREAUCRAT:
-                return new Bureaucrat(playerId);
+                return new Bureaucrat(playerId, dummy);
             case SENTRY:
-                return new Sentry(playerId);
+                return new Sentry(playerId, dummy);
+            case LIBRARY:
+                return new Library(playerId, dummy);
+            case VASSAL:
+                return new Vassal(playerId, dummy);
+            case COUNCIL_ROOM:
+                return new CouncilRoom(playerId, dummy);
             default:
                 throw new AssertionError("No action for : " + type);
         }

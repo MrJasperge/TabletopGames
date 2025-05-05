@@ -11,19 +11,15 @@ public class BattleloreGameParameters extends AbstractParameters {
     public final int WIN_SCORE = 4;
     private int meleeRange = 1;
     private int rangedRange = 5;
-    public int maxTurnsToPlay = 100;
 
-
-
-    public BattleloreGameParameters(String dataPath, long seed) {
-        super(seed);
+    public BattleloreGameParameters(String dataPath) {
         this.dataPath = dataPath;
-        super.setThinkingTimeMins(Long.MAX_VALUE);
+        setMaxRounds(100);
     }
 
     @Override
     protected AbstractParameters _copy() {
-        BattleloreGameParameters copy = new BattleloreGameParameters(dataPath, System.currentTimeMillis());
+        BattleloreGameParameters copy = new BattleloreGameParameters(dataPath);
         copy.hexWidth = hexWidth;
         copy.hexHeight = hexHeight;
         return copy;

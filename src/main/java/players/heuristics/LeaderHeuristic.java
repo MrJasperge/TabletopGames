@@ -1,8 +1,8 @@
 package players.heuristics;
 
 import core.AbstractGameState;
+import core.CoreConstants;
 import core.interfaces.IStateHeuristic;
-import utilities.Utils;
 
 public class LeaderHeuristic implements IStateHeuristic {
     @Override
@@ -18,8 +18,17 @@ public class LeaderHeuristic implements IStateHeuristic {
         }
 
         score = score - bestOtherScore;
-        if (gs.getPlayerResults()[playerId] == Utils.GameResult.WIN || gs.getPlayerResults()[playerId] == Utils.GameResult.LOSE)
+        if (gs.getPlayerResults()[playerId] == CoreConstants.GameResult.WIN_GAME || gs.getPlayerResults()[playerId] == CoreConstants.GameResult.LOSE_GAME)
             score *= 1.5;
         return score;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof LeaderHeuristic;
+    }
+    @Override
+    public int hashCode() {
+        return 8;
     }
 }

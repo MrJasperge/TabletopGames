@@ -6,11 +6,11 @@ import core.actions.AbstractAction;
 import core.components.GridBoard;
 import games.battlelore.BattleloreGameState;
 import games.battlelore.actions.AttackUnitsAction;
-import games.battlelore.actions.MoveUnitsAction;
 import games.battlelore.actions.PlayCommandCardAction;
 import games.battlelore.cards.CommandCard;
 import games.battlelore.components.MapTile;
 import games.battlelore.components.Unit;
+
 import java.util.List;
 import java.util.Random;
 
@@ -23,13 +23,14 @@ public class RuleBasedPlayer extends AbstractPlayer
     private final Random rnd;
 
     public RuleBasedPlayer() {
+        super(null, "RuleBasedPlayer");
         this.rnd = new Random();
     }
 
     @Override
-    public AbstractAction getAction(AbstractGameState observation, List<AbstractAction> actions) {
+    public AbstractAction _getAction(AbstractGameState observation, List<AbstractAction> actions) {
         BattleloreGameState state = (BattleloreGameState) observation;
-        GridBoard<MapTile> board = state.getBoard();
+        GridBoard board = state.getBoard();
         float playerUnitPower = 0.f;
         float enemyUnitPower = 0.f;
         int leftAreaPower = 0;
@@ -38,7 +39,7 @@ public class RuleBasedPlayer extends AbstractPlayer
 
         for (int x = 0; x < board.getWidth(); x++) {
             for (int y = 0; y < board.getHeight(); y++) {
-                MapTile tile = board.getElement(x, y);
+                MapTile tile = (MapTile) board.getElement(x, y);
                 Unit.Faction playerFaction = observation.getCurrentPlayer() == Unit.Faction.Dakhan_Lords.ordinal()
                         ? Unit.Faction.Dakhan_Lords : Unit.Faction.Uthuk_Yllan;
 
@@ -65,7 +66,6 @@ public class RuleBasedPlayer extends AbstractPlayer
         }
 
         AbstractAction selectedAction;
-
             for (AbstractAction action : actions) {
                 if (action instanceof AttackUnitsAction) {
                     //Aggressive Gameplay

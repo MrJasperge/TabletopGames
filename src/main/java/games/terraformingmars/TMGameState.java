@@ -1,9 +1,10 @@
 package games.terraformingmars;
 
-import core.AbstractGameState;
+import core.AbstractGameStateWithTurnOrder;
 import core.AbstractParameters;
 import core.components.*;
 import core.interfaces.IGamePhase;
+import core.turnorders.TurnOrder;
 import games.GameType;
 import games.terraformingmars.actions.PlaceTile;
 import games.terraformingmars.actions.TMAction;
@@ -22,7 +23,7 @@ import java.util.*;
 
 import static games.terraformingmars.TMGameState.TMPhase.CorporationSelect;
 
-public class TMGameState extends AbstractGameState {
+public class TMGameState extends AbstractGameStateWithTurnOrder {
 
     enum TMPhase implements IGamePhase {
         CorporationSelect,
@@ -33,7 +34,7 @@ public class TMGameState extends AbstractGameState {
 
     // General state info
     int generation;
-    GridBoard<TMMapTile> board;
+    GridBoard board;
     HashSet<TMMapTile> extraTiles;
     HashMap<TMTypes.GlobalParameter, GlobalParameter> globalParameters;
     HashSet<Bonus> bonuses;
@@ -73,7 +74,16 @@ public class TMGameState extends AbstractGameState {
      * @param gameParameters - game parameters.
      */
     public TMGameState(AbstractParameters gameParameters, int nPlayers) {
-        super(gameParameters, new TMTurnOrder(nPlayers, ((TMGameParameters) gameParameters).nActionsPerPlayer), GameType.TerraformingMars);
+        super(gameParameters, nPlayers);
+    }
+    @Override
+    protected TurnOrder _createTurnOrder(int nPlayers) {
+        return new TMTurnOrder(nPlayers, ((TMGameParameters) gameParameters).nActionsPerPlayer);
+    }
+
+    @Override
+    protected GameType _getGameType() {
+        return GameType.TerraformingMars;
     }
 
     @Override
@@ -108,9 +118,8 @@ public class TMGameState extends AbstractGameState {
     }
 
     @Override
-    protected AbstractGameState _copy(int playerId) {
-        Random rnd = new Random(getGameParameters().getRandomSeed());
-        TMGameState copy = new TMGameState(gameParameters, getNPlayers());
+    protected AbstractGameStateWithTurnOrder __copy(int playerId) {
+        TMGameState copy = new TMGameState(gameParameters.copy(), getNPlayers());
 
         // General public info
         copy.generation = generation;
@@ -259,7 +268,7 @@ public class TMGameState extends AbstractGameState {
         if (projectCards.getSize() == 0) {
             projectCards.add(discardCards);
             discardCards.clear();
-            projectCards.shuffle(new Random(getGameParameters().getRandomSeed()));
+            projectCards.shuffle(rnd);
         }
         return projectCards.draw();
     }
@@ -275,11 +284,6 @@ public class TMGameState extends AbstractGameState {
     public double getGameScore(int playerId) {
         return playerResources[playerId].get(TMTypes.Resource.TR).getValue();
 //        return countPoints(playerId);
-    }
-
-    @Override
-    protected void _reset() {
-
     }
 
     @Override
@@ -415,7 +419,7 @@ public class TMGameState extends AbstractGameState {
         return playerResources;
     }
 
-    public GridBoard<TMMapTile> getBoard() {
+    public GridBoard getBoard() {
         return board;
     }
 
@@ -824,7 +828,7 @@ public class TMGameState extends AbstractGameState {
         // Add cities on board
         for (int i = 0; i < board.getHeight(); i++) {
             for (int j = 0; j < board.getWidth(); j++) {
-                TMMapTile mt = board.getElement(j, i);
+                TMMapTile mt = (TMMapTile) board.getElement(j, i);
                 if (mt != null && mt.getTilePlaced() == TMTypes.Tile.City) {
                     // Count adjacent greeneries
                     points += PlaceTile.nAdjacentTiles(this, mt, TMTypes.Tile.Greenery);
@@ -861,7 +865,7 @@ public class TMGameState extends AbstractGameState {
                         TMMapTile mt = (TMMapTile) getComponentById(card.mapTileIDTilePlaced);
                         List<Vector2D> neighbours = PlaceTile.getNeighbours(new Vector2D(mt.getX(), mt.getY()));
                         for (Vector2D n : neighbours) {
-                            TMMapTile e = board.getElement(n.getX(), n.getY());
+                            TMMapTile e = (TMMapTile) board.getElement(n.getX(), n.getY());
                             if (e != null && e.getTilePlaced() == card.pointsTile) {
                                 points += card.nPoints;
                             }

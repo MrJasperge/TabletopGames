@@ -5,12 +5,8 @@ import core.actions.AbstractAction;
 import core.interfaces.IPrintable;
 import games.poker.PokerGameState;
 
-import java.util.Objects;
-
 public class AllIn extends AbstractAction implements IPrintable {
-
     private final int playerId;
-
     public AllIn(int id) {
         this.playerId = id;
     }
@@ -21,13 +17,10 @@ public class AllIn extends AbstractAction implements IPrintable {
         pgs.placeBet(pgs.getPlayerMoney()[playerId].getValue(), playerId);
         pgs.setBet(true);
         pgs.getPlayerNeedsToCall()[playerId] = false;
+        pgs.getPlayerAllIn()[playerId] = true;
 
         // Others can't check, unless all in
-        for (int i = 0; i < gameState.getNPlayers(); i++) {
-            if (i != playerId && !pgs.getPlayerFold()[i] && !pgs.getPlayerMoney()[i].isMinimum()) {
-                pgs.getPlayerNeedsToCall()[i] = true;
-            }
-        }
+        pgs.getPlayerMustCall(playerId);
 
         return true;
     }

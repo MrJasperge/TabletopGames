@@ -2,10 +2,9 @@ package games.coltexpress;
 
 import core.AbstractParameters;
 import core.Game;
-import evaluation.TunableParameters;
+import evaluation.optimisation.TunableParameters;
 import games.GameType;
 import games.coltexpress.cards.ColtExpressCard;
-import games.loveletter.cards.LoveLetterCard;
 import utilities.Group;
 
 import java.util.*;
@@ -31,6 +30,10 @@ public class ColtExpressParameters extends TunableParameters {
     public int nRoofMove = 4;
     public int nCardHostageReward = 250;
     public int nCardTakeItAllReward = 1000;
+    public int initialCharacterShuffleSeed = -1;
+    public int roundDeckShuffleSeed = -1;
+    public int trainShuffleSeed = -1;
+    public int playerHandShuffleSeed = -1;
 
     // How many cards of each type are in a player's deck, total minimum nCardsInHand + nCardsInHandExtraDoc
     public HashMap<ColtExpressCard.CardType, Integer> cardCounts = new HashMap<ColtExpressCard.CardType, Integer>() {{
@@ -40,7 +43,6 @@ public class ColtExpressParameters extends TunableParameters {
         put(ColtExpressCard.CardType.MoveMarshal, 1);
         put(ColtExpressCard.CardType.Shoot, 2);
         put(ColtExpressCard.CardType.CollectMoney, 2);
-        _reset();
     }};
 
     // Character types available for this game, minimum nPlayers
@@ -126,9 +128,7 @@ public class ColtExpressParameters extends TunableParameters {
         }});
     }};
 
-    public ColtExpressParameters(long seed) {
-        super(seed);
-
+    public ColtExpressParameters() {
         addTunableParameter("nCardsInHand", 6, Arrays.asList(3,4,5,6,7,8,9,10));
         addTunableParameter("nCardsInHandExtraDoc", 1, Arrays.asList(1,2,3));
         addTunableParameter("nBulletsPerPlayer", 6, Arrays.asList(4,6,8,10,12));
@@ -141,6 +141,10 @@ public class ColtExpressParameters extends TunableParameters {
         for (ColtExpressCard.CardType c: cardCounts.keySet()) {
             addTunableParameter(c.name() + " count", cardCounts.get(c), Arrays.asList(1,2,3,4,5));
         }
+        addTunableParameter("initialCharacterShuffleSeed", -1);
+        addTunableParameter("roundDeckShuffleSeed", -1);
+        addTunableParameter("trainShuffleSeed", -1);
+        addTunableParameter("playerHandShuffleSeed", -1);
     }
 
     @Override
@@ -155,11 +159,15 @@ public class ColtExpressParameters extends TunableParameters {
         nCardHostageReward = (int) getParameterValue("nCardHostageReward");
         nCardTakeItAllReward = (int) getParameterValue("nCardTakeItAllReward");
         cardCounts.replaceAll((c, v) -> (Integer) getParameterValue(c.name() + " count"));
+        initialCharacterShuffleSeed = (int) getParameterValue("initialCharacterShuffleSeed");
+        roundDeckShuffleSeed = (int) getParameterValue("roundDeckShuffleSeed");
+        trainShuffleSeed = (int) getParameterValue("trainShuffleSeed");
+        playerHandShuffleSeed = (int) getParameterValue("playerHandShuffleSeed");
     }
 
     @Override
     protected AbstractParameters _copy() {
-        ColtExpressParameters cep = new ColtExpressParameters(System.currentTimeMillis());
+        ColtExpressParameters cep = new ColtExpressParameters();
         cep.dataPath = dataPath;
         cep.nCardsInHand = nCardsInHand;
         cep.nCardsInHandExtraDoc = nCardsInHandExtraDoc;
@@ -196,7 +204,6 @@ public class ColtExpressParameters extends TunableParameters {
     protected boolean _equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ColtExpressParameters)) return false;
-        if (!super.equals(o)) return false;
         ColtExpressParameters that = (ColtExpressParameters) o;
         return nCardsInHand == that.nCardsInHand &&
                 nCardsInHandExtraDoc == that.nCardsInHandExtraDoc &&
@@ -219,7 +226,7 @@ public class ColtExpressParameters extends TunableParameters {
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(super.hashCode(), dataPath, nCardsInHand, nCardsInHandExtraDoc, nBulletsPerPlayer, nMaxRounds, shooterReward, nCardsDraw, nRoofMove, nCardHostageReward, nCardTakeItAllReward, cardCounts, trainCompartmentConfigurations, playerStartLoot, loot);
+        int result = Objects.hash(super.hashCode(), dataPath, trainCompartmentConfigurations, playerStartLoot, loot);
         result = 31 * result + Arrays.hashCode(characterTypes);
         result = 31 * result + Arrays.hashCode(endRoundCards);
         result = 31 * result + Arrays.hashCode(roundCards);

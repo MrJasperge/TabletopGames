@@ -13,6 +13,9 @@ public abstract class DominionAttackAction extends DominionAction implements IEx
     public DominionAttackAction(CardType type, int playerId) {
         super(type, playerId);
     }
+    public DominionAttackAction(CardType type, int playerId, boolean dummy) {
+        super(type, playerId, dummy);
+    }
 
     int currentTarget;
     boolean[] reactionsInitiated;
@@ -120,9 +123,8 @@ public abstract class DominionAttackAction extends DominionAction implements IEx
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DominionAttackAction) {
-            DominionAttackAction other = (DominionAttackAction) obj;
-            return other.type == type && other.player == player
+        if (obj instanceof DominionAttackAction other) {
+            return super.equals(obj)
                     && other.currentTarget == currentTarget
                     && Arrays.equals(reactionsInitiated, other.reactionsInitiated)
                     && Arrays.equals(attacksInitiated, other.attacksInitiated)
@@ -133,7 +135,7 @@ public abstract class DominionAttackAction extends DominionAction implements IEx
 
     @Override
     public int hashCode() {
-        int retValue = Objects.hash(player, type, currentTarget);
+        int retValue = Objects.hash(currentTarget) + 31 * super.hashCode();
         return retValue + 11 * Arrays.hashCode(reactionsInitiated) + 53 * Arrays.hashCode(attacksInitiated) +
         997 * Arrays.hashCode(attacksComplete);
     }

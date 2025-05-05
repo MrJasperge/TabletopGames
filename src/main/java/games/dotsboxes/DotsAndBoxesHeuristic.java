@@ -1,8 +1,9 @@
 package games.dotsboxes;
 
 import core.AbstractGameState;
+import core.CoreConstants;
 import core.interfaces.IStateHeuristic;
-import evaluation.TunableParameters;
+import evaluation.optimisation.TunableParameters;
 import utilities.Utils;
 
 
@@ -53,7 +54,7 @@ public class DotsAndBoxesHeuristic extends TunableParameters implements IStateHe
     @Override
     public double evaluateState(AbstractGameState gs, int playerId) {
         DBGameState state = (DBGameState) gs;
-        Utils.GameResult playerResult = gs.getPlayerResults()[playerId];
+        CoreConstants.GameResult playerResult = gs.getPlayerResults()[playerId];
 
         if (!state.isNotTerminal())
             return playerResult.value;
@@ -65,7 +66,7 @@ public class DotsAndBoxesHeuristic extends TunableParameters implements IStateHe
                 TWO_BOXES * featureVector[2] +
                 THREE_BOXES * featureVector[3] +
                 ORDINAL * featureVector[4];
-        return Utils.range(retValue, -1.0, 1.0);
+        return Utils.clamp(retValue, -1.0, 1.0);
     }
 
     /**
@@ -75,13 +76,8 @@ public class DotsAndBoxesHeuristic extends TunableParameters implements IStateHe
      */
     @Override
     protected DotsAndBoxesHeuristic _copy() {
-        DotsAndBoxesHeuristic retValue = new DotsAndBoxesHeuristic();
-        retValue.POINTS = POINTS;
-        retValue.POINT_ADVANTAGE = POINT_ADVANTAGE;
-        retValue.THREE_BOXES = THREE_BOXES;
-        retValue.TWO_BOXES = TWO_BOXES;
-        retValue.ORDINAL = ORDINAL;
-        return retValue;
+        // all the parameters are then copied in ITunableParameters
+        return new DotsAndBoxesHeuristic();
     }
 
     /**
@@ -92,8 +88,7 @@ public class DotsAndBoxesHeuristic extends TunableParameters implements IStateHe
      */
     @Override
     protected boolean _equals(Object o) {
-        if (o instanceof DotsAndBoxesHeuristic) {
-            DotsAndBoxesHeuristic other = (DotsAndBoxesHeuristic) o;
+        if (o instanceof DotsAndBoxesHeuristic other) {
             return other.POINT_ADVANTAGE == POINT_ADVANTAGE &&
                     other.ORDINAL == ORDINAL &&
                     other.TWO_BOXES == TWO_BOXES && other.THREE_BOXES == THREE_BOXES &&

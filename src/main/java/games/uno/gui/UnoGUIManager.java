@@ -6,7 +6,7 @@ import core.AbstractPlayer;
 import core.Game;
 import games.uno.UnoGameParameters;
 import games.uno.UnoGameState;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 import gui.GamePanel;
 import players.human.ActionController;
 
@@ -15,6 +15,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.util.Set;
 
 
 public class UnoGUIManager extends AbstractGUIManager {
@@ -33,16 +34,13 @@ public class UnoGUIManager extends AbstractGUIManager {
 
     // Currently active player
     int activePlayer = -1;
-    // ID of human player
-    int humanID;
 
     // Border highlight of active player
     Border highlightActive = BorderFactory.createLineBorder(new Color(47, 132, 220), 3);
     Border[] playerViewBorders;
 
-    public UnoGUIManager(GamePanel parent, Game game, ActionController ac, int humanID) {
-        super(parent, ac, 15);
-        this.humanID = humanID;
+    public UnoGUIManager(GamePanel parent, Game game, ActionController ac, Set<Integer> humanID) {
+        super(parent, game, ac, humanID);
 
         if (game != null) {
             AbstractGameState gameState = game.getGameState();
@@ -108,7 +106,7 @@ public class UnoGUIManager extends AbstractGUIManager {
                 // Top area will show state information
                 JPanel infoPanel = createGameStateInfoPanel("Uno", gameState, width, defaultInfoPanelHeight);
                 // Bottom area will show actions available
-                JComponent actionPanel = createActionPanel(new ScreenHighlight[0], width, defaultActionPanelHeight, false, true, null);
+                JComponent actionPanel = createActionPanel(new IScreenHighlight[0], width, defaultActionPanelHeight, false, true, null, null, null);
 
                 // Add all views to frame
                 parent.setLayout(new BorderLayout());
@@ -120,6 +118,11 @@ public class UnoGUIManager extends AbstractGUIManager {
                 parent.repaint();
             }
         }
+    }
+
+    @Override
+    public int getMaxActionSpace() {
+        return 15;
     }
 
     @Override
@@ -135,7 +138,7 @@ public class UnoGUIManager extends AbstractGUIManager {
             for (int i = 0; i < gameState.getNPlayers(); i++) {
                 playerHands[i].update((UnoGameState) gameState);
                 if (i == gameState.getCurrentPlayer() && gameState.getCoreGameParameters().alwaysDisplayCurrentPlayer
-                        || i == humanID
+                        || humanPlayerIds.contains(i)
                         || gameState.getCoreGameParameters().alwaysDisplayFullObservable) {
                     playerHands[i].playerHandView.setFront(true);
                     playerHands[i].setFocusable(true);

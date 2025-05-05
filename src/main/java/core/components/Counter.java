@@ -1,15 +1,17 @@
 package core.components;
 
+import core.CoreConstants;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import utilities.Utils.ComponentType;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Counter extends Component {
     protected int[] values;
@@ -19,11 +21,17 @@ public class Counter extends Component {
     protected int maximum;  // Maximum value (inclusive)
 
     public Counter() {
-        this(0, 0, 0, "");
+        this(0, 0, Integer.MAX_VALUE, "");
+    }
+    public Counter(String name) {
+        this(0, 0, Integer.MAX_VALUE, name);
+    }
+    public Counter(int max, String name) {
+        this(0, 0, max, name);
     }
 
     public Counter(int valueIdx, int minimum, int maximum, String name) {
-        super(ComponentType.COUNTER, name);
+        super(CoreConstants.ComponentType.COUNTER, name);
         this.valueIdx = valueIdx;
         this.minimum = minimum;
         this.maximum = maximum;
@@ -35,7 +43,7 @@ public class Counter extends Component {
     }
 
     protected Counter(int[] values, int valueIdx, int minimum, int maximum, String name, int ID) {
-        super(ComponentType.COUNTER, name, ID);
+        super(CoreConstants.ComponentType.COUNTER, name, ID);
         this.values = values;
         this.valueIdx = valueIdx;
         this.minimum = minimum;
@@ -57,6 +65,9 @@ public class Counter extends Component {
         this.valueIdx += amount;
         return clamp();
     }
+    public boolean increment() {
+        return increment(1);
+    }
 
     /**
      * Decrement the value of this counter.
@@ -66,6 +77,9 @@ public class Counter extends Component {
     public boolean decrement(int amount) {
         this.valueIdx -= amount;
         return clamp();
+    }
+    public boolean decrement() {
+        return decrement(1);
     }
 
     private boolean clamp() {
@@ -156,6 +170,14 @@ public class Counter extends Component {
         this.valueIdx = i;
     }
 
+    public void setToMax() {
+        this.valueIdx = maximum;
+    }
+
+    public void setToMin() {
+        this.valueIdx = minimum;
+    }
+
     /**
      * Loads all counter from a JSON file.
      * @param filename - path to file.
@@ -202,7 +224,23 @@ public class Counter extends Component {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Counter)) return false;
+        if (!super.equals(o)) return false;
+        Counter counter = (Counter) o;
+        return valueIdx == counter.valueIdx && minimum == counter.minimum && maximum == counter.maximum && Arrays.equals(values, counter.values);
+    }
+
+    @Override
     public int hashCode() {
-        return componentID;
+        int result = Objects.hash(super.hashCode(), valueIdx, minimum, maximum);
+        result = 31 * result + Arrays.hashCode(values);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "" + getValue();
     }
 }

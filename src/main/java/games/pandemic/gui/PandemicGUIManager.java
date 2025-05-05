@@ -16,7 +16,7 @@ import games.pandemic.PandemicGameState;
 import games.pandemic.PandemicParameters;
 import games.pandemic.PandemicTurnOrder;
 import games.pandemic.actions.*;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 import gui.AbstractGUIManager;
 import gui.GamePanel;
 import players.human.ActionController;
@@ -38,7 +38,7 @@ import static games.pandemic.PandemicGameState.PandemicGamePhase.DiscardReaction
 import static games.pandemic.gui.PandemicCardView.*;
 import static javax.swing.ScrollPaneConstants.*;
 
-public class PandemicGUIManager extends AbstractGUIManager implements ScreenHighlight {
+public class PandemicGUIManager extends AbstractGUIManager implements IScreenHighlight {
     PandemicCardView[] playerCards;
     JLabel[][] playerHandCardCounts;
     ArrayList<PandemicCardView>[] playerHands;
@@ -46,7 +46,6 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
     PandemicBoardView boardView;
     PandemicCounterView cY, cR, cB, cK;
 
-    Game game;
     PandemicGameState gameState;
     int nPlayers;
     int maxCards;
@@ -60,8 +59,8 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
     // Game state info
     JLabel gameTurnStep;
 
-    public PandemicGUIManager(GamePanel parent, Game game, ActionController ac) {
-        super(parent, ac, 721);
+    public PandemicGUIManager(GamePanel parent, Game game, ActionController ac, Set<Integer> human) {
+        super(parent, game, ac, human);
         if (game == null || ac == null) return;
 
         this.game = game;
@@ -90,7 +89,7 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
         JPanel gameStateInfo = createGameStateInfoPanel(gameState);
         JPanel playerAreas = createPlayerAreas();
         JPanel counterArea = createCounterArea();
-        JComponent actionPanel = createActionPanel(new ScreenHighlight[]{this}, 300, 80, this::bufferReset);
+        JComponent actionPanel = createActionPanel(new IScreenHighlight[]{this}, 300, 80, this::bufferReset);
         JPanel side = new JPanel();
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
         side.add(gameStateInfo);
@@ -111,6 +110,11 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
         parent.revalidate();
         parent.setVisible(true);
         parent.repaint();
+    }
+
+    @Override
+    public int getMaxActionSpace() {
+        return 750;
     }
 
     private void bufferReset(ActionButton ab) {
@@ -274,7 +278,6 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
 
         gameInfo.add(gameStatus);
         gameInfo.add(gamePhase);
-        gameInfo.add(turnOwner);
         gameInfo.add(turn);
         gameInfo.add(currentPlayer);
         gameInfo.add(gameTurnStep);
@@ -298,7 +301,8 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
 
     protected void updateGameStateInfo(AbstractGameState gameState) {
         super.updateGameStateInfo(gameState);
-        gameTurnStep.setText("Turn step: " + ((PandemicTurnOrder)gameState.getTurnOrder()).getTurnStep());
+        PandemicGameState pgs = (PandemicGameState) gameState;
+        gameTurnStep.setText("Turn step: " + ((PandemicTurnOrder)pgs.getTurnOrder()).getTurnStep());
     }
 
     private JPanel createCounterArea() {
@@ -328,10 +332,10 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
     protected void _update(AbstractPlayer player, AbstractGameState gameState){
         this.gameState = (PandemicGameState) gameState;
         boardView.gameState = this.gameState;
-        boolean newTurn = gameState.getTurnOrder().getCurrentPlayer(gameState) != activePlayer || currentGamePhase == null || !currentGamePhase.equals(gameState.getGamePhase());
+        boolean newTurn = this.gameState.getTurnOrder().getCurrentPlayer(gameState) != activePlayer || currentGamePhase == null || !currentGamePhase.equals(gameState.getGamePhase());
 
         currentGamePhase = gameState.getGamePhase();
-        activePlayer = gameState.getTurnOrder().getCurrentPlayer(gameState);
+        activePlayer = this.gameState.getTurnOrder().getCurrentPlayer(gameState);
         // Update counters
         Counter cnY = (Counter) this.gameState.getComponent(Hash.GetInstance().hash("Disease Cube yellow"));
         cY.updateComponent(cnY);
@@ -457,7 +461,7 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
         for (AbstractAction action : actions) {
             if (action instanceof MovePlayer) {
                 int pIdx = ((MovePlayer) action).getPlayerToMove();
-                Card c = action.getCard(gameState);
+                Card c = (action instanceof MovePlayerWithCard) ? ((MovePlayerWithCard) action).getCard(gameState) : null;
                 if (action instanceof MovePlayerWithCard && isCardHighlighted(c, pIdx)) {
                     if (c.getProperty(effectHash) == null || bnHighlights.contains(((MovePlayer) action).getDestination()) &&
                                 (pIdx == id || playerTokenHighlights.contains(pIdx))) {
@@ -478,7 +482,7 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
                     if (action instanceof AddResearchStationFrom) {
                         if (bnHighlights.contains(((AddResearchStationFrom) action).getFromCity())) {
                             if (!(action instanceof AddResearchStationWithCardFrom) ||
-                                    isCardHighlighted(action.getCard(gameState), id)) {
+                                    isCardHighlighted(((AddResearchStationWithCardFrom)action).getCard(gameState), id)) {
                                 actionButtons[k].setVisible(true);
                                 actionButtons[k++].setButtonAction(action, gameState);
                             }
@@ -508,7 +512,7 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
                 actionButtons[k].setVisible(true);
                 actionButtons[k++].setButtonAction(action, gameState);
             } else if (action instanceof RearrangeDeckOfCards) {  // Event
-                Card eventCard = action.getCard(gameState);
+                Card eventCard = ((RearrangeDeckOfCards)action).getCard(gameState);
                 int[] cardOrder = ((RearrangeDeckOfCards) action).getNewCardOrder();
                 int nCards = cardOrder.length;
                 Deck<Card> deckFrom = (Deck<Card>) gameState.getComponentById(((RearrangeDeckOfCards) action).getDeckFrom());
@@ -530,7 +534,7 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
                 }
 
             } else if (action instanceof RemoveComponentFromDeck) {  // Event
-                Card eventCard = action.getCard(gameState);
+                Card eventCard = ((RemoveComponentFromDeck)action).getCard(gameState);
                 int infectionCard = ((RemoveComponentFromDeck) action).getComponentIdx();
                 Deck<Card> deck = (Deck<Card>) gameState.getComponentById(((RemoveComponentFromDeck) action).getDeck());
                 fillBufferDeck(deck);
@@ -580,7 +584,7 @@ public class PandemicGUIManager extends AbstractGUIManager implements ScreenHigh
                         // Share knowledge
                         int giverID = ((ShareKnowledge) action).getGiver();
                         int receiverID = ((ShareKnowledge) action).getReceiver();
-                        if (isCardHighlighted(action.getCard(gameState), giverID)) {
+                        if (isCardHighlighted(((ShareKnowledge) action).getCard(gameState), giverID)) {
                             if (id == giverID && playerHighlights.contains(receiverID)) {
                                 // Give card
                                 // card in hand selected and other player, show this action as available

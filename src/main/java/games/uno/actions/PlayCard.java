@@ -2,20 +2,18 @@ package games.uno.actions;
 
 
 import core.AbstractGameState;
+import core.CoreConstants;
 import core.actions.AbstractAction;
 import core.actions.DrawCard;
 import core.components.Card;
 import core.components.Deck;
 import core.interfaces.IPrintable;
 import games.uno.UnoGameParameters;
-import games.uno.UnoTurnOrder;
 import games.uno.cards.UnoCard;
 import games.uno.UnoGameState;
-import utilities.Utils;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
 import static games.uno.UnoGameParameters.UnoScoring.CHALLENGE;
 
@@ -38,12 +36,10 @@ public class PlayCard extends DrawCard implements IPrintable {
         UnoGameParameters ugp = (UnoGameParameters) gameState.getGameParameters();
         super.execute(gameState);
 
-        Random r = new Random(ugp.getRandomSeed() + ugs.getTurnOrder().getRoundCounter());
-
         UnoCard cardToBePlayed = (UnoCard) gameState.getComponentById(cardId);
         ugs.updateCurrentCard(cardToBePlayed);
 
-        int nextPlayer = gameState.getTurnOrder().nextPlayer(gameState);
+        int nextPlayer = ugs.getNextPlayer();
         Deck<UnoCard> drawDeck = ugs.getDrawDeck();
         Deck<UnoCard> discardDeck = ugs.getDiscardDeck();
         List<Deck<UnoCard>> playerDecks = ugs.getPlayerDecks();
@@ -52,7 +48,7 @@ public class PlayCard extends DrawCard implements IPrintable {
         if (ugp.scoringMethod == CHALLENGE) {
             players = 0;
             for (int p = 0; p < ugs.getNPlayers(); p++) {
-                if (ugs.getPlayerResults()[p] == Utils.GameResult.GAME_ONGOING)
+                if (ugs.getPlayerResults()[p] == CoreConstants.GameResult.GAME_ONGOING)
                     players++;
             }
         }
@@ -60,13 +56,13 @@ public class PlayCard extends DrawCard implements IPrintable {
         switch (cardToBePlayed.type) {
             case Reverse:
                 if (players == 2) { // Reverse cards are SKIP for 2 players
-                    ((UnoTurnOrder) gameState.getTurnOrder()).skip();
+                    ugs.setSkipTurn(true);
                 } else {
-                    ((UnoTurnOrder) gameState.getTurnOrder()).reverse();
+                    ugs.reverseDirection();
                 }
                 break;
             case Skip:
-                ((UnoTurnOrder) gameState.getTurnOrder()).skip();
+                ugs.setSkipTurn(true);
                 break;
             case Draw:
                 for (int i = 0; i < cardToBePlayed.drawN; i++) {
@@ -78,11 +74,11 @@ public class PlayCard extends DrawCard implements IPrintable {
                         drawDeck.remove(ugs.getCurrentCard());
                         discardDeck.add(ugs.getCurrentCard());
 
-                        drawDeck.shuffle(r);
+                        drawDeck.shuffle(ugs.getRnd());
                     }
                     playerDecks.get(nextPlayer).add(drawDeck.draw());
                 }
-                ((UnoTurnOrder) gameState.getTurnOrder()).skip();
+                ugs.setSkipTurn(true);
                 break;
             case Wild:
                 ugs.updateCurrentCard(cardToBePlayed, color);
@@ -96,12 +92,12 @@ public class PlayCard extends DrawCard implements IPrintable {
                         drawDeck.remove(ugs.getCurrentCard());
                         discardDeck.add(ugs.getCurrentCard());
 
-                        drawDeck.shuffle(r);
+                        drawDeck.shuffle(ugs.getRnd());
                     }
                     playerDecks.get(nextPlayer).add(drawDeck.draw());
                 }
                 if (cardToBePlayed.drawN > 0) {
-                    ((UnoTurnOrder) gameState.getTurnOrder()).skip();
+                    ugs.setSkipTurn(true);
                 }
                 break;
         }

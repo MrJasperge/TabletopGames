@@ -1,5 +1,6 @@
 package gui.views;
 
+import core.AbstractGameState;
 import core.components.BoardNode;
 import core.components.GraphBoard;
 import core.properties.PropertyBoolean;
@@ -10,7 +11,9 @@ import utilities.Utils;
 import utilities.Vector2D;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import static gui.GUI.defaultItemSize;
 import static core.CoreConstants.*;
@@ -18,17 +21,19 @@ import static core.CoreConstants.sizeHash;
 import static games.pandemic.PandemicConstants.*;
 
 public class GraphBoardView extends ComponentView {
+    AbstractGameState gs;
 
-    public GraphBoardView(GraphBoard board, int width, int height) {
+    public GraphBoardView(AbstractGameState gs, GraphBoard board, int width, int height) {
         super(board, width, height);
+        this.gs = gs;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-        drawGraphBoard((Graphics2D)g, (GraphBoard) component, 0, 0, width, height);
+        drawGraphBoard((Graphics2D)g, gs, (GraphBoard) component, 0, 0, width, height);
     }
 
-    public static void drawGraphBoard(Graphics2D g, GraphBoard graphBoard, int x, int y, int width, int height) {
+    public static void drawGraphBoard(Graphics2D g, AbstractGameState gs, GraphBoard graphBoard, int x, int y, int width, int height) {
         // Draw background
         g.setColor(Color.lightGray);
         g.fillRect(x, y, width-1, height-1);
@@ -44,7 +49,7 @@ public class GraphBoardView extends ComponentView {
         }
 
         // Draw connections
-        java.util.List<BoardNode> bList = graphBoard.getBoardNodes();
+        Collection<BoardNode> bList = graphBoard.getBoardNodes();
         for (BoardNode b: bList) {
             PropertyVector2D posProp = (PropertyVector2D) b.getProperty(coordinateHash);
             if (posProp != null) {
@@ -52,7 +57,7 @@ public class GraphBoardView extends ComponentView {
                 Vector2D pos = new Vector2D((int) (poss.getX() * scaleW), (int) (poss.getY() * scaleH));
                 PropertyBoolean edge = ((PropertyBoolean) b.getProperty(edgeHash));
 
-                HashSet<BoardNode> neighbours = b.getNeighbours();
+                Set<BoardNode> neighbours = b.getNeighbours().keySet();
                 for (BoardNode b2 : neighbours) {
                     PropertyVector2D posProp2 = (PropertyVector2D) b2.getProperty(coordinateHash);
                     if (posProp2 != null) {
@@ -96,8 +101,8 @@ public class GraphBoardView extends ComponentView {
         }
     }
 
-    public static void drawGraphBoard(Graphics2D g, GraphBoard graphBoard, Rectangle rect) {
-        drawGraphBoard(g, graphBoard, rect.x, rect.y, rect.width, rect.height);
+    public static void drawGraphBoard(Graphics2D g, AbstractGameState gs, GraphBoard graphBoard, Rectangle rect) {
+        drawGraphBoard(g, gs, graphBoard, rect.x, rect.y, rect.width, rect.height);
     }
 
 }

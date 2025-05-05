@@ -1,6 +1,10 @@
 package core;
 
+import core.interfaces.IStateHeuristic;
 import core.interfaces.ITunableParameters;
+import evaluation.optimisation.TunableParameters;
+import games.GameType;
+import players.heuristics.NullHeuristic;
 
 import java.util.*;
 
@@ -8,6 +12,12 @@ public abstract class AbstractParameters {
 
     // Random seed for this game
     long randomSeed;
+    // Maximum number of rounds in the game - according to the rules
+    // Once this is reached we end the game - and determine winners/losers in the normal way
+    int maxRounds = -1;
+    // Maximum number of rounds in the game before we timeout from boredom
+    // If this is reached then we set the GameResult (and player results) to be TIMEOUT
+    int timeoutRounds = -1;
 
     // Player thinking time for the entire game, in minutes. Default max value.
     long thinkingTimeMins = 90;
@@ -16,12 +26,15 @@ public abstract class AbstractParameters {
     // Increment in seconds, added after a custom milestone (to be added manually in game implementation). Default 0.
     long incrementMilestoneS = 0;
 
-    public AbstractParameters(long seed) {
-        randomSeed = seed;
+
+    public AbstractParameters() {
+        this.setRandomSeed(System.currentTimeMillis());
     }
 
     /**
      * Return a copy of this game parameters object, with the same parameters as in the original.
+     * It is important that this return a new object. As the super-class will amend the randomSeed
+     * of the value returned.
      *
      * @return - new game parameters object.
      */
@@ -55,6 +68,12 @@ public abstract class AbstractParameters {
         this.thinkingTimeMins = thinkingTimeMins;
     }
 
+    public void setMaxRounds(int max) {
+        maxRounds = max;
+    }
+    public void setTimeoutRounds(int max) {
+        timeoutRounds = max;
+    }
 
     /**
      * Retrieve total thinking time for the game, in minutes
@@ -102,6 +121,26 @@ public abstract class AbstractParameters {
     }
 
     /**
+     * Retrieve the  maximum number of rounds before a game is terminated (According to the rules)
+     * This is a valid end to a game, so winners/losers are determined as normal.
+     *
+     * @return - milestone increment
+     */
+    public int getMaxRounds() {
+        return maxRounds;
+    }
+    /**
+     * Retrieve the  maximum number of rounds before a game is terminated due to a 'timeout'
+     * This is treated as an invalid end to the game, and the Game and all Player Results will
+     * be set to TIMEOUT
+     *
+     * @return - milestone increment
+     */
+    public int getTimeoutRounds() {
+        return timeoutRounds;
+    }
+
+    /**
      * Copy this game parameter object.
      *
      * @return - new object with the same parameters, but a new random seed.
@@ -116,15 +155,15 @@ public abstract class AbstractParameters {
      * Randomizes the set of parameters, if this is a class that implements the TunableParameters interface.
      */
     public void randomize() {
-        if (this instanceof ITunableParameters) {
+        if (this instanceof ITunableParameters<?> params) {
             Random rnd = new Random(randomSeed);
-            ITunableParameters params = (ITunableParameters) this;
             params.getParameterNames().forEach(name -> {
                         int nValues = params.getPossibleValues(name).size();
                         int randomChoice = rnd.nextInt(nValues);
                         params.setParameterValue(name, params.getPossibleValues(name).get(randomChoice));
                     }
             );
+            params._reset();
         } else {
             System.out.println("Error: Not implementing the TunableParameters interface. Not randomizing");
         }
@@ -146,18 +185,32 @@ public abstract class AbstractParameters {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AbstractParameters)) return false;
-        AbstractParameters that = (AbstractParameters) o;
+        if (!(o instanceof AbstractParameters that)) return false;
         return thinkingTimeMins == that.thinkingTimeMins &&
                 incrementActionS == that.incrementActionS &&
                 incrementTurnS == that.incrementTurnS &&
                 incrementRoundS == that.incrementRoundS &&
+                maxRounds == that.maxRounds && timeoutRounds == that.timeoutRounds &&
                 incrementMilestoneS == that.incrementMilestoneS;
-        // equals and hashcode deliberatley excludes the random seed
+        // equals and hashcode deliberately excludes the random seed
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(thinkingTimeMins, incrementActionS, incrementTurnS, incrementRoundS, incrementMilestoneS);
+        return Objects.hash(thinkingTimeMins, incrementActionS, incrementTurnS, incrementRoundS, incrementMilestoneS, maxRounds, timeoutRounds);
     }
+
+    static public AbstractParameters createFromFile(GameType game, String fileName) {
+        AbstractParameters params = game.createParameters(System.currentTimeMillis());
+        if (fileName.isEmpty())
+            return params;
+        if (params instanceof TunableParameters) {
+            TunableParameters.loadFromJSONFile((TunableParameters) params, fileName);
+            return params;
+        } else {
+            throw new AssertionError("JSON parameter initialisation not supported for " + game);
+        }
+    }
+
+    public IStateHeuristic getStateHeuristic() { return new NullHeuristic(); }
 }

@@ -1,9 +1,6 @@
 package games.pandemic;
 
-import core.AbstractForwardModel;
-import core.AbstractGameData;
-import core.AbstractGameState;
-import core.AbstractParameters;
+import core.*;
 import core.actions.AbstractAction;
 import core.actions.DrawCard;
 import core.components.Area;
@@ -18,13 +15,11 @@ import core.rules.GameOverCondition;
 import core.rules.Node;
 import core.rules.nodetypes.ConditionNode;
 import core.rules.nodetypes.RuleNode;
-import core.rules.rulenodes.ForceAllPlayerReaction;
 import games.pandemic.actions.AddResearchStation;
 import games.pandemic.actions.InfectCity;
 import games.pandemic.rules.conditions.*;
 import games.pandemic.rules.gameOver.*;
 import games.pandemic.rules.rules.*;
-import gui.GameFlowDiagram;
 import utilities.Hash;
 
 import java.util.*;
@@ -58,7 +53,7 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
         RuleNode infectCities = new InfectCities(pp.infectionRate, pp.maxCubesPerCity, pp.nCubesInfection);
         RuleNode forceDiscardReaction1 = new ForceDiscardReaction();
         RuleNode forceDiscardReaction2 = new ForceDiscardReaction();
-        RuleNode epidemic2 = new EpidemicIntensify(new Random(pp.getRandomSeed()));
+        RuleNode epidemic2 = new EpidemicIntensify();
         RuleNode forceRPreaction = new ForceRPReaction();
         RuleNode epidemic1 = new EpidemicInfect(pp.maxCubesPerCity, pp.nCubesEpidemic);
         RuleNode drawCards = new DrawCards();
@@ -149,9 +144,9 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
      */
     @Override
     protected void _setup(AbstractGameState firstState) {
-        Random rnd = new Random(firstState.getGameParameters().getRandomSeed());
 
         PandemicGameState state = (PandemicGameState) firstState;
+        state._reset();
         PandemicParameters pp = (PandemicParameters) state.getGameParameters();
 
         AbstractGameData _data = new AbstractGameData();
@@ -223,7 +218,7 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
             playerDeck.add(c);
             pp.nEventCards++;
         }
-        playerDeck.shuffle(rnd);
+        playerDeck.shuffle(firstState.getRnd());
 
         Deck<Card> playerRoles = _data.findDeck("Player Roles");
         Deck<Card> infectionDeck =  _data.findDeck("Infections");
@@ -239,7 +234,7 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
         state.addComponents();
 
         // Infection
-        infectionDeck.shuffle(rnd);
+        infectionDeck.shuffle(firstState.getRnd());
         int nCards = pp.nInfectionCardsSetup;
         int nTimes = pp.nInfectionsSetup;
         for (int j = 0; j < nTimes; j++) {
@@ -251,7 +246,7 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
 
         // Give players cards
         int nCardsPlayer = pp.nCardsPerPlayer.get(state.getNPlayers());
-        playerRoles.shuffle(rnd);
+        playerRoles.shuffle(firstState.getRnd());
         long maxPop = 0;
         int startingPlayer = -1;
 
@@ -260,13 +255,13 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
             Card c = null;
             // Ugly code, but easier for setting parameters and optimisation
             if (i == 0 && !pp.player0Role.equals("Any"))
-                c = getPlayerCardWithRole(playerRoles, pp.player0Role, pp);
+                c = getPlayerCardWithRole(playerRoles, pp.player0Role, state);
             else if (i == 1 && !pp.player1Role.equals("Any"))
-                c = getPlayerCardWithRole(playerRoles, pp.player1Role, pp);
+                c = getPlayerCardWithRole(playerRoles, pp.player1Role, state);
             else if (i == 2 && !pp.player2Role.equals("Any"))
-                c = getPlayerCardWithRole(playerRoles, pp.player2Role, pp);
+                c = getPlayerCardWithRole(playerRoles, pp.player2Role, state);
             else if (i == 3 && !pp.player3Role.equals("Any"))
-                c = getPlayerCardWithRole(playerRoles, pp.player3Role, pp);
+                c = getPlayerCardWithRole(playerRoles, pp.player3Role, state);
             if (c == null)
                 c = playerRoles.draw();
 
@@ -299,13 +294,13 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
         }
 
         // Epidemic cards
-        playerDeck.shuffle(rnd);
+        playerDeck.shuffle(state.getRnd());
         int noCards = playerDeck.getSize();
         int noEpidemicCards = pp.nEpidemicCards;
         if (noEpidemicCards > 0) {
             int range = noCards / noEpidemicCards;
             for (int i = 0; i < noEpidemicCards; i++) {
-                int index = i * range + i + rnd.nextInt(range);
+                int index = i * range + i + state.getRnd().nextInt(range);
 
                 Card card = new Card("Epidemic");
                 card.setProperty(new PropertyString("name", "epidemic"));
@@ -320,7 +315,7 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
         state.getTurnOrder().setStartingPlayer(startingPlayer);
     }
 
-    private Card getPlayerCardWithRole(Deck<Card> cards, String role, PandemicParameters pp) {
+    private Card getPlayerCardWithRole(Deck<Card> cards, String role, PandemicGameState pp) {
         // Possible to have multiple possible roles separated by ","
         HashSet<String> roles = new HashSet<>();
         if (role.contains(",")) {
@@ -337,7 +332,7 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
             }
         }
         if (subset.getSize() > 0) {
-            subset.shuffle(new Random(pp.getRandomSeed()));
+            subset.shuffle(pp.getRnd());
             return subset.draw();
         }
         return null;
@@ -350,23 +345,32 @@ public class PandemicForwardModel extends AbstractRuleBasedForwardModel {
     @Override
     protected List<AbstractAction> _computeAvailableActions(AbstractGameState gameState) {
         PandemicGameState pgs = (PandemicGameState) gameState;
-        if (((PandemicTurnOrder) gameState.getTurnOrder()).reactionsFinished()) {
-            gameState.setMainGamePhase();
+        PandemicTurnOrder pto = (PandemicTurnOrder) pgs.getTurnOrder();
+        if (pto.reactionsFinished()) {
+            gameState.setGamePhase(CoreConstants.DefaultGamePhase.Main);
         }
         if (gameState.getGamePhase() == PandemicGameState.PandemicGamePhase.DiscardReaction)
             return getDiscardActions(pgs);
         else if (gameState.getGamePhase() == PandemicGameState.PandemicGamePhase.RPReaction)
             return getRPactions(pgs);
-        else if (gameState.getGamePhase() == AbstractGameState.DefaultGamePhase.PlayerReaction)
+        else if (gameState.getGamePhase() == CoreConstants.DefaultGamePhase.PlayerReaction)
             return getEventActions(pgs);
         else if (gameState.getGamePhase() == PandemicGameState.PandemicGamePhase.Forecast)
             return getForecastActions(pgs);
         else return getPlayerActions(pgs);
     }
 
+    public PandemicForwardModel copy() {
+        PandemicForwardModel retValue = new PandemicForwardModel(copyRoot());
+        retValue.decisionPlayerID = decisionPlayerID;
+        retValue.decorators = new ArrayList<>(decorators);
+        return retValue;
+    }
+
     @Override
-    protected AbstractForwardModel _copy() {
-        return new PandemicForwardModel(copyRoot());
+    protected void endPlayerTurn(AbstractGameState state) {
+        PandemicGameState pgs = (PandemicGameState) state;
+        pgs.getTurnOrder().endPlayerTurn(state);
     }
 
     @Override

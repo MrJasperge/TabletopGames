@@ -39,8 +39,8 @@ public class AttackUnitsAction extends AbstractAction {
         else {
             MapTile attacker = (MapTile) gameState.getComponentById(attackingUnitsTileID);
             MapTile defender = (MapTile) gameState.getComponentById(targetTileID);
-            ArrayList<Unit> attackerUnits = state.getBoard().getElement(attacker.getLocationX(), attacker.getLocationY()).GetUnits();
-            ArrayList<Unit> defenderUnits = state.getBoard().getElement(defender.getLocationX(), defender.getLocationY()).GetUnits();
+            ArrayList<Unit> attackerUnits = ((MapTile)state.getBoard().getElement(attacker.getLocationX(), attacker.getLocationY())).GetUnits();
+            ArrayList<Unit> defenderUnits = ((MapTile)state.getBoard().getElement(defender.getLocationX(), defender.getLocationY())).GetUnits();
 
             //COMBAT SEQUENCE: Roll a dice
             int defeatedEnemyCount = 0;
@@ -48,13 +48,13 @@ public class AttackUnitsAction extends AbstractAction {
             BattleloreGameParameters parameters = (BattleloreGameParameters) state.getGameParameters();
 
             for (int i = 0; i < parameters.troopCountInSquad; i++) {
-                CombatDice.Result result = dice.getResult();
-                if (result == CombatDice.Result.Strike) {
+                CombatDice.Result result = dice.getResult(state.getRnd());
+                if (result == CombatDice.Result.Cleave) {
                     if (!parameters.isWeakAttacker(attackerUnits.size())) {
                         defeatedEnemyCount++;
                     }
                 }
-                else if (result == CombatDice.Result.Cleave) {
+                else if (result == CombatDice.Result.Strike) {
                     defeatedEnemyCount++;
                 }
             }
@@ -69,14 +69,12 @@ public class AttackUnitsAction extends AbstractAction {
                 state.RemoveUnit(defender.getLocationX(), defender.getLocationY());
             }
             else {
-                state.getBoard().getElement(defender.getLocationX(), defender.getLocationY()).SetUnits(defenderUnits);
+                ((MapTile)state.getBoard().getElement(defender.getLocationX(), defender.getLocationY())).SetUnits(defenderUnits);
             }
 
             for (Unit unit : attackerUnits) {
                 unit.SetCanAttack(false);
             }
-
-            state.IncrementTurn(playerID);
             return true;
         }
     }

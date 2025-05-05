@@ -1,5 +1,6 @@
 package games.terraformingmars;
 
+import core.components.BoardNode;
 import core.components.Counter;
 import core.components.Deck;
 import core.components.GridBoard;
@@ -161,6 +162,14 @@ public class TMTypes {
         public boolean canGoOnCard() {
             return canGoOnCard;
         }
+
+        public static Resource[] getPlayerBoardResources() {
+            ArrayList<Resource> res = new ArrayList<>();
+            for (Resource r: values()) {
+                if (r.isPlayerBoardRes()) res.add(r);
+            }
+            return res.toArray(new Resource[0]);
+        }
     }
 
     public enum Tag {
@@ -293,7 +302,7 @@ public class TMTypes {
 
         /* custom loading info from json */
 
-        public void loadBoard(GridBoard<TMMapTile> board, HashSet<TMMapTile> extraTiles, HashSet<Bonus> bonuses,
+        public void loadBoard(GridBoard board, HashSet<TMMapTile> extraTiles, HashSet<Bonus> bonuses,
                               HashSet<Milestone> milestones, HashSet<Award> awards, HashMap<GlobalParameter, games.terraformingmars.components.GlobalParameter> globalParameters) {
             JSONParser jsonParser = new JSONParser();
             try (FileReader reader = new FileReader(getBoardPath())) {

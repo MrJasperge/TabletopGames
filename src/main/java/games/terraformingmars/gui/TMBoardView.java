@@ -8,7 +8,7 @@ import games.terraformingmars.TMTypes;
 import games.terraformingmars.actions.*;
 import games.terraformingmars.components.TMMapTile;
 import games.terraformingmars.rules.effects.Bonus;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 import gui.views.ComponentView;
 import utilities.ImageIO;
 import utilities.Vector2D;
@@ -22,11 +22,12 @@ import java.util.HashMap;
 
 import static gui.AbstractGUIManager.defaultItemSize;
 import static games.terraformingmars.gui.TMCardView.drawResource;
-import static games.terraformingmars.gui.Utils.*;
+import static utilities.GUIUtils.*;
 
-public class TMBoardView extends ComponentView implements ScreenHighlight {
+public class TMBoardView extends ComponentView implements IScreenHighlight {
 
     TMGameState gs;
+    public final static Color[] playerColors = new Color[]{Color.RED, Color.YELLOW, Color.BLUE, Color.GREEN};
 
     HashMap<Rectangle, String> rects;  // Used for highlights + action trimming
     ArrayList<Rectangle> highlight;
@@ -99,7 +100,7 @@ public class TMBoardView extends ComponentView implements ScreenHighlight {
             }
         }
 
-        Rectangle rect = drawGridBoard(g, (GridBoard<TMMapTile>) component, offsetX + (gs.getGlobalParameters().size()+1) * defaultItemSize + 10, defaultItemSize);
+        Rectangle rect = drawGridBoard(g, (GridBoard) component, offsetX + (gs.getGlobalParameters().size()+1) * defaultItemSize + 10, defaultItemSize);
         if (rect.getHeight() + rect.getY() > height) {
             height = rect.getHeight() + rect.getY();
         }
@@ -141,7 +142,7 @@ public class TMBoardView extends ComponentView implements ScreenHighlight {
         }
     }
 
-    public Rectangle drawGridBoard(Graphics2D g, GridBoard<TMMapTile> gridBoard, int x, int y) {
+    public Rectangle drawGridBoard(Graphics2D g, GridBoard gridBoard, int x, int y) {
         int offsetY = defaultItemSize/2;
 
         // Board background
@@ -159,7 +160,7 @@ public class TMBoardView extends ComponentView implements ScreenHighlight {
 
                 int xC = x + offsetX + j * defaultItemSize;
                 int yC = y + offsetY + i * defaultItemSize;
-                drawCell(g, gridBoard.getElement(j, i), xC, yC);
+                drawCell(g, (TMMapTile) gridBoard.getElement(j, i), xC, yC);
 
                 // Save rect where cell is drawn
                 rects.put(new Rectangle(xC - defaultItemSize/2, yC - defaultItemSize/2, defaultItemSize, defaultItemSize), "grid-" + j + "-" + i);

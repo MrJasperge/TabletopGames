@@ -6,6 +6,9 @@ public class Pair<T,V> {
     public T a;
     public V b;
 
+    public static <T,V> Pair<T,V> of(T a, V b) {
+        return new Pair<>(a, b);
+    }
     public Pair(T a, V b) {
         this.a = a;
         this.b = b;
@@ -33,5 +36,10 @@ public class Pair<T,V> {
     @Override
     public int hashCode() {
         return Objects.hash(a, b);
+    }
+
+    @Override
+    public String toString() {
+        return "<" + a.toString() + ";" + b.toString() + ">";
     }
 }

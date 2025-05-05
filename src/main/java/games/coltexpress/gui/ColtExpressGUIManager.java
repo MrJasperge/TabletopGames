@@ -8,7 +8,7 @@ import core.interfaces.IGamePhase;
 import games.coltexpress.ColtExpressGameState;
 import games.coltexpress.ColtExpressParameters;
 import games.coltexpress.components.Compartment;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 import gui.GamePanel;
 import players.human.ActionController;
 import utilities.ImageIO;
@@ -19,6 +19,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
 
 import static games.coltexpress.ColtExpressGameState.ColtExpressGamePhase.ExecuteActions;
 
@@ -47,15 +48,12 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
 
     // Currently active player
     int activePlayer = -1;
-    // ID of human player
-    int humanID;
     // Border highlight of active player
     Border highlightActive = BorderFactory.createLineBorder(new Color(220, 169, 11), 3);
     Border[] playerViewBorders;
 
-    public ColtExpressGUIManager(GamePanel parent, Game game, ActionController ac, int humanID) {
-        super(parent, ac, 25);
-        this.humanID = humanID;
+    public ColtExpressGUIManager(GamePanel parent, Game game, ActionController ac, Set<Integer> humanID) {
+        super(parent, game, ac, humanID);
 
         UIManager.put("TabbedPane.contentOpaque", false);
         UIManager.put("TabbedPane.opaque", false);
@@ -113,7 +111,6 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
                 // Player hands go on the edges
                 playerHands = new ColtExpressPlayerView[nPlayers];
                 playerViewBorders = new Border[nPlayers];
-                int next = 0;
                 for (int i = 0; i < nPlayers; i++) {
                     ColtExpressPlayerView playerHand = new ColtExpressPlayerView(i, cep.getDataPath(), cegs.getPlayerCharacters());
                     playerHand.setOpaque(false);
@@ -136,7 +133,7 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
                 JPanel infoPanel = createGameStateInfoPanel("Colt Express", gameState, width, defaultInfoPanelHeight);
                 infoPanel.setOpaque(false);
                 // Bottom area will show actions available
-                JComponent actionPanel = createActionPanel(new ScreenHighlight[0], width, defaultActionPanelHeight, false, true, null);
+                JComponent actionPanel = createActionPanel(new IScreenHighlight[0], width, defaultActionPanelHeight, false, true, null, null, null);
                 actionPanel.setOpaque(false);
 
                 main.add(infoPanel, BorderLayout.NORTH);
@@ -155,6 +152,11 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
     }
 
     @Override
+    public int getMaxActionSpace() {
+        return 25;
+    }
+
+    @Override
     protected JPanel createGameStateInfoPanel(String gameTitle, AbstractGameState gameState, int width, int height) {
         JPanel gameInfo = new JPanel();
         gameInfo.setOpaque(false);
@@ -166,7 +168,6 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
         gameInfo.add(gameStatus);
         gameInfo.add(playerStatus);
         gameInfo.add(gamePhase);
-        gameInfo.add(turnOwner);
         gameInfo.add(turn);
         gameInfo.add(currentPlayer);
 
@@ -187,8 +188,7 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
         return wrapper;
     }
 
-    @Override
-    protected JComponent createActionPanel(ScreenHighlight[] highlights, int width, int height, boolean boxLayout) {
+    protected JComponent createActionPanel(IScreenHighlight[] highlights, int width, int height, boolean boxLayout) {
         JPanel actionPanel = new JPanel();
         actionPanel.setOpaque(false);
         if (boxLayout) {
@@ -236,7 +236,7 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
             // Update decks and visibility
             ColtExpressGameState cegs = (ColtExpressGameState)gameState;
             for (int i = 0; i < gameState.getNPlayers(); i++) {
-                playerHands[i].update((ColtExpressGameState) gameState, humanID);
+                playerHands[i].update((ColtExpressGameState) gameState, humanPlayerIds);
 
                 // Highlight active player
                 if (i == gameState.getCurrentPlayer()) {
@@ -248,15 +248,13 @@ public class ColtExpressGUIManager extends AbstractGUIManager {
                 }
             }
             plannedActions.updateComponent(cegs.getPlannedActions());
-            int activePlayer = player != null? (gameState.getCoreGameParameters().alwaysDisplayCurrentPlayer || gameState.getCoreGameParameters().alwaysDisplayFullObservable? player.getPlayerID(): player.getPlayerID()==humanID? player.getPlayerID():-1) : -1;
+            int activePlayer = player != null? (gameState.getCoreGameParameters().alwaysDisplayCurrentPlayer ||
+                    gameState.getCoreGameParameters().alwaysDisplayFullObservable? player.getPlayerID():
+                    humanPlayerIds.contains(player.getPlayerID())? player.getPlayerID():-1) : -1;
             plannedActions.informActivePlayer(activePlayer);
 
             // Show planned actions from the first played
-            if (gameState.getGamePhase() == ExecuteActions) {
-                plannedActions.setFirstOnTop(true);
-            } else {
-                plannedActions.setFirstOnTop(false);
-            }
+            plannedActions.setFirstOnTop(gameState.getGamePhase() == ExecuteActions);
 
             // Update train view
             trainView.update(cegs);

@@ -4,13 +4,10 @@ import core.AbstractGameState;
 import core.actions.AbstractAction;
 import core.interfaces.IPrintable;
 import games.poker.PokerGameState;
-import games.poker.PokerTurnOrder;
-
-import java.util.Objects;
 
 public class Fold extends AbstractAction implements IPrintable {
 
-    final int playerId;
+    public final int playerId;
 
     public Fold(int playerId) {
         this.playerId = playerId;
@@ -21,9 +18,8 @@ public class Fold extends AbstractAction implements IPrintable {
         PokerGameState pgs = (PokerGameState) gameState;
         pgs.getPlayerFold()[playerId] = true;
         pgs.getPlayerNeedsToCall()[playerId] = false;
-
-        ((PokerTurnOrder)pgs.getTurnOrder()).fold(pgs, playerId);
-
+        if (pgs.getPlayerAllIn()[playerId])
+            throw new AssertionError("Should not be able to Fold if AllIn");
         return true;
     }
 

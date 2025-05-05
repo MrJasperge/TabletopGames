@@ -1,23 +1,23 @@
 package games.uno;
 
-import core.AbstractForwardModel;
 import core.AbstractGameState;
+import core.CoreConstants;
+import core.StandardForwardModel;
 import core.actions.AbstractAction;
 import core.components.Deck;
 import games.uno.UnoGameParameters.UnoScoring;
 import games.uno.actions.NoCards;
 import games.uno.actions.PlayCard;
 import games.uno.cards.UnoCard;
-import utilities.Utils;
+import utilities.Pair;
 
 import java.util.*;
 import java.util.stream.IntStream;
 
 import static core.CoreConstants.VisibilityMode.*;
-import static games.uno.UnoGameParameters.UnoScoring.CHALLENGE;
-import static utilities.Utils.GameResult.GAME_ONGOING;
+import static core.CoreConstants.GameResult.GAME_ONGOING;
 
-public class UnoForwardModel extends AbstractForwardModel {
+public class UnoForwardModel extends StandardForwardModel {
 
     @Override
     protected void _setup(AbstractGameState firstState) {
@@ -39,7 +39,9 @@ public class UnoForwardModel extends AbstractForwardModel {
         ugs.discardDeck = new Deck<>("DiscardDeck", VISIBLE_TO_ALL);
 
         // Player 0 starts the game
-        ugs.getTurnOrder().setStartingPlayer(0);
+        ugs.setFirstPlayer(0);
+        ugs.skipTurn = false;
+        ugs.direction = 1;
 
         // Set up first round
         setupRound(ugs);
@@ -100,8 +102,6 @@ public class UnoForwardModel extends AbstractForwardModel {
      * @param ugs - current game state.
      */
     private void setupRound(UnoGameState ugs) {
-        Random r = new Random(ugs.getGameParameters().getRandomSeed() + ugs.getTurnOrder().getRoundCounter());
-
         // Refresh player decks
         for (int i = 0; i < ugs.getNPlayers(); i++) {
             ugs.drawDeck.add(ugs.playerDecks.get(i));
@@ -111,7 +111,7 @@ public class UnoForwardModel extends AbstractForwardModel {
         // Refresh draw deck and shuffle
         ugs.drawDeck.add(ugs.discardDeck);
         ugs.discardDeck.clear();
-        ugs.drawDeck.shuffle(r);
+        ugs.drawDeck.shuffle(ugs.getRnd());
 
         // Draw new cards for players
         drawCardsToPlayers(ugs);
@@ -127,7 +127,7 @@ public class UnoForwardModel extends AbstractForwardModel {
                 System.out.println("First card wild");
             }
             ugs.drawDeck.add(ugs.currentCard);
-            ugs.drawDeck.shuffle(r);
+            ugs.drawDeck.shuffle(ugs.getRnd());
             ugs.currentCard = ugs.drawDeck.draw();
             ugs.currentColor = ugs.currentCard.color;
         }
@@ -138,14 +138,15 @@ public class UnoForwardModel extends AbstractForwardModel {
                 System.out.println("First card no number " + ugs.currentColor);
             }
             if (ugs.currentCard.type == UnoCard.UnoCardType.Reverse) {
-                ((UnoTurnOrder) ugs.getTurnOrder()).reverse();
+                ugs.direction *= -1;
             } else if (ugs.currentCard.type == UnoCard.UnoCardType.Draw) {
                 int player = ugs.getCurrentPlayer();
                 for (int i = 0; i < ugs.currentCard.drawN; i++) {
                     ugs.playerDecks.get(player).add(ugs.drawDeck.draw());
                 }
             }
-            ugs.getTurnOrder().endPlayerTurn(ugs);
+            endPlayerTurn(ugs, ugs.getNextPlayer());
+            ugs.skipTurn = false;
         }
 
         // add current card to discard deck
@@ -153,16 +154,14 @@ public class UnoForwardModel extends AbstractForwardModel {
     }
 
     @Override
-    protected void _next(AbstractGameState gameState, AbstractAction action) {
-        action.execute(gameState);
+    protected void _afterAction(AbstractGameState gameState, AbstractAction action) {
         if (checkRoundEnd((UnoGameState) gameState)) {
             return;
         }
-//        if (checkRunningTotal((UnoGameState)gameState)) {
-//            return;
-//        }
         if (gameState.getGameStatus() == GAME_ONGOING) {
-            gameState.getTurnOrder().endPlayerTurn(gameState);
+            UnoGameState ugs = (UnoGameState) gameState;
+            endPlayerTurn(ugs, ugs.getNextPlayer());
+            ugs.skipTurn = false;
         }
     }
 
@@ -184,6 +183,15 @@ public class UnoForwardModel extends AbstractForwardModel {
                     roundWinner = playerID;
                     break;
                 }
+            }
+            UnoGameParameters params = (UnoGameParameters) ugs.getGameParameters();
+            if (ugs.getTurnCounter() > params.maxTurnsPerRound) {
+                roundEnd = true;
+                roundWinner = IntStream.range(0, ugs.getNPlayers())
+                        .mapToObj(i -> new Pair<>(i, ugs.playerDecks.get(i).getSize()))
+                        .min(Comparator.comparingInt(p -> p.b))
+                        .orElseThrow(() -> new AssertionError("No min card count found")).a;
+                break;
             }
         }
 
@@ -209,7 +217,7 @@ public class UnoForwardModel extends AbstractForwardModel {
             }
 
 //            System.out.println("Round end " + Arrays.toString(ugs.playerScore));
-            ugs.getTurnOrder().endRound(ugs);
+            endRound(ugs);
 
             // Did this player just hit N points to win? Win condition check!
             if (checkGameEnd(ugs, ugs.playerScore)) return true;
@@ -252,12 +260,12 @@ public class UnoForwardModel extends AbstractForwardModel {
                     );
                     for (int i = 0; i < ugs.getNPlayers(); i++) {
                         if (playerScores[i] == maxScore) {
-                            ugs.setPlayerResult(Utils.GameResult.WIN, i);
+                            ugs.setPlayerResult(CoreConstants.GameResult.WIN_GAME, i);
                         } else {
-                            ugs.setPlayerResult(Utils.GameResult.LOSE, i);
+                            ugs.setPlayerResult(CoreConstants.GameResult.LOSE_GAME, i);
                         }
                     }
-                    ugs.setGameStatus(Utils.GameResult.GAME_END);
+                    ugs.setGameStatus(CoreConstants.GameResult.GAME_END);
                     return true;
                 case INCREMENTAL:
                     // in this case the game ends when one player breaches the threshold.
@@ -267,12 +275,12 @@ public class UnoForwardModel extends AbstractForwardModel {
                     );
                     for (int i = 0; i < ugs.getNPlayers(); i++) {
                         if (playerScores[i] == minScore) {
-                            ugs.setPlayerResult(Utils.GameResult.WIN, i);
+                            ugs.setPlayerResult(CoreConstants.GameResult.WIN_GAME, i);
                         } else {
-                            ugs.setPlayerResult(Utils.GameResult.LOSE, i);
+                            ugs.setPlayerResult(CoreConstants.GameResult.LOSE_GAME, i);
                         }
                     }
-                    ugs.setGameStatus(Utils.GameResult.GAME_END);
+                    ugs.setGameStatus(CoreConstants.GameResult.GAME_END);
                     return true;
                 case CHALLENGE:
                     // this is the most complicated case
@@ -282,8 +290,8 @@ public class UnoForwardModel extends AbstractForwardModel {
                     for (int i = 0; i < ugs.getNPlayers(); i++) {
                         if (ugs.getPlayerResults()[i] == GAME_ONGOING) {
                             if (playerScores[i] >= ugp.nWinPoints) {
-                                ugs.setPlayerResult(Utils.GameResult.LOSE, i);
-                                ugs.expulsionRound[i] = ugs.getTurnOrder().getRoundCounter();
+                                ugs.setPlayerResult(CoreConstants.GameResult.LOSE_GAME, i);
+                                ugs.expulsionRound[i] = ugs.getRoundCounter();
                                 if (playerScores[i] < lowScore) {
                                     lowScore = playerScores[i];
                                 }
@@ -301,20 +309,20 @@ public class UnoForwardModel extends AbstractForwardModel {
                         case 0:
                             // everyone breached, so winner is the lowest score
                             for (int p : lowScoreIds) {
-                                ugs.setPlayerResult(Utils.GameResult.WIN, p);
-                                ugs.expulsionRound[p] = ugs.getTurnOrder().getRoundCounter() + 1;
+                                ugs.setPlayerResult(CoreConstants.GameResult.WIN_GAME, p);
+                                ugs.expulsionRound[p] = ugs.getRoundCounter() + 1;
                             }
-                            ugs.setGameStatus(Utils.GameResult.GAME_END);
+                            ugs.setGameStatus(CoreConstants.GameResult.GAME_END);
                             return true;
                         case 1:
                             for (int p = 0; p < ugs.getNPlayers(); p++) {
                                 if (ugs.getPlayerResults()[p] == GAME_ONGOING) {
-                                    ugs.setPlayerResult(Utils.GameResult.WIN, p);
-                                    ugs.expulsionRound[p] = ugs.getTurnOrder().getRoundCounter() + 1;
+                                    ugs.setPlayerResult(CoreConstants.GameResult.WIN_GAME, p);
+                                    ugs.expulsionRound[p] = ugs.getRoundCounter() + 1;
                                 }
                             }
                             // we then continue to the case 1:
-                            ugs.setGameStatus(Utils.GameResult.GAME_END);
+                            ugs.setGameStatus(CoreConstants.GameResult.GAME_END);
                             return true;
                         default:
                             // continue
@@ -349,24 +357,6 @@ public class UnoForwardModel extends AbstractForwardModel {
         }
 
         return actions;
-    }
-
-    @Override
-    protected void endGame(AbstractGameState gameState) {
-        if (gameState.getCoreGameParameters().verbose) {
-            System.out.println("Game Results:");
-            for (int playerID = 0; playerID < gameState.getNPlayers(); playerID++) {
-                if (gameState.getPlayerResults()[playerID] == Utils.GameResult.WIN) {
-                    System.out.println("The winner is the player : " + playerID);
-                    break;
-                }
-            }
-        }
-    }
-
-    @Override
-    protected AbstractForwardModel _copy() {
-        return new UnoForwardModel();
     }
 }
 

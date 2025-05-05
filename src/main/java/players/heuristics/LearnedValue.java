@@ -2,7 +2,7 @@ package players.heuristics;
 
 import core.*;
 import core.actions.AbstractAction;
-import core.interfaces.IGameListener;
+import evaluation.metrics.Event;
 import players.mcts.ITreeProcessor;
 import players.mcts.SingleTreeNode;
 import utilities.Pair;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-public class LearnedValue extends AbstractPlayer implements IGameListener, ITreeProcessor {
+public class LearnedValue extends AbstractPlayer implements ITreeProcessor {
 
     String filename, suffix;
     int count = 0;
@@ -34,6 +34,7 @@ public class LearnedValue extends AbstractPlayer implements IGameListener, ITree
 
     @SuppressWarnings("unchecked")
     public LearnedValue(String constructionString) {
+        super(null, "LearnedValue");
 
         String[] stuff = constructionString.split(Pattern.quote(":"));
         filename = stuff[0].split(Pattern.quote("."))[0];
@@ -81,8 +82,8 @@ public class LearnedValue extends AbstractPlayer implements IGameListener, ITree
     }
 
     @Override
-    public AbstractAction getAction(AbstractGameState gameState, List<AbstractAction> possibleActions) {
-        return valueHeuristic.getAction(gameState, possibleActions);
+    public AbstractAction _getAction(AbstractGameState gameState, List<AbstractAction> possibleActions) {
+        return valueHeuristic._getAction(gameState, possibleActions);
     }
 
     private long initialiseFromFile() {
@@ -174,11 +175,11 @@ public class LearnedValue extends AbstractPlayer implements IGameListener, ITree
             statsWriter2.newLine();
 
 
-          //  Map<String, Map<Integer, Double>> actionAdvantageByBucket = getValues();
+            //  Map<String, Map<Integer, Double>> actionAdvantageByBucket = getValues();
             Map<Integer, String> actionNames = valueHeuristic.actionNames;
             for (String bucket : newData.keySet()) {
                 Map<Integer, Pair<Integer, Double>> newDataByHash = newData.get(bucket);
-             //   Map<Integer, Double> actionAdvantage = actionAdvantageByBucket.getOrDefault(bucket, new HashMap<>());
+                //   Map<Integer, Double> actionAdvantage = actionAdvantageByBucket.getOrDefault(bucket, new HashMap<>());
                 for (Integer hash : newDataByHash.keySet()) {
                     double specificVisits = newDataByHash.get(hash).a;
                     double specificAdvantage = newDataByHash.get(hash).b;
@@ -212,18 +213,13 @@ public class LearnedValue extends AbstractPlayer implements IGameListener, ITree
     }
 
     @Override
-    public void onGameEvent(CoreConstants.GameEvents type, Game game) {
-        if (type == CoreConstants.GameEvents.GAME_OVER) {
-            // we record the current state
+    public void onEvent(Event event) {
+        if (event.type == Event.GameEvent.GAME_OVER) {
             count++;
             mergeWithAndWriteToFile();
         }
     }
 
-    @Override
-    public void onEvent(CoreConstants.GameEvents type, AbstractGameState state, AbstractAction action) {
-        onGameEvent(type, null);
-    }
 
     @Override
     public void process(SingleTreeNode node) {
@@ -237,7 +233,7 @@ public class LearnedValue extends AbstractPlayer implements IGameListener, ITree
 
         while (!queue.isEmpty()) {
             SingleTreeNode n = queue.poll();
-            double meanValue = useAdvantage ? n.getTotValue()[actor] / (double) n.getVisits() : 0.0;
+            double meanValue = useAdvantage ? n.nodeValue(actor) : 0.0;
             // we then get all the data for the actions taken
             // for each hashcode, we record the number of visits, and the mean advantage
             // if this is a previously unseen hashcode (not in statsByHash), then we add a baseline of anchorVisits
@@ -271,7 +267,7 @@ public class LearnedValue extends AbstractPlayer implements IGameListener, ITree
                     // if useAdvantage then we subtract meanValue * visits
                     Map<Integer, Pair<Integer, Double>> data = actionsToNodes.stream()
                             .collect(toMap(p -> p.a.hashCode(),
-                                    p -> new Pair<>(p.b.getVisits(), p.b.getTotValue()[actor] - meanValue * p.b.getVisits())));
+                                    p -> new Pair<>(p.b.getVisits(), p.b.getVisits() * (p.b.nodeValue(actor) - meanValue))));
 
 
                     // now we merge this data into the existing map

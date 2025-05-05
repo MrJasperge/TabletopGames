@@ -1,6 +1,5 @@
 package players.simple;
 
-import core.AbstractForwardModel;
 import core.AbstractGameState;
 import core.AbstractPlayer;
 import core.actions.AbstractAction;
@@ -13,9 +12,8 @@ public class RandomPlayer extends AbstractPlayer {
     /**
      * Random generator for this agent.
      */
-    private final Random rnd;
-
     public RandomPlayer(Random rnd) {
+        super(null, "RandomPlayer");
         this.rnd = rnd;
     }
 
@@ -25,18 +23,21 @@ public class RandomPlayer extends AbstractPlayer {
     }
 
     @Override
-    public AbstractAction getAction(AbstractGameState observation, List<AbstractAction> actions) {
+    public AbstractAction _getAction(AbstractGameState observation, List<AbstractAction> actions) {
         int randomAction = rnd.nextInt(actions.size());
         return actions.get(randomAction);
     }
 
     @Override
-    public String toString() {
-        return "Random";
+    public RandomPlayer copy() {
+        RandomPlayer retValue = new RandomPlayer(new Random(rnd.nextInt()));
+        retValue.decorators = decorators;
+        retValue.setName(this.toString());
+        return retValue;
     }
 
     @Override
-    public RandomPlayer copy() {
-        return new RandomPlayer(new Random(rnd.nextInt()));
+    public boolean equals(Object obj) {
+        return obj instanceof RandomPlayer;
     }
 }

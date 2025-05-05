@@ -26,13 +26,13 @@ public abstract class DeckView<T extends Component> extends ComponentView {
     // card and display sizes
     protected int itemWidth, itemHeight;
 
-    public DeckView(int player, Deck<T> d, boolean visible, int componentWidth, int componentHeight) {
-        this(player, d, visible, componentWidth, componentHeight, new Rectangle(0, 0, componentWidth, componentHeight));
+    public DeckView(int humanPlayer, Deck<T> d, boolean visible, int componentWidth, int componentHeight) {
+        this(humanPlayer, d, visible, componentWidth, componentHeight, new Rectangle(0, 0, componentWidth, componentHeight));
     }
 
-    public DeckView(int player, Deck<T> d, boolean visible, int componentWidth, int componentHeight, Rectangle display) {
+    public DeckView(int humanPlayer, Deck<T> d, boolean visible, int componentWidth, int componentHeight, Rectangle display) {
         super(d, display.width, display.height);
-        this.humanId = player;
+        this.humanId = humanPlayer;
         this.itemHeight = componentHeight;
         this.itemWidth = componentWidth;
         this.rect = display;
@@ -102,10 +102,12 @@ public abstract class DeckView<T extends Component> extends ComponentView {
             int offset = Math.max((rect.width - itemWidth) / deck.getSize(), minCardOffset);
             rects = new Rectangle[deck.getSize()];
             for (int i = deck.getSize() - 1; i >= 0; i--) {
-                T card = deck.get(i);
-                Rectangle r = new Rectangle(rect.x + offset * i, rect.y, itemWidth, itemHeight);
-                rects[i] = r;
-                drawComponent(g, r, card, front || componentVisibility(deck, i));
+                if (i < deck.getSize()) {
+                    T card = deck.get(i);
+                    Rectangle r = new Rectangle(rect.x + offset * i, rect.y, itemWidth, itemHeight);
+                    rects[i] = r;
+                    drawComponent(g, r, card, front || componentVisibility(deck, i));
+                }
             }
             if (cardHighlight != -1) {
                 // Draw this one on top
@@ -122,11 +124,11 @@ public abstract class DeckView<T extends Component> extends ComponentView {
 //            if (name != null && !name.equals("")) {
 //                g.drawString(name, rect.x + 10, rect.y + size + 20);
 //            }
-            g.drawString("" + deck.getSize(), rect.x + 10, rect.y + rect.height - size);
+            if (!front) g.drawString("" + deck.getSize(), rect.x + 10, rect.y + rect.height - size);
         }
     }
 
-    private boolean componentVisibility(Deck<T> deck, int index) {
+    public boolean componentVisibility(Deck<T> deck, int index) {
         if (deck instanceof PartialObservableDeck && humanId != -1) {
             return ((PartialObservableDeck<T>) deck).isComponentVisible(index, humanId);
         }

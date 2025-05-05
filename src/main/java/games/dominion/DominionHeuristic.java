@@ -1,8 +1,9 @@
 package games.dominion;
 
 import core.AbstractGameState;
+import core.CoreConstants;
 import core.interfaces.IStateHeuristic;
-import evaluation.TunableParameters;
+import evaluation.optimisation.TunableParameters;
 import games.dominion.cards.CardType;
 import games.dominion.cards.DominionCard;
 import utilities.Utils;
@@ -64,11 +65,11 @@ public class DominionHeuristic extends TunableParameters implements IStateHeuris
     @Override
     public double evaluateState(AbstractGameState gs, int playerId) {
         DominionGameState state = (DominionGameState) gs;
-        Utils.GameResult playerResult = state.getPlayerResults()[playerId];
+        CoreConstants.GameResult playerResult = state.getPlayerResults()[playerId];
 
-        if (playerResult == Utils.GameResult.LOSE)
+        if (playerResult == CoreConstants.GameResult.LOSE_GAME)
             return -1;
-        if (playerResult == Utils.GameResult.WIN)
+        if (playerResult == CoreConstants.GameResult.WIN_GAME)
             return 1;
 
         // We have several factors to consider (all maxed to 1.0)
@@ -98,12 +99,12 @@ public class DominionHeuristic extends TunableParameters implements IStateHeuris
         // actionsLeft / 5.
         if (actionsLeft != 0.0)
             if (state.getCurrentPlayer() == playerId)
-                retValue += actionsLeft * Math.min(state.actionsLeft() / 5.0, 1.0);
+                retValue += actionsLeft * Math.min(state.getActionsLeft() / 5.0, 1.0);
 
         // buysLeft / 5
         if (buysLeft != 0.0)
             if (state.getCurrentPlayer() == playerId)
-                retValue += buysLeft * Math.min(state.buysLeft() / 5.0, 1.0);
+                retValue += buysLeft * Math.min(state.getBuysLeft() / 5.0, 1.0);
 
         if (provinceCount != 0.0)
             retValue += provinceCount * state.getTotal(playerId, c -> c.cardType() == CardType.PROVINCE ? 1 : 0) / 12.0;
@@ -117,7 +118,7 @@ public class DominionHeuristic extends TunableParameters implements IStateHeuris
         if (totalCards != 0.0)
             retValue += totalCards * state.getTotalCards(playerId) / 40.0;
 
-        return Utils.range(retValue, -1.0, 1.0);
+        return Utils.clamp(retValue, -1.0, 1.0);
     }
 
 

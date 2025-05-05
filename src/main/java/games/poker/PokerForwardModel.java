@@ -1,7 +1,8 @@
 package games.poker;
-import core.AbstractForwardModel;
+
 import core.AbstractGameState;
 import core.CoreConstants;
+import core.StandardForwardModel;
 import core.actions.AbstractAction;
 import core.components.Counter;
 import core.components.Deck;
@@ -10,15 +11,14 @@ import games.poker.actions.*;
 import games.poker.actions.Fold;
 import games.poker.components.MoneyPot;
 import utilities.Pair;
-import utilities.Utils;
 
 import java.util.*;
 
 import static games.poker.PokerGameState.PokerGamePhase.*;
-import static utilities.Utils.GameResult.LOSE;
+import static core.CoreConstants.GameResult.LOSE_GAME;
 
 
-public class PokerForwardModel extends AbstractForwardModel {
+public class PokerForwardModel extends StandardForwardModel {
 
     @Override
     protected void _setup(AbstractGameState firstState) {
@@ -28,9 +28,11 @@ public class PokerForwardModel extends AbstractForwardModel {
         pgs.playerMoney = new Counter[firstState.getNPlayers()];
         pgs.playerNeedsToCall = new boolean[firstState.getNPlayers()];
         pgs.playerFold = new boolean[firstState.getNPlayers()];
+        pgs.playerAllIn = new boolean[firstState.getNPlayers()];
         pgs.playerBet = new Counter[firstState.getNPlayers()];
         pgs.playerActStreet = new boolean[pgs.getNPlayers()];
         pgs.moneyPots = new ArrayList<>();
+        pgs.bet = false;
 
         pgs.playerDecks = new ArrayList<>();
         for (int i = 0; i < pgs.getNPlayers(); i++) {
@@ -43,7 +45,7 @@ public class PokerForwardModel extends AbstractForwardModel {
         pgs.communityCards = new Deck<>("CommunityCards", CoreConstants.VisibilityMode.VISIBLE_TO_ALL);
 
         // Player 0 starts the game
-        pgs.getTurnOrder().setStartingPlayer(0);
+        pgs.setFirstPlayer(0);
 
         // Set up first round
         setupRound(pgs);
@@ -51,11 +53,11 @@ public class PokerForwardModel extends AbstractForwardModel {
 
     /**
      * Sets up a round for the game, including draw pile, discard deck and player decks, all reset.
+     *
      * @param pgs - current game state.
      */
     private void setupRound(PokerGameState pgs) {
         PokerGameParameters params = (PokerGameParameters) pgs.getGameParameters();
-        Random r = new Random(params.getRandomSeed() + pgs.getTurnOrder().getRoundCounter());
 
         pgs.moneyPots.clear();
         pgs.moneyPots.add(new MoneyPot());
@@ -65,25 +67,41 @@ public class PokerForwardModel extends AbstractForwardModel {
             pgs.playerDecks.get(i).clear();
             pgs.playerNeedsToCall[i] = false;
             pgs.playerFold[i] = false;
+            pgs.playerAllIn[i] = false;
             pgs.playerBet[i].setValue(0);
         }
         pgs.communityCards.clear();
 
         // Refresh draw deck and shuffle
         pgs.drawDeck = FrenchCard.generateDeck("DrawDeck", CoreConstants.VisibilityMode.HIDDEN_TO_ALL);
-        pgs.drawDeck.shuffle(r);
+        pgs.drawDeck.shuffle(pgs.getRnd());
 
         // Draw new cards for players
         drawCardsToPlayers(pgs);
 
-        // Blinds
-        int smallId = ((PokerTurnOrder)pgs.getTurnOrder()).getRoundFirstPlayer();
-        int bigId = (pgs.getNPlayers() + smallId + 1) % pgs.getNPlayers();
-        while ((pgs.playerFold[bigId] || pgs.getPlayerResults()[bigId] == LOSE)) {
-            bigId = (pgs.getNPlayers() + bigId + 1) % pgs.getNPlayers();
+        // Blinds;
+        // player to right of first player is BigBlind
+        // The 'first player' is the first player to bid (don't confuse with the dealer)
+        // in the pre-flop round. In later phases the small blind will bid first.
+        pgs.bigId = pgs.getNextActingPlayer(pgs.getFirstPlayer(), -1);
+        int smallId = pgs.getSmallId();
+
+        if (pgs.playerMoney[smallId].getValue() < params.smallBlind) {
+            new AllIn(smallId).execute(pgs);
+        } else {
+            new Bet(smallId, params.smallBlind).execute(pgs);
         }
-        new Bet(smallId, params.smallBlind).execute(pgs);
-        new Bet(bigId, params.bigBlind).execute(pgs);
+
+        if (pgs.playerMoney[pgs.bigId].getValue() < params.bigBlind) {
+            new AllIn(pgs.bigId).execute(pgs);
+        } else {
+            new Bet(pgs.bigId, params.bigBlind).execute(pgs);
+        }
+        // It is then possible that the round ends immediately
+        // if there are 2 players left, and one went AllIn on the blind
+        if (pgs.isRoundOver()) {
+            roundEnd(pgs);
+        }
 
         pgs.setGamePhase(Preflop);
         pgs.setBet(false);
@@ -91,114 +109,150 @@ public class PokerForwardModel extends AbstractForwardModel {
 
     private void drawCardsToPlayers(PokerGameState pgs) {
         for (int player = 0; player < pgs.getNPlayers(); player++) {
-            for (int card = 0; card < ((PokerGameParameters)pgs.getGameParameters()).nCardsPerPlayer; card++) {
+            for (int card = 0; card < ((PokerGameParameters) pgs.getGameParameters()).nCardsPerPlayer; card++) {
                 pgs.playerDecks.get(player).add(pgs.drawDeck.draw());
             }
         }
     }
 
     @Override
-    protected void _next(AbstractGameState gameState, AbstractAction action) {
-        action.execute(gameState);
-
+    protected void _afterAction(AbstractGameState gameState, AbstractAction action) {
         // Check end of street to add more community cards
         PokerGameState pgs = (PokerGameState) gameState;
         PokerGameParameters pgp = (PokerGameParameters) gameState.getGameParameters();
 
-        pgs.playerActStreet[pgs.getCurrentPlayer()] = true;
+        checkMoney(pgs);
 
-        if (!(action instanceof Fold || action instanceof Check || action instanceof Call)) {
-            gameState.getTurnOrder().endPlayerTurn(gameState);
-        } else {
-            boolean remainingDecisions = false;
-            int stillAlive = 0;
-            for (int i = 0; i < gameState.getNPlayers(); i++) {
-                if (pgs.getPlayerResults()[i] != LOSE && !pgs.playerFold[i]) {
-                    stillAlive++;
-                    if (pgs.playerNeedsToCall[i] || !pgs.playerActStreet[i]){
-                        remainingDecisions = true;
-                    }
+        // So - playerNeedsToCall means that they still have a decision to make
+        // playerActStreet means that they have acted at least once
+        // a player is only out of the phase if they have acted, and do not need to call
+
+        pgs.playerActStreet[pgs.getCurrentPlayer()] = true;
+        if (pgs.isRoundOver()) {
+            roundEnd(pgs);
+            return;
+        }
+        if (!pgs.isPlayerStillToAct()) {
+            // Phase over, move to next phase
+            pgs.setBet(false);
+            // reset all players to act (Fold and AllIn unchanged)
+            Arrays.fill(pgs.playerActStreet, false);
+            Arrays.fill(pgs.playerNeedsToCall, false);
+
+            if (pgs.getGamePhase() == Preflop) {
+                // Add flop
+                for (int i = 0; i < pgp.nFlopCards; i++) {
+                    pgs.communityCards.add(pgs.drawDeck.draw());
                 }
-            }
-            if (stillAlive == 1) {
+                pgs.setGamePhase(Flop);
+            } else if (pgs.getGamePhase() == Flop) {
+                // Add turn
+                for (int i = 0; i < pgp.nTurnCards; i++) {
+                    pgs.communityCards.add(pgs.drawDeck.draw());
+                }
+                pgs.setGamePhase(Turn);
+            } else if (pgs.getGamePhase() == Turn) {
+                // Add river
+                for (int i = 0; i < pgp.nRiverCards; i++) {
+                    pgs.communityCards.add(pgs.drawDeck.draw());
+                }
+                pgs.setGamePhase(River);
+            } else if (pgs.getGamePhase() == River) {
                 // Round is over
                 roundEnd(pgs);
-            } else if (!remainingDecisions) {
-                // Add community cards
-                gameState.getTurnOrder().setTurnOwner(gameState.getTurnOrder().getFirstPlayer());
-                pgs.setBet(false);
-                Arrays.fill(pgs.playerActStreet, false);
-
-                if (gameState.getGamePhase() == Preflop) {
-                    // Add flop
-                    for (int i = 0; i < pgp.nFlopCards; i++) {
-                        pgs.communityCards.add(pgs.drawDeck.draw());
-                    }
-                    gameState.setGamePhase(Flop);
-                } else if (gameState.getGamePhase() == Flop) {
-                    // Add turn
-                    for (int i = 0; i < pgp.nTurnCards; i++) {
-                        pgs.communityCards.add(pgs.drawDeck.draw());
-                    }
-                    gameState.setGamePhase(Turn);
-                } else if (gameState.getGamePhase() == Turn) {
-                    // Add river
-                    for (int i = 0; i < pgp.nRiverCards; i++) {
-                        pgs.communityCards.add(pgs.drawDeck.draw());
-                    }
-                    gameState.setGamePhase(River);
-                } else if (gameState.getGamePhase() == River) {
-                    // Round is over
-                    roundEnd(pgs);
-                }
+                return;
             }
+            if (pgs.isNotTerminal()) {
+                // who starts the bidding in the next phase?
+                // This is the small blind, or the next person round if they have Folded / are AllIn
+                int nextPlayer = pgs.getNextActingPlayer((pgs.getSmallId() - 1) % pgs.getNPlayers(), 1);
+                if (nextPlayer == -1) {
+                    throw new AssertionError("No Player to act next!");
+                }
+                endPlayerTurn(pgs, nextPlayer);
+                checkMoney(pgs);
+            }
+            return;
         }
+        checkMoney(pgs);
+
+        // next player round (who is still in the game and has not folded)
+        int nextPlayer = pgs.getNextActingPlayer(pgs.getCurrentPlayer() % pgs.getNPlayers(), 1);
+        endPlayerTurn(pgs, nextPlayer);
     }
 
     /**
      * Called when round is over. Calculate winner of round and distribute money.
+     *
      * @param pgs - current game state
      */
     private void roundEnd(PokerGameState pgs) {
-        PokerGameParameters pgp = (PokerGameParameters) pgs.getGameParameters();
         // Calculate winner of round for each of the pots, they earn the money. Ties split money equally.
 
-        Pair<HashMap<Integer, Integer>, HashMap<Integer, HashSet<Integer>>> translated = translatePokerHands(pgs);
-        HashMap<Integer, Integer> ranks = translated.a;
-        HashMap<Integer, HashSet<Integer>> hands = translated.b;
+        Pair<Map<Integer, Integer>, Map<Integer, Set<Integer>>> translated = translatePokerHands(pgs);
+        Map<Integer, Integer> ranks = translated.a;
+        Map<Integer, Set<Integer>> hands = translated.b;
 
-        for (MoneyPot pot: pgs.moneyPots) {
+        for (MoneyPot pot : pgs.moneyPots) {
             // Calculate winners separately for each money pot
-            HashSet<Integer> winners = getWinner(pgs, pot, ranks, hands);
-            for (int i : winners) {
-                pgs.playerMoney[i].increment(pot.getValue() / winners.size());
+            Set<Integer> winners = getWinner(pgs, pot, ranks, hands);
+            if (winners.isEmpty()) {
+                // then we return to the participants their personal contribution
+                for (int i : pot.getPlayerContribution().keySet()) {
+                    pgs.playerMoney[i].increment(pot.getPlayerContribution(i));
+                }
+            } else {
+                for (int i : winners) {
+                    pgs.playerMoney[i].increment(pot.getValue() / winners.size());
+                }
+                // We may then have a rounding error, which we give to the first winner
+                if (winners.size() > 1) {
+                    int remaining = pot.getValue() % winners.size();
+                    pgs.playerMoney[winners.iterator().next()].increment(remaining);
+                }
             }
+            // Then set pot to zero as we have transferred money
+            pot.setValue(0);
         }
 
         for (int i = 0; i < pgs.getNPlayers(); i++) {
             if (pgs.playerMoney[i].isMinimum()) {
                 // Player is out of the game
-                pgs.setPlayerResult(LOSE, i);
+                pgs.setPlayerResult(LOSE_GAME, i);
             }
         }
+        checkMoney(pgs);
 
         // Check if game is over
         if (checkGameEnd(pgs)) return;
 
-        // End previous round
-        pgs.getTurnOrder().endRound(pgs);
+        // End previous round, and move first player round clockwise
+        endRound(pgs, (pgs.getNextNonBankruptPlayer(pgs.getFirstPlayer(), 1)));
 
         // Reset cards for the new round
         setupRound(pgs);
     }
 
-    public Pair<HashMap<Integer, Integer>, HashMap<Integer, HashSet<Integer>>> translatePokerHands(PokerGameState pgs) {
-        HashMap<Integer, Integer> ranks = new HashMap<>();
-        HashMap<Integer, HashSet<Integer>> hands = new HashMap<>();
+    private void checkMoney(PokerGameState pgs) {
+        int personalMoney = Arrays.stream(pgs.playerMoney).mapToInt(Counter::getValue).sum();
+        int potMoney = pgs.moneyPots.stream().mapToInt(MoneyPot::getValue).sum();
+        int expectedTotal = pgs.getNPlayers() * ((PokerGameParameters) pgs.getGameParameters()).nStartingMoney;
+        //    String potDetails = pgs.moneyPots.stream().map(MoneyPot::toString).collect(Collectors.joining(", "));
+        //    String playerMoney = Arrays.stream(pgs.playerMoney).map(Counter::toString).collect(Collectors.joining(", "));
+        //    System.out.println(potDetails + "\t" + playerMoney);
+        if (personalMoney + potMoney != expectedTotal) {
+            throw new AssertionError(String.format("Money is not conserved! %d + %d != %d", personalMoney, potMoney, expectedTotal));
+        }
+    }
+
+    public Pair<Map<Integer, Integer>, Map<Integer, Set<Integer>>> translatePokerHands(PokerGameState pgs) {
+        Map<Integer, Integer> ranks = new HashMap<>();
+        Map<Integer, Set<Integer>> hands = new HashMap<>();
         for (int i = 0; i < pgs.getNPlayers(); i++) {
-            if (!pgs.playerFold[i] && pgs.getPlayerResults()[i] != LOSE) {
-                pgs.playerDecks.get(i).add(pgs.communityCards.copy());
-                Pair<PokerGameState.PokerHand, HashSet<Integer>> hand = PokerGameState.PokerHand.translateHand(pgs.playerDecks.get(i));
+            if (!pgs.playerFold[i] && pgs.getPlayerResults()[i] != LOSE_GAME) {
+                Deck<FrenchCard> cardsToEvaluate = pgs.playerDecks.get(i).copy();
+                cardsToEvaluate.add(pgs.communityCards.copy());
+                Pair<PokerGameState.PokerHand, HashSet<Integer>> hand = PokerGameState.PokerHand.translateHand(cardsToEvaluate);
                 if (hand != null) {
                     ranks.put(i, hand.a.rank);
                     hands.put(i, hand.b);
@@ -208,21 +262,21 @@ public class PokerForwardModel extends AbstractForwardModel {
         return new Pair<>(ranks, hands);
     }
 
-    public HashSet<Integer> getWinner(PokerGameState pgs, MoneyPot pot,
-                                       HashMap<Integer, Integer> ranks, HashMap<Integer, HashSet<Integer>> hands) {
+    @SuppressWarnings("unchecked")
+    public Set<Integer> getWinner(PokerGameState pgs, MoneyPot pot,
+                                  Map<Integer, Integer> ranks, Map<Integer, Set<Integer>> hands) {
         // Calculate winners separately for each money pot
-        HashSet<Integer> playersInPot = new HashSet<>(pot.getPlayerContribution().keySet());
-        int nPlayers = playersInPot.size();
+        Set<Integer> playersInPot = new HashSet<>(pot.getPlayerContribution().keySet());
 
         int smallestRank = 11;
-        for (int i: playersInPot) {
-            if (!pgs.playerFold[i] && pgs.getPlayerResults()[i] != LOSE && ranks.containsKey(i) && ranks.get(i) < smallestRank) {
+        for (int i : playersInPot) {
+            if (!pgs.playerFold[i] && pgs.getPlayerResults()[i] != LOSE_GAME && ranks.containsKey(i) && ranks.get(i) < smallestRank) {
                 smallestRank = ranks.get(i);
             }
         }
-        HashSet<Integer> winners = new HashSet<>();
-        for (int i: playersInPot) {
-            if (!pgs.playerFold[i] && pgs.getPlayerResults()[i] != LOSE) {
+        Set<Integer> winners = new HashSet<>();
+        for (int i : playersInPot) {
+            if (!pgs.playerFold[i] && pgs.getPlayerResults()[i] != LOSE_GAME) {
                 if (ranks.get(i) == smallestRank) winners.add(i);
             }
         }
@@ -255,6 +309,7 @@ public class PokerForwardModel extends AbstractForwardModel {
 
     /**
      * Game ends when a player has the minimum money required to win. Player with most money wins.
+     *
      * @param pgs - game state
      * @return - true if game ended, false otherwise
      */
@@ -270,49 +325,24 @@ public class PokerForwardModel extends AbstractForwardModel {
                 }
             }
             if (maxMoney > 0) {
-                // Game ended
-                for (int playerID = 0; playerID < pgs.getNPlayers(); playerID++) {
-                    if (pgs.playerMoney[playerID].getValue() == maxMoney) {
-                        pgs.setPlayerResult(Utils.GameResult.WIN, playerID);
-                    } else {
-                        pgs.setPlayerResult(LOSE, playerID);
-                    }
-                }
-                pgs.setGameStatus(Utils.GameResult.GAME_END);
+                endGame(pgs);
                 return true;
             }
         } else {
-            if (pgs.getTurnOrder().getRoundCounter() >= pgp.maxRounds) {
+            if (pgs.getRoundCounter() >= pgp.maxRounds) {
                 // Max rounds reached, the player with most money wins
-                int maxMoney = 0;
-                for (int playerID = 0; playerID < pgs.getNPlayers(); playerID++) {
-                    int money = pgs.playerMoney[playerID].getValue();
-                    if (money > maxMoney) {
-                        maxMoney = money;
-                    }
-                }
-                for (int playerID = 0; playerID < pgs.getNPlayers(); playerID++) {
-                    if (pgs.playerMoney[playerID].getValue() == maxMoney) {
-                        pgs.setPlayerResult(Utils.GameResult.WIN, playerID);
-                    } else {
-                        pgs.setPlayerResult(LOSE, playerID);
-                    }
-                }
-                pgs.setGameStatus(Utils.GameResult.GAME_END);
+                endGame(pgs);
                 return true;
             } else {
                 int stillAlive = 0;
-                int id = -1;
                 for (int i = 0; i < pgs.getNPlayers(); i++) {
-                    if (pgs.getPlayerResults()[i] == Utils.GameResult.GAME_ONGOING) {
+                    if (pgs.getPlayerResults()[i] == CoreConstants.GameResult.GAME_ONGOING) {
                         stillAlive++;
-                        id = i;
                         if (stillAlive > 1) break;
                     }
                 }
                 if (stillAlive == 1) {
-                    pgs.setPlayerResult(Utils.GameResult.WIN, id);
-                    pgs.setGameStatus(Utils.GameResult.GAME_END);
+                    endGame(pgs);
                     return true;
                 }
             }
@@ -320,14 +350,15 @@ public class PokerForwardModel extends AbstractForwardModel {
         return false;
     }
 
-
     @Override
     protected List<AbstractAction> _computeAvailableActions(AbstractGameState gameState) {
-        PokerGameState pgs = (PokerGameState)gameState;
-        PokerGameParameters pgp = (PokerGameParameters)gameState.getGameParameters();
+        PokerGameState pgs = (PokerGameState) gameState;
+        PokerGameParameters pgp = (PokerGameParameters) gameState.getGameParameters();
 
         ArrayList<AbstractAction> actions = new ArrayList<>();
         int player = pgs.getCurrentPlayer();
+        if (player == -1)
+            throw new AssertionError("Player should not be -1 at this point");
 
         // Check if player can afford to: Bet, Call, Raise. Can also Check, Fold.
 
@@ -335,10 +366,15 @@ public class PokerForwardModel extends AbstractForwardModel {
         boolean othersAllIn = true;  // True if all others are all in / out of the game, false otherwise
         for (int i = 0; i < gameState.getNPlayers(); i++) {
             if (pgs.getPlayerBet()[i].getValue() > biggestBet) biggestBet = pgs.getPlayerBet()[i].getValue();
-            if (i != player && pgs.getPlayerResults()[i] != LOSE && !pgs.playerFold[i] && !pgs.playerMoney[i].isMinimum()) othersAllIn = false;
+            if (i != player && pgs.getPlayerResults()[i] != LOSE_GAME && !pgs.playerFold[i] && !pgs.playerAllIn[i])
+                othersAllIn = false;
         }
 
-        if (pgs.playerNeedsToCall[player] && !pgs.getPlayerMoney()[player].isMinimum()) {
+        if (pgs.playerFold[player] || pgs.getPlayerResults()[player] == LOSE_GAME || pgs.playerAllIn[player]) {
+            throw new AssertionError("Player should not be able to act if they have Folded / are AllIn / out of the game");
+        }
+
+        if (pgs.playerNeedsToCall[player]) {
             int diff = biggestBet - pgs.getPlayerBet()[player].getValue();
 
             if (pgs.playerMoney[player].getValue() >= diff) {
@@ -364,15 +400,10 @@ public class PokerForwardModel extends AbstractForwardModel {
             }
         }
         actions.add(new Fold(player));
-        if (!pgs.playerMoney[player].isMinimum()) {
+        if (!pgs.playerAllIn[player]) {
             actions.add(new AllIn(player));
         }
 
         return actions;
-    }
-
-    @Override
-    protected AbstractForwardModel _copy() {
-        return new PokerForwardModel();
     }
 }

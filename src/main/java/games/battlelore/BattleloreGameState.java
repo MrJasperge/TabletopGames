@@ -5,7 +5,6 @@ import core.AbstractParameters;
 import core.components.Component;
 import core.components.GridBoard;
 import core.interfaces.IGamePhase;
-import core.turnorders.StandardTurnOrder;
 import games.GameType;
 import games.battlelore.components.MapTile;
 import games.battlelore.components.Unit;
@@ -13,6 +12,7 @@ import games.battlelore.components.Unit;
 import java.util.*;
 
 public class BattleloreGameState extends AbstractGameState {
+
 
     public enum BattleloreGamePhase implements IGamePhase {
         CommandAndOrderStep, //Player Plays One Command Card
@@ -25,16 +25,21 @@ public class BattleloreGameState extends AbstractGameState {
     }
 
     public enum UnitType {
-        Decoy, BloodHarvester, ViperLegion, CitadelGuard, YeomanArcher;
+        Decoy, BloodHarvester, ViperLegion, CitadelGuard, YeomanArcher
     }
 
     int[] playerScores;
-    GridBoard<MapTile> gameBoard;
+    GridBoard gameBoard;
     List<Unit> unitTypes;
 
     public BattleloreGameState(AbstractParameters gameParameters, int nPlayers) {
-        super(gameParameters, new StandardTurnOrder(nPlayers), GameType.Battlelore);
+        super(gameParameters, nPlayers);
         playerScores = new int[nPlayers];
+    }
+
+    @Override
+    protected GameType _getGameType() {
+        return GameType.Battlelore;
     }
 
     public Unit GetUnitFromType(UnitType type) {
@@ -52,18 +57,14 @@ public class BattleloreGameState extends AbstractGameState {
             case YeomanArcher:
                 unitType = 4;
                 break;
-            default:
-                unitType = 0;
-                break;
         }
-        Unit unit = (Unit)unitTypes.get(unitType).copy();
-        return unit;
+        return (Unit)unitTypes.get(unitType).copy();
     }
 
     public void AddUnit(int locX, int locY, Unit unit) {
-        MapTile tile = gameBoard.getElement(locX, locY);
+        MapTile tile = (MapTile) gameBoard.getElement(locX, locY);
         if (tile != null) {
-            gameBoard.getElement(locX, locY).AddUnit(unit);
+            tile.AddUnit(unit);
         }
     }
 
@@ -71,21 +72,17 @@ public class BattleloreGameState extends AbstractGameState {
         playerScores[playerId] += score;
     }
 
-    public void IncrementTurn(int playerId) {
-        turnOrder.moveToNextPlayer(this, playerId);
-    }
-
     public void SetUnitsAsOrderable(int locX, int locY) {
-        MapTile tile = gameBoard.getElement(locX, locY);
+        MapTile tile = (MapTile) gameBoard.getElement(locX, locY);
         if (tile != null) {
-            gameBoard.getElement(locX, locY).SetAsOrderable();
+            tile.SetAsOrderable();
         }
     }
 
     public void RemoveUnit(int locX, int locY) {
-        MapTile tile = gameBoard.getElement(locX, locY);
+        MapTile tile = (MapTile) gameBoard.getElement(locX, locY);
         if (tile != null) {
-            gameBoard.getElement(locX, locY).RemoveUnit();
+            tile.RemoveUnit();
         }
     }
 
@@ -94,7 +91,7 @@ public class BattleloreGameState extends AbstractGameState {
 
         for (int x = 0; x < gameBoard.getWidth(); x++) {
             for (int y = 0; y < gameBoard.getHeight(); y++) {
-                MapTile tile = gameBoard.getElement(x, y);
+                MapTile tile = (MapTile) gameBoard.getElement(x, y);
                 if (tile.GetUnits() != null && tile.GetFaction() == faction &&
                         tile.GetUnits().get(0).CanMove()) {
                     tiles.add(tile);
@@ -108,7 +105,7 @@ public class BattleloreGameState extends AbstractGameState {
         ArrayList<MapTile> tiles = new ArrayList<MapTile>();
         for (int x = 0; x < gameBoard.getWidth(); x++) {
             for (int y = 0; y < gameBoard.getHeight(); y++) {
-                MapTile tile = gameBoard.getElement(x, y);
+                MapTile tile = (MapTile) gameBoard.getElement(x, y);
                 if (tile.GetUnits() != null && tile.GetFaction() == faction &&
                         tile.GetUnits().get(0).CanAttack()) {
                     tiles.add(tile);
@@ -120,14 +117,14 @@ public class BattleloreGameState extends AbstractGameState {
 
     public int[][] GetPossibleLocationsForUnits(MapTile tile) {
         int[][] possibleLocations = new int[gameBoard.getWidth()][2];
-        possibleLocations = GetPossibleLocations(tile, possibleLocations, false);
+        GetPossibleLocations(tile, possibleLocations, false);
         if (possibleLocations.length == 0) {
-            possibleLocations = GetPossibleLocations(tile, possibleLocations, true);
+            GetPossibleLocations(tile, possibleLocations, true);
         }
         return possibleLocations;
     }
 
-    private int[][] GetPossibleLocations(MapTile tile, int[][] possibleLocations, boolean isMovementFlexible) {
+    private void GetPossibleLocations(MapTile tile, int[][] possibleLocations, boolean isMovementFlexible) {
         int moveRange = tile.GetUnits().get(0).moveRange;
         int counter = 0;
         for (int x = 0; x < gameBoard.getWidth(); x++) {
@@ -135,7 +132,7 @@ public class BattleloreGameState extends AbstractGameState {
                 possibleLocations[x][0] = -1;
                 possibleLocations[x][1] = -1;
 
-                MapTile possibleTile = gameBoard.getElement(x, y);
+                MapTile possibleTile = (MapTile) gameBoard.getElement(x, y);
                 if (possibleTile.GetUnits() == null) {
                     double distance = Math.sqrt(Math.pow(Math.abs(possibleTile.getLocationX() - tile.getLocationX()), 2) +
                             Math.pow(Math.abs(possibleTile.getLocationY() - tile.getLocationY()), 2));
@@ -147,11 +144,10 @@ public class BattleloreGameState extends AbstractGameState {
                 }
             }
         }
-        return possibleLocations;
     }
 
     public int[][] GetPossibleTargetUnits(MapTile attackUnit) {
-        int[][] possibleLocations = new int[gameBoard.getWidth()][turnOrder.nPlayers()];
+        int[][] possibleLocations = new int[gameBoard.getWidth()][nPlayers];
         boolean isMelee = attackUnit.GetUnits().get(0).isMelee;
         BattleloreGameParameters parameters = (BattleloreGameParameters) gameParameters;
         int range = parameters.getTroopRange(isMelee);
@@ -161,7 +157,7 @@ public class BattleloreGameState extends AbstractGameState {
             for (int y = 0; y < gameBoard.getHeight(); y++) {
                 possibleLocations[x][0] = -1;
                 possibleLocations[x][1] = -1;
-                MapTile possibleTile = gameBoard.getElement(x, y);
+                MapTile possibleTile = (MapTile) gameBoard.getElement(x, y);
                 if (possibleTile.GetUnits() != null && possibleTile.GetFaction() != attackUnit.GetFaction()) {
                     double distance = Math.sqrt(Math.pow(Math.abs(possibleTile.getLocationX() - attackUnit.getLocationX()), 2) +
                             Math.pow(Math.abs(possibleTile.getLocationY() - attackUnit.getLocationY()), 2));
@@ -176,10 +172,9 @@ public class BattleloreGameState extends AbstractGameState {
         return possibleLocations;
     }
 
-    public GridBoard<MapTile> getBoard() {
+    public GridBoard getBoard() {
         return gameBoard;
     }
-
 
     @Override
     protected List<Component> _getAllComponents() {
@@ -189,7 +184,6 @@ public class BattleloreGameState extends AbstractGameState {
     @Override
     protected AbstractGameState _copy(int playerId) {
         BattleloreGameState state = new BattleloreGameState(gameParameters.copy(), getNPlayers());
-
 
         state.gameBoard = gameBoard.copy();
 
@@ -206,7 +200,7 @@ public class BattleloreGameState extends AbstractGameState {
 
     @Override
     protected double _getHeuristicScore(int playerId) {
-        /**
+        /*
          * This provides the current score in game turns. This will only be relevant for games that have the concept
          * of victory points, etc.
          * If a game does not support this directly, then just return 0.0
@@ -222,51 +216,30 @@ public class BattleloreGameState extends AbstractGameState {
         return playerScores[playerId];
     }
 
-    @Override
-    protected void _reset() {
-        gameBoard = null;
-        playerScores = new int[getNPlayers()];
-    }
 
     @Override
-    protected boolean _equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (!(o instanceof BattleloreGameState)) {
-            return false;
-        }
-
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        BattleloreGameState other = (BattleloreGameState) o;
-        return Objects.equals(gameBoard, other.gameBoard);
+    public boolean _equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BattleloreGameState that)) return false;
+        if (!super.equals(o)) return false;
+        return Arrays.equals(playerScores, that.playerScores) && Objects.equals(gameBoard, that.gameBoard) && Objects.equals(unitTypes, that.unitTypes);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(gameParameters, turnOrder, gameStatus, gamePhase);
-        result = 31 * result + Arrays.hashCode(playerResults);
-        result = 31 * result + Objects.hash(unitTypes);
-        result = 31 * result * Arrays.hashCode(playerScores);
-        result = 31 * result * gameBoard.hashCode();
+        int result = Objects.hash(super.hashCode(), gameBoard, unitTypes);
+        result = 31 * result + Arrays.hashCode(playerScores);
         return result;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(gameParameters.hashCode()).append("|");
-        sb.append(turnOrder.hashCode()).append("|");
-        sb.append(gameStatus.hashCode()).append("|");
-        sb.append(gamePhase.hashCode()).append("|");
-        sb.append(Arrays.hashCode(playerResults)).append("|*|");
-        sb.append(unitTypes.hashCode()).append("|");
-        sb.append(gameBoard.hashCode()).append("|");
-        sb.append(Arrays.hashCode(playerScores)).append("|");
-        return sb.toString();
+        return gameParameters.hashCode() + "|" +
+                gameStatus.hashCode() + "|" +
+                gamePhase.hashCode() + "|" +
+                Arrays.hashCode(playerResults) + "|*|" +
+                unitTypes.hashCode() + "|" +
+                gameBoard.hashCode() + "|" +
+                Arrays.hashCode(playerScores) + "|";
     }
 }

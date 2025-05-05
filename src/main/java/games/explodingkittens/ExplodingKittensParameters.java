@@ -2,20 +2,17 @@ package games.explodingkittens;
 
 import core.AbstractParameters;
 import core.Game;
-import evaluation.TunableParameters;
+import evaluation.optimisation.TunableParameters;
 import games.GameType;
 import games.explodingkittens.cards.ExplodingKittensCard;
-import games.loveletter.cards.LoveLetterCard;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 public class ExplodingKittensParameters extends TunableParameters {
 
     String dataPath = "data/explodingkittens/";
 
-    HashMap<ExplodingKittensCard.CardType, Integer> cardCounts = new HashMap<ExplodingKittensCard.CardType, Integer>() {{
+    Map<ExplodingKittensCard.CardType, Integer> cardCounts = new HashMap<>() {{
         put(ExplodingKittensCard.CardType.ATTACK, 4);
         put(ExplodingKittensCard.CardType.SKIP, 4);
         put(ExplodingKittensCard.CardType.FAVOR, 4);
@@ -35,8 +32,7 @@ public class ExplodingKittensParameters extends TunableParameters {
     public int nSeeFutureCards = 3;
     public boolean nopeOwnCards = true;
 
-    public ExplodingKittensParameters(long seed) {
-        super(seed);
+    public ExplodingKittensParameters() {
         addTunableParameter("nCardsPerPlayer", 7, Arrays.asList(3,5,7,10,15));
         addTunableParameter("nDefuseCards", 6, Arrays.asList(1,2,3,6,9));
         addTunableParameter("nSeeFutureCards", 3, Arrays.asList(1,3,5,7));
@@ -45,6 +41,7 @@ public class ExplodingKittensParameters extends TunableParameters {
             if (c == ExplodingKittensCard.CardType.EXPLODING_KITTEN) addTunableParameter(c.name() + " count", -1);
             else addTunableParameter(c.name() + " count", cardCounts.get(c), Arrays.asList(1,2,3,4,5));
         }
+        addTunableParameter("dataPath", "data/explodingkittens/");
         _reset();
     }
 
@@ -55,6 +52,7 @@ public class ExplodingKittensParameters extends TunableParameters {
         nSeeFutureCards = (int) getParameterValue("nSeeFutureCards");
         nopeOwnCards = (boolean) getParameterValue("nopeOwnCards");
         cardCounts.replaceAll((c, v) -> (Integer) getParameterValue(c.name() + " count"));
+        dataPath = (String) getParameterValue("dataPath");
     }
 
     public String getDataPath() {
@@ -63,30 +61,14 @@ public class ExplodingKittensParameters extends TunableParameters {
 
     @Override
     protected AbstractParameters _copy() {
-        ExplodingKittensParameters ekp = new ExplodingKittensParameters(System.currentTimeMillis());
+        ExplodingKittensParameters ekp = new ExplodingKittensParameters();
         ekp.cardCounts = new HashMap<>(cardCounts);
-        ekp.nCardsPerPlayer = nCardsPerPlayer;
-        ekp.nDefuseCards = nDefuseCards;
-        ekp.nSeeFutureCards = nSeeFutureCards;
         return ekp;
     }
 
     @Override
     protected boolean _equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ExplodingKittensParameters)) return false;
-        if (!super.equals(o)) return false;
-        ExplodingKittensParameters that = (ExplodingKittensParameters) o;
-        return nCardsPerPlayer == that.nCardsPerPlayer &&
-                nDefuseCards == that.nDefuseCards &&
-                nSeeFutureCards == that.nSeeFutureCards &&
-                Objects.equals(dataPath, that.dataPath) &&
-                Objects.equals(cardCounts, that.cardCounts);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), dataPath, cardCounts, nCardsPerPlayer, nDefuseCards, nSeeFutureCards);
+        return o instanceof ExplodingKittensParameters;
     }
 
     @Override

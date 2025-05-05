@@ -2,8 +2,9 @@ package gui;
 
 import core.*;
 import core.actions.AbstractAction;
-import core.interfaces.IGameListener;
-import evaluation.TunableParameters;
+import evaluation.listeners.MetricsGameListener;
+import evaluation.optimisation.TunableParameters;
+import evaluation.metrics.Event;
 import games.GameType;
 import gui.models.AITableModel;
 import players.PlayerParameters;
@@ -50,7 +51,7 @@ public class Frontend extends GUI {
         gameParameterEditWindow = new JFrame[GameType.values().length];
         for (int i = 0; i < gameNames.length; i++) {
             gameNames[i] = GameType.values()[i].name();
-            AbstractParameters params = ParameterFactory.getDefaultParams(GameType.values()[i], 0);
+            AbstractParameters params = GameType.values()[i].createParameters(0);
             if (params instanceof TunableParameters) {
                 gameParameters[i] = (TunableParameters) params;
                 gameParameterEditWindow[i] = new JFrame();
@@ -115,7 +116,7 @@ public class Frontend extends GUI {
         agentParameters = new PlayerParameters[PlayerType.values().length];
         for (int i = 0; i < playerOptionsString.length; i++) {
             playerOptionsString[i] = PlayerType.values()[i].name();
-            agentParameters[i] = PlayerType.values()[i].createParameterSet(0);
+            agentParameters[i] = PlayerType.values()[i].createParameterSet();
         }
         // We have one JFrame per player, as different players may use the same agent type with different parameters
         playerParameters = new PlayerParameters[nMaxPlayers];
@@ -189,7 +190,7 @@ public class Frontend extends GUI {
         }
         JButton updateNPlayers = new JButton("Update");
         updateNPlayers.addActionListener(e -> {
-            if (!nPlayerField.getText().equals("")) {
+            if (!nPlayerField.getText().isEmpty()) {
                 int nP = Integer.parseInt(nPlayerField.getText());
                 if (nP > 0 && nP < nMaxPlayers) {
                     for (int i = 0; i < nP; i++) {
@@ -233,13 +234,13 @@ public class Frontend extends GUI {
         CoreParameters coreParameters = new CoreParameters();
         JPanel gameRunParamSelect = new JPanel();
         gameRunParamSelect.setLayout(new BoxLayout(gameRunParamSelect, BoxLayout.Y_AXIS));
-        HashMap<String, JComboBox<Object>> coreParameterValueOptions = new HashMap<>();
+        Map<String, JComboBox<Object>> coreParameterValueOptions = new HashMap<>();
         for (String param : coreParameters.getParameterNames()) {
             JPanel paramPanel = new JPanel();
             paramPanel.setLayout(new BorderLayout(5, 5));
             paramPanel.add(BorderLayout.WEST, new JLabel(String.format("  %-40s", param)));
             paramPanel.add(BorderLayout.CENTER, new JPanel());
-            List<Object> values = coreParameters.getPossibleValues(param);
+            List<?> values = coreParameters.getPossibleValues(param);
             JComboBox<Object> valueOptions = new JComboBox<>(values.toArray());
             valueOptions.setSelectedItem(coreParameters.getDefaultParameterValue(param));
             coreParameterValueOptions.put(param, valueOptions);
@@ -436,6 +437,9 @@ public class Frontend extends GUI {
         wrapper.add(gamePanel);
 
         getContentPane().add(wrapper, BorderLayout.CENTER);
+        gamePanel.revalidate();
+        gamePanel.setVisible(true);
+        gamePanel.repaint();
 
         // Frame properties
         setFrameProperties();
@@ -462,7 +466,7 @@ public class Frontend extends GUI {
             JButton reset = new JButton("Reset");
             reset.addActionListener(e -> {
                 playerParameters[playerIndex].reset();
-                PlayerParameters defaultParams = PlayerType.values()[agentIndex].createParameterSet(0);
+                PlayerParameters defaultParams = PlayerType.values()[agentIndex].createParameterSet();
                 if (defaultParams != null)
                     for (String param : paramNames) {
                         paramValueOptions.get(param).setSelectedItem(defaultParams.getDefaultParameterValue(param));
@@ -486,19 +490,15 @@ public class Frontend extends GUI {
 
     private void listenForDecisions() {
         // add a listener to detect every time an action has been taken
-        gameRunning.addListener(new IGameListener() {
+        gameRunning.addListener(new MetricsGameListener() {
             @Override
-            public void onGameEvent(CoreConstants.GameEvents type, Game game) {
-                // Do nothing
-            }
-
-            @Override
-            public void onEvent(CoreConstants.GameEvents type, AbstractGameState state, AbstractAction action) {
-                if (type == CoreConstants.GameEvents.ACTION_TAKEN) {
-                    updateSampleActions(state);
-                }
+            public void onEvent(evaluation.metrics.Event event)
+            {
+                if(event.type == Event.GameEvent.ACTION_TAKEN)
+                    updateSampleActions(event.state.copy());
             }
         });
+
         // and then do this at the start of the game
         updateSampleActions(gameRunning.getGameState());
     }
@@ -507,20 +507,20 @@ public class Frontend extends GUI {
         if (showAIWindow && state.isNotTerminal() && !gameRunning.isHumanToMove()) {
             int nextPlayerID = state.getCurrentPlayer();
             AbstractPlayer nextPlayer = gameRunning.getPlayers().get(nextPlayerID);
-            nextPlayer.getAction(state, gameRunning.getForwardModel().computeAvailableActions(state));
+            nextPlayer.getAction(state, nextPlayer.getForwardModel().computeAvailableActions(state, nextPlayer.getParameters().actionSpace));
 
             JFrame AI_debug = new JFrame();
             AI_debug.setTitle(String.format("Player %d, Tick %d, Round %d, Turn %d",
                     nextPlayerID,
                     gameRunning.getTick(),
-                    state.getTurnOrder().getRoundCounter(),
-                    state.getTurnOrder().getTurnCounter()));
+                    state.getRoundCounter(),
+                    state.getTurnCounter()));
             Map<AbstractAction, Map<String, Object>> decisionStats = nextPlayer.getDecisionStats();
             if (decisionStats.size() > 1) {
                 AITableModel AIDecisions = new AITableModel(nextPlayer.getDecisionStats());
                 JTable table = new JTable(AIDecisions);
                 table.setAutoCreateRowSorter(true);
-                table.setDefaultRenderer(Double.class, (table1, value, isSelected, hasFocus, row, column) -> new JLabel(String.format("%.2f", value)));
+                table.setDefaultRenderer(Double.class, (table1, value, isSelected, hasFocus, row, column) -> new JLabel(String.format("%.2f", (Double) value)));
                 JScrollPane scrollPane = new JScrollPane(table);
                 table.setFillsViewportHeight(true);
                 AI_debug.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -557,6 +557,7 @@ public class Frontend extends GUI {
             }
             if (!gameRunning.isHumanToMove())
                 humanInputQueue.reset(); // clear out any actions clicked before their turn
+            frame.revalidate();
             frame.repaint();
         }
     }

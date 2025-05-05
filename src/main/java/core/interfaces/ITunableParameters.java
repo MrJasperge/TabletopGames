@@ -1,12 +1,11 @@
 package core.interfaces;
 
-import evaluation.TunableParameters;
 import org.json.simple.JSONObject;
 
 import java.util.*;
 
 
-public interface ITunableParameters {
+public interface ITunableParameters<T> {
 
     /**
      * Returns a list of IDs for all parameters
@@ -57,12 +56,23 @@ public interface ITunableParameters {
      * @return Returns Tuned Parameters corresponding to the current settings
      * (will use all defaults if setParameterValue has not been called at all)
      */
-    Object instantiate();
+    T instantiate();
 
     /**
-     * @return A JSONString of these Tunable Parameters
+     * @return a TunableParameters object instantiated from JSON
+     * This only supports specific settings, and not the full range of possible settings
+     * (For that use a SearchSpace)
+     * @param jsonObject
      */
-    String getJSONDescription();
+    ITunableParameters<T> instanceFromJSON(JSONObject jsonObject);
+
+    /**
+     *
+     * @return a JSON representation of the current parameter settings
+     * This is designed to be used for saving the current settings to a file for later instantiation
+     * with fromJSON
+     */
+    JSONObject instanceToJSON(boolean excludeDefaultValues, Map<String, Integer> settings);
 
     /**
      * Retrieves the default values of all parameters (as per original game).
@@ -90,6 +100,17 @@ public interface ITunableParameters {
             setParameterValue(name, values.get(descriptor));
         }
     }
+
+    /**
+     * Method that reloads all the locally stored values from currentValues
+     * This is in case sub-classes decide to use the frankly more intuitive access via
+     * params.paramName
+     * instead of
+     * params.getParameterValue("paramName")
+     * (the latter is also more typo-prone if we hardcode strings everywhere)
+     */
+     void _reset();
+
 
     /**
      * Retrieve the values of all parameters.
@@ -123,32 +144,5 @@ public interface ITunableParameters {
      * @return mapping from int ID of parameter to parameter name.
      */
     Map<String, Class<?>> getParameterTypes();
-
-    /**
-     * registerChild() is called when we find a JSONObject as a property in the JSON file as we instantiate.
-     * It must instantiate the relevant object from the json fragment, and return this.
-     *
-     * This is also used to support recursion of TunableParameters. The classic example is for a search algorithm
-     * such as MCTS or RHEA, in which we use a heuristic to value the leaf/end-state. This heuristic is likely to
-     * be domain dependent, and tunable in its own right.
-     * To support this use-case we allow ITunableParameters to contain other ITunableParameters.
-     *
-     * Not everything in a JSON parameters file now needs to subclass TunableParameters.
-     * If a thing is instantiated from JSON that is not such a sub-class, then we stop further recursion to find tunable parameters,
-     * but still instantiate the thing. The best current example is heuristic or opponentHeuristic in MCTS.
-     * These can provide a specific class that implements IStateHeuristic without also needing to themselves be TunableParameters.
-     *
-     * <p>
-     * For a default concrete implementation see TunableParameters. Crucially, this 'pulls up' the searchSpace from
-     * the child into the parent (and hence, theoretically, also from any grandchildren, or great-grandchildren). This
-     * means that the full searchSpace across all nested parameters is available at the top level for optimisation.
-     *
-     * @param name      The nameSpace to use for the sub-parameters. For example if an algorithm uses a
-     *                  heuristic in two ways, one could use 'rollout', and one 'treeNode' as their name spaces
-     *                  so that they are optimised independently, even if instances of the same class
-     * @param json      The raw JSON detailing the parameters
-     * @return          The instantiated object
-     */
-    Object registerChild(String name, JSONObject json);
 
 }

@@ -12,11 +12,12 @@ public class HumanGUIPlayer extends AbstractPlayer {
     ActionController ac;
 
     public HumanGUIPlayer(ActionController ac){
+        super(null, "HumanGUIPlayer");
         this.ac = ac;
     }
 
     @Override
-    public AbstractAction getAction(AbstractGameState observation, List<AbstractAction> actions) {
+    public AbstractAction _getAction(AbstractGameState observation, List<AbstractAction> actions) {
         try {
             return ac.getAction();
         } catch (InterruptedException e) {

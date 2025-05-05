@@ -1,20 +1,20 @@
 package games.explodingkittens.gui;
 
-import gui.AbstractGUIManager;
-import gui.GamePanel;
 import core.AbstractGameState;
 import core.AbstractPlayer;
 import core.Game;
-import games.explodingkittens.ExplodingKittensParameters;
-import games.explodingkittens.ExplodingKittensGameState;
-import gui.ScreenHighlight;
+import gui.AbstractGUIManager;
+import gui.GamePanel;
+import gui.IScreenHighlight;
 import players.human.ActionController;
+import games.explodingkittens.*;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.util.Set;
 
 
 public class ExplodingKittensGUIManager extends AbstractGUIManager {
@@ -28,20 +28,18 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
     ExplodingKittensDeckView[] playerHands;
     // Discard pile view
     ExplodingKittensDiscardView discardPile;
+    ExplodingKittensDiscardView inPlayPile;
     // Draw pile view
     ExplodingKittensDeckView drawPile;
 
     // Currently active player
     int activePlayer = -1;
-    // ID of human player
-    int humanID;
     // Border highlight of active player
     Border highlightActive = BorderFactory.createLineBorder(new Color(220, 169, 11), 3);
     Border[] playerViewBorders;
 
-    public ExplodingKittensGUIManager(GamePanel parent, Game game, ActionController ac, int humanID) {
-        super(parent, ac, 25);
-        this.humanID = humanID;
+    public ExplodingKittensGUIManager(GamePanel parent, Game game, ActionController ac, Set<Integer> humanID) {
+        super(parent, game, ac, humanID);
 
         if (game != null) {
             AbstractGameState gameState = game.getGameState();
@@ -70,7 +68,7 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
                 JPanel[] sides = new JPanel[]{new JPanel(), new JPanel(), new JPanel(), new JPanel()};
                 int next = 0;
                 for (int i = 0; i < nPlayers; i++) {
-                    ExplodingKittensDeckView playerHand = new ExplodingKittensDeckView(humanID, ekgs.getPlayerHandCards().get(i), false, ekgp.getDataPath());
+                    ExplodingKittensDeckView playerHand = new ExplodingKittensDeckView(humanPlayerIds.iterator().next(), ekgs.getPlayerHand(i), false, ekgp.getDataPath());
 
                     // Get agent name
                     String[] split = game.getPlayers().get(i).getClass().toString().split("\\.");
@@ -94,10 +92,12 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
                 // Discard and draw piles go in the center
                 JPanel centerArea = new JPanel();
                 centerArea.setLayout(new BoxLayout(centerArea, BoxLayout.Y_AXIS));
-                discardPile = new ExplodingKittensDiscardView(ekgs.getDiscardPile(), ekgs.getActionStack(), true, ekgp.getDataPath());
-                drawPile = new ExplodingKittensDeckView(-1, ekgs.getDrawPile(), gameState.getCoreGameParameters().alwaysDisplayFullObservable, ekgp.getDataPath());
+                discardPile = new ExplodingKittensDiscardView(ekgs.getDiscardPile(), true, ekgp.getDataPath());
+                inPlayPile = new ExplodingKittensDiscardView(ekgs.getInPlay(), true, ekgp.getDataPath());
+                drawPile = new ExplodingKittensDeckView(humanPlayerIds.iterator().next(), ekgs.getDrawPile(), gameState.getCoreGameParameters().alwaysDisplayFullObservable, ekgp.getDataPath());
                 centerArea.add(drawPile);
                 centerArea.add(discardPile);
+                centerArea.add(inPlayPile);
                 JPanel jp = new JPanel();
                 jp.setLayout(new GridBagLayout());
                 jp.add(centerArea);
@@ -106,7 +106,7 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
                 // Top area will show state information
                 JPanel infoPanel = createGameStateInfoPanel("Exploding Kittens", gameState, width, defaultInfoPanelHeight);
                 // Bottom area will show actions available
-                JComponent actionPanel = createActionPanel(new ScreenHighlight[0], width, defaultActionPanelHeight, false, true, null);
+                JComponent actionPanel = createActionPanel(new IScreenHighlight[0], width, defaultActionPanelHeight, false, true, null, null, null);
 
                 // Add all views to frame
                 parent.setLayout(new BorderLayout());
@@ -123,6 +123,11 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
     }
 
     @Override
+    public int getMaxActionSpace() {
+        return 25;
+    }
+
+    @Override
     protected void _update(AbstractPlayer player, AbstractGameState gameState) {
         if (gameState != null) {
             if (gameState.getCurrentPlayer() != activePlayer) {
@@ -133,9 +138,9 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
             // Update decks and visibility
             ExplodingKittensGameState ekgs = (ExplodingKittensGameState) gameState;
             for (int i = 0; i < gameState.getNPlayers(); i++) {
-                playerHands[i].updateComponent(ekgs.getPlayerHandCards().get(i));
+                playerHands[i].updateComponent(ekgs.getPlayerHand(i).copy());
                 if (i == gameState.getCurrentPlayer() && gameState.getCoreGameParameters().alwaysDisplayCurrentPlayer
-                        || i == humanID
+                        || humanPlayerIds.contains(i)
                         || gameState.getCoreGameParameters().alwaysDisplayFullObservable) {
                     playerHands[i].setFront(true);
                     playerHands[i].setFocusable(true);
@@ -152,11 +157,9 @@ public class ExplodingKittensGUIManager extends AbstractGUIManager {
                     playerHands[i].setBorder(playerViewBorders[i]);
                 }
             }
-            discardPile.updateComponent(ekgs.getDiscardPile());
+            discardPile.updateComponent(ekgs.getDiscardPile().copy());
             discardPile.setFocusable(true);
-            drawPile.updateComponent(ekgs.getDrawPile());
-            if (activePlayer == humanID || gameState.getCoreGameParameters().alwaysDisplayFullObservable)
-                drawPile.setFront(true);
+            drawPile.updateComponent(ekgs.getDrawPile().copy());
 
         }
     }

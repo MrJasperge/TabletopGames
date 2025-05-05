@@ -2,7 +2,9 @@ package games.cantstop.actions;
 
 import core.AbstractGameState;
 import core.actions.AbstractAction;
-import games.cantstop.*;
+import games.cantstop.CantStopGamePhase;
+import games.cantstop.CantStopGameState;
+import games.cantstop.CantStopParameters;
 
 import java.util.*;
 
@@ -25,7 +27,7 @@ public class AllocateDice extends AbstractAction {
         Map<Integer, Long> numberCounts = Arrays.stream(numberSplit).boxed().collect(groupingBy(n -> n, counting()));
         for (int n : numberSplit) {
             int markerPosition = Math.max(state.getTemporaryMarkerPosition(n), state.getMarkerPosition(n, state.getCurrentPlayer()));
-            boolean canMoveOnTrack = !state.trackComplete(n) && (markerPosition + numberCounts.get(n) - 1) < params.maxValue(n);
+            boolean canMoveOnTrack = !state.isTrackComplete(n) && (markerPosition + numberCounts.get(n) - 1) < params.maxValue(n);
             retValue = canMoveOnTrack && retValue;
         }
         // then each number must either have a marker already, or a spare marker is available
@@ -68,7 +70,7 @@ public class AllocateDice extends AbstractAction {
                 } else if (numberSplit.length == 2) {
                     return (numberSplit[0] == other.numberSplit[0] && numberSplit[1] == other.numberSplit[1]) ||
                             (numberSplit[0] == other.numberSplit[1] && numberSplit[1] == other.numberSplit[0]);
-                    // for equals and hashcode, we only are about the two numbers - not the precise permutation
+                    // for equals and hashcode, we only care about the two numbers - not the precise permutation
                 } else {
                     throw new AssertionError("Not yet implemented for variants with three or more dice!");
                 }

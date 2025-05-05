@@ -6,10 +6,10 @@ import games.terraformingmars.TMTypes;
 import games.terraformingmars.components.TMMapTile;
 import gui.views.ComponentView;
 import utilities.ImageIO;
-import utilities.TAGStringStatSummary;
+import evaluation.summarisers.TAGOccurrenceStatSummary;
 
 import java.awt.*;
-import static games.terraformingmars.gui.Utils.*;
+import static utilities.GUIUtils.*;
 
 public class TMBoardHeatMap extends ComponentView {
 
@@ -20,10 +20,10 @@ public class TMBoardHeatMap extends ComponentView {
     int spacing = 10;
 
     int tileSize;
-    TAGStringStatSummary stats;
+    TAGOccurrenceStatSummary stats;
     int minCount = 0, maxCount = 0, nGames;
 
-    public TMBoardHeatMap(TMGameState gs, TAGStringStatSummary stats, int nGames) {
+    public TMBoardHeatMap(TMGameState gs, TAGOccurrenceStatSummary stats, int nGames) {
         super(gs.getBoard(), 0, 0);
         this.gs = gs;
         this.stats = stats;
@@ -43,7 +43,7 @@ public class TMBoardHeatMap extends ComponentView {
     @Override
     protected void paintComponent(Graphics g1) {
         Graphics2D g = (Graphics2D) g1;
-        GridBoard<TMMapTile> gridBoard = gs.getBoard();
+        GridBoard gridBoard = gs.getBoard();
         int x = width/2 - gridBoard.getWidth() * tileSize/2;
         int y = tileSize;
 
@@ -62,7 +62,7 @@ public class TMBoardHeatMap extends ComponentView {
 
                 int xC = x + offsetX + j * tileSize;
                 int yC = y + i * tileSize;
-                drawCell(g, gridBoard.getElement(j, i), xC, yC);
+                drawCell(g, (TMMapTile) gridBoard.getElement(j, i), xC, yC);
 
                 // Heatmap
                 String toSearch = "(" + j + "-" + i + ")";

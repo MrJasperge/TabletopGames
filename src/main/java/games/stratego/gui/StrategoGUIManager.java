@@ -2,28 +2,29 @@ package games.stratego.gui;
 
 import core.AbstractGameState;
 import core.AbstractPlayer;
+import core.CoreConstants;
 import core.Game;
 import core.actions.AbstractAction;
 import games.stratego.StrategoGameState;
 import games.stratego.actions.Move;
 import gui.AbstractGUIManager;
 import gui.GamePanel;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 import players.human.ActionController;
 import players.human.HumanGUIPlayer;
-import utilities.Utils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-public class StrategoGUIManager extends AbstractGUIManager implements ScreenHighlight{
+public class StrategoGUIManager extends AbstractGUIManager implements IScreenHighlight {
 
     StrategoBoardView view;
 
-    public StrategoGUIManager(GamePanel parent, Game game, ActionController ac) {
-        super(parent, ac, 100);
+    public StrategoGUIManager(GamePanel parent, Game game, ActionController ac, Set<Integer> human) {
+        super(parent, game, ac, human);
 
         if (game == null) return;
 
@@ -40,7 +41,7 @@ public class StrategoGUIManager extends AbstractGUIManager implements ScreenHigh
         this.height = defaultItemSize * gameState.getGridBoard().getHeight();
 
         JPanel infoPanel = createGameStateInfoPanel("Stratego", gameState, width, defaultInfoPanelHeight);
-        JComponent actionPanel = createActionPanel(new ScreenHighlight[]{this},
+        JComponent actionPanel = createActionPanel(new IScreenHighlight[]{this},
                 width, defaultActionPanelHeight);
 
         parent.setLayout(new BorderLayout());
@@ -53,6 +54,11 @@ public class StrategoGUIManager extends AbstractGUIManager implements ScreenHigh
         parent.repaint();
     }
 
+    @Override
+    public int getMaxActionSpace() {
+        return 100;
+    }
+
     /**
      * Only shows actions for highlighted cell.
      * @param player - current player acting.
@@ -60,7 +66,7 @@ public class StrategoGUIManager extends AbstractGUIManager implements ScreenHigh
      */
     @Override
     protected void updateActionButtons(AbstractPlayer player, AbstractGameState gameState) {
-        if (gameState.getGameStatus() == Utils.GameResult.GAME_ONGOING) {
+        if (gameState.getGameStatus() == CoreConstants.GameResult.GAME_ONGOING) {
             List<AbstractAction> actions = player.getForwardModel().computeAvailableActions(gameState);
             ArrayList<Rectangle> highlight = view.getHighlight();
 
@@ -72,10 +78,10 @@ public class StrategoGUIManager extends AbstractGUIManager implements ScreenHigh
                 int i = 1;
                 for (AbstractAction abstractAction : actions) {
                     Move action = (Move) abstractAction;
-                    if (action.from(gs)[0] == r1.x/defaultItemSize && action.from(gs)[1] == r1.y/defaultItemSize &&
-                        action.to(gs)[0] == r2.x/defaultItemSize && action.to(gs)[1] == r2.y/defaultItemSize ||
-                        action.from(gs)[0] == r2.x/defaultItemSize && action.from(gs)[1] == r2.y/defaultItemSize &&
-                        action.to(gs)[0] == r1.x/defaultItemSize && action.to(gs)[1] == r1.y/defaultItemSize) {
+                    if (action.from(gs).getX() == r1.x/defaultItemSize && action.from(gs).getY() == r1.y/defaultItemSize &&
+                        action.to(gs).getX() == r2.x/defaultItemSize && action.to(gs).getY() == r2.y/defaultItemSize ||
+                        action.from(gs).getX() == r2.x/defaultItemSize && action.from(gs).getY() == r2.y/defaultItemSize &&
+                        action.to(gs).getX() == r1.x/defaultItemSize && action.to(gs).getY() == r1.y/defaultItemSize) {
                         actionButtons[0].setVisible(true);
                         actionButtons[0].setButtonAction(action, action.getPOString(gs));
                         activated = true;

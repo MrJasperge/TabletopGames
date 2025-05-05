@@ -1,9 +1,11 @@
 package games.loveletter;
 
 import core.AbstractGameState;
+import core.CoreConstants;
 import core.components.PartialObservableDeck;
 import core.interfaces.IStateHeuristic;
-import evaluation.TunableParameters;
+import evaluation.optimisation.TunableParameters;
+import games.loveletter.cards.CardType;
 import games.loveletter.cards.LoveLetterCard;
 import utilities.Utils;
 
@@ -11,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static games.loveletter.cards.LoveLetterCard.CardType.*;
+import static games.loveletter.cards.CardType.*;
 
 public class LoveLetterHeuristic extends TunableParameters implements IStateHeuristic {
 
@@ -62,14 +64,14 @@ public class LoveLetterHeuristic extends TunableParameters implements IStateHeur
     public double evaluateState(AbstractGameState gs, int playerId) {
         LoveLetterGameState llgs = (LoveLetterGameState) gs;
         LoveLetterParameters llp = (LoveLetterParameters) gs.getGameParameters();
-        Utils.GameResult playerResult = gs.getPlayerResults()[playerId];
+        CoreConstants.GameResult playerResult = gs.getPlayerResults()[playerId];
 
         if (!gs.isNotTerminal()) {
             return playerResult.value;
         }
         double cardValues = 0;
 
-        Set<LoveLetterCard.CardType> cardTypes = new HashSet<>();
+        Set<CardType> cardTypes = new HashSet<>();
         for (LoveLetterCard card : llgs.getPlayerHandCards().get(playerId).getComponents()) {
             cardValues += card.cardType.getValue();
             cardTypes.add(card.cardType);
@@ -108,7 +110,7 @@ public class LoveLetterHeuristic extends TunableParameters implements IStateHeur
         if (cardTypes.contains(Prince)) retValue += FACTOR_PRINCE;
         if (cardTypes.contains(Princess)) retValue += FACTOR_PRINCESS;
 
-        return Utils.range(retValue, -1.0, 1.0);
+        return Utils.clamp(retValue, -1.0, 1.0);
     }
 
     /**

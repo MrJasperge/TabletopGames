@@ -2,6 +2,7 @@ package games.dominion.actions;
 
 import core.AbstractGameState;
 import core.actions.AbstractAction;
+import core.components.PartialObservableDeck;
 import games.dominion.*;
 import games.dominion.DominionConstants.*;
 import games.dominion.cards.*;
@@ -14,6 +15,9 @@ public class Militia extends DominionAttackAction {
 
     public Militia(int playerId) {
         super(CardType.MILITIA, playerId);
+    }
+    public Militia(int playerId, boolean dummy) {
+        super(CardType.MILITIA, playerId, dummy);
     }
 
     public final int OTHERS_DISCARD_DOWN_TO = 3;
@@ -30,8 +34,7 @@ public class Militia extends DominionAttackAction {
         // we can discard any card in hand, so create a DiscardCard action for each
         if (isAttackComplete(currentTarget, state))
             throw new AssertionError("Should not be here - there are no actions to be taken");
-        Set<DominionCard> uniqueCardsInHand = state.getDeck(DeckType.HAND, currentTarget).stream().collect(toSet());
-        return uniqueCardsInHand.stream()
+        return state.getDeck(DeckType.HAND, currentTarget).stream()
                 .map(card -> new DiscardCard(card.cardType(), currentTarget))
                 .distinct()
                 .collect(toList());
@@ -43,7 +46,7 @@ public class Militia extends DominionAttackAction {
     }
 
     @Override
-    public void registerActionTaken(AbstractGameState state, AbstractAction action) {
+    public void _afterAction(AbstractGameState state, AbstractAction action) {
         // Do nothing
     }
 
@@ -55,7 +58,7 @@ public class Militia extends DominionAttackAction {
      */
     @Override
     public DominionAttackAction _copy() {
-        return new Militia(player);
+        return new Militia(player, dummyAction);
     }
 
     @Override
@@ -65,7 +68,13 @@ public class Militia extends DominionAttackAction {
 
     @Override
     public boolean isAttackComplete(int currentTarget, DominionGameState state) {
-        // Does the victim now have 3 or fewer cards in hand?
-        return state.getDeck(DeckType.HAND, currentTarget).getSize() <= OTHERS_DISCARD_DOWN_TO;
+        PartialObservableDeck<DominionCard> hand = (PartialObservableDeck<DominionCard>) state.getDeck(DeckType.HAND, currentTarget);
+        // Does the victim now have 3 or fewer cards in hand? (a revealed MOAT card would not get this far...the defended flag on the game state is used instead)
+        return hand.getSize() <= OTHERS_DISCARD_DOWN_TO;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof Militia && super.equals(other);
     }
 }

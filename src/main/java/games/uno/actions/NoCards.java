@@ -8,8 +8,6 @@ import core.interfaces.IPrintable;
 import games.uno.UnoGameState;
 import games.uno.cards.UnoCard;
 
-import java.util.Random;
-
 
 public class NoCards extends AbstractAction implements IPrintable {
 
@@ -19,9 +17,7 @@ public class NoCards extends AbstractAction implements IPrintable {
         UnoGameState ugs = (UnoGameState)gs;
         Deck<UnoCard> drawDeck = ugs.getDrawDeck();
         Deck<UnoCard> discardDeck = ugs.getDiscardDeck();
-        Deck<UnoCard> playerDeck = ugs.getPlayerDecks().get(ugs.getTurnOrder().getCurrentPlayer(gs));
-
-        Random r = new Random(ugs.getGameParameters().getRandomSeed() + ugs.getTurnOrder().getRoundCounter());
+        Deck<UnoCard> playerDeck = ugs.getPlayerDecks().get(ugs.getCurrentPlayer());
 
         if (drawDeck.getSize() == 0) {
             drawDeck.add(discardDeck);
@@ -31,7 +27,7 @@ public class NoCards extends AbstractAction implements IPrintable {
             drawDeck.remove(ugs.getCurrentCard());
             discardDeck.add(ugs.getCurrentCard());
 
-            drawDeck.shuffle(r);
+            drawDeck.shuffle(ugs.getRnd());
         }
 
         UnoCard card = drawDeck.draw();
