@@ -21,7 +21,12 @@ import games.cantstop.CantStopParameters;
 import games.cantstop.gui.CantStopGUIManager;
 import games.catan.CatanForwardModel;
 import games.catan.CatanGameState;
+import games.catan.CatanParameters;
 import games.catan.gui.CatanGUI;
+import games.checkers.CheckersForwardModel;
+import games.checkers.CheckersGameParameters;
+import games.checkers.CheckersGameState;
+import games.checkers.gui.CheckersGUIManager;
 import games.chinesecheckers.CCForwardModel;
 import games.chinesecheckers.CCGameState;
 import games.chinesecheckers.CCParameters;
@@ -305,8 +310,8 @@ public enum GameType {
             SaboteurGameState.class, SaboteurForwardModel.class, SaboteurGameParameters.class, SaboteurGUIManager.class),
     Checkers(2, 2,
             Arrays.asList(Abstract, Strategy),
-            Arrays.asList(TakeThat),
-            CheckersGameState.class, CheckersForwardModel.class, CheckersParameters.class, CheckersGUIManager.class);
+            Collections.singletonList(TakeThat),
+            CheckersGameState.class, CheckersForwardModel.class, CheckersGameParameters.class, CheckersGUIManager.class);
 
     // Core classes where the game is defined
     final Class<? extends AbstractGameState> gameStateClass;

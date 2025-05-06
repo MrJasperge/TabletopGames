@@ -2,6 +2,7 @@ package games.checkers.gui;
 
 import core.AbstractGameState;
 import core.AbstractPlayer;
+import core.CoreConstants;
 import core.Game;
 import core.actions.AbstractAction;
 import games.checkers.CheckersGameState;
@@ -10,7 +11,7 @@ import games.checkers.actions.Move;
 import games.tictactoe.TicTacToeConstants;
 import gui.AbstractGUIManager;
 import gui.GamePanel;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 
 import players.human.ActionController;
 import utilities.Utils;
@@ -19,6 +20,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class CheckersGUIManager extends AbstractGUIManager {
 
@@ -26,20 +28,20 @@ public class CheckersGUIManager extends AbstractGUIManager {
 
     CheckersBoardView view;
 
-    public CheckersGUIManager(GamePanel parent, Game game, ActionController ac) {
-        super(parent, ac, 4);
+    public CheckersGUIManager(GamePanel parent, Game game, ActionController ac, Set<Integer> humanId) {
+        super(parent, game, ac, humanId);
         if (game == null) return;
 
         // Checkers GameState
         CheckersGameState chgs = (CheckersGameState) game.getGameState();
-        view = new CheckersBoardView(chgs.getGridBoard());
+        view = new CheckersBoardView(chgs.getCheckersBoard());
 
         // Set width and height of display
         this.width = Math.max(defaultDisplayWidth, defaultItemSize * chgs.getGridBoard().getWidth());
         this.height = Math.max(defaultDisplayHeight, defaultItemSize * chgs.getGridBoard().getHeight());
 
         JPanel infoPanel = createGameStateInfoPanel("Checkers", chgs, width, defaultInfoPanelHeight);
-        JComponent actionPanel = createActionPanel(new ScreenHighlight[]{view},
+        JComponent actionPanel = createActionPanel(new IScreenHighlight[]{view},
                 width, defaultActionPanelHeight, true);
 
         parent.setLayout(new BorderLayout());
@@ -54,7 +56,7 @@ public class CheckersGUIManager extends AbstractGUIManager {
 
     @Override
     protected void updateActionButtons(AbstractPlayer player, AbstractGameState gameState) {
-        if (gameState.getGameStatus() == Utils.GameResult.GAME_ONGOING) {
+        if (gameState.getGameStatus() == CoreConstants.GameResult.GAME_ONGOING) {
             List<core.actions.AbstractAction> actions = player.getForwardModel().computeAvailableActions(gameState);
             ArrayList<Rectangle> highlight = view.getHighlight();
 
@@ -115,6 +117,12 @@ public class CheckersGUIManager extends AbstractGUIManager {
                 }
             }
         }
+    }
+
+    @Override
+    public int getMaxActionSpace() {
+        // TODO
+        return 100;
     }
 
     @Override

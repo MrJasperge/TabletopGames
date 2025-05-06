@@ -9,17 +9,33 @@ import core.turnorders.AlternatingTurnOrder;
 import games.GameType;
 import games.checkers.components.Piece;
 import utilities.Pair;
+import games.checkers.components.CheckersBoard;
 
+import javax.annotation.RegEx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CheckersGameState extends AbstractGameState implements IGridGameState<Piece> {
+public class CheckersGameState extends AbstractGameState {
 
-    GridBoard<Piece> gridBoard;
+    public CheckersBoard checkersBoard;
+    GridBoard gridBoard;
 
     public CheckersGameState(AbstractParameters gameParameters, int nPlayers) {
-        super(gameParameters, new AlternatingTurnOrder(nPlayers), GameType.Checkers);
+        super(gameParameters, nPlayers);
+    }
+
+    public GridBoard getGridBoard() {
+        return gridBoard;
+    }
+
+    public CheckersBoard getCheckersBoard() {
+        return checkersBoard;
+    }
+
+    @Override
+    protected GameType _getGameType() {
+        return GameType.Checkers;
     }
 
     @Override
@@ -46,7 +62,6 @@ public class CheckersGameState extends AbstractGameState implements IGridGameSta
         return 0;
     }
 
-    @Override
     protected void _reset() {
         gridBoard = null;
     }
@@ -68,7 +83,7 @@ public class CheckersGameState extends AbstractGameState implements IGridGameSta
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(Objects.hash(gameParameters)).append("|");
-        sb.append(Objects.hash(turnOrder)).append("|");
+//        sb.append(Objects.hash(turnOrder)).append("|");
         sb.append(Objects.hash(getAllComponents())).append("|");
         sb.append(Objects.hash(gameStatus)).append("|");
         sb.append(Objects.hash(gamePhase)).append("|*|");
@@ -76,12 +91,6 @@ public class CheckersGameState extends AbstractGameState implements IGridGameSta
         return sb.toString();
     }
 
-    @Override
-    public GridBoard<Piece> getGridBoard() {
-        return gridBoard;
-    }
-
-    @Override
     public void printToConsole() {
         System.out.println(gridBoard.toString());
     }

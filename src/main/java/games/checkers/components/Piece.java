@@ -1,9 +1,10 @@
 package games.checkers.components;
 
+import core.components.BoardNode;
 import core.components.Token;
 import utilities.Pair;
 
-public class Piece extends Token {
+public class Piece extends BoardNode {
 
     private boolean canCaptureBackwards;
     private boolean canJumpAsKing;

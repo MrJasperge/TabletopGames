@@ -27,13 +27,15 @@ public class Move extends AbstractAction {
 
         CheckersGameState chgs = (CheckersGameState) gs;
 
-        boolean isKing = chgs.getGridBoard().getElement(getFromX(), getFromY()).isKing();
-        if (((playerID == 0) && (getToY() == (chgs.getHeight() - 1))) || ((playerID == 1) && (getToY() == 0))) {
+        boolean isKing = chgs.getCheckersBoard().getElement(getFromX(), getFromY()).isKing();
+        if (((playerID == 0) && (getToY() == (chgs.getCheckersBoard().getHeight() - 1))) || ((playerID == 1) && (getToY() == 0))) {
             isKing = true;
         }
         chgs.getGridBoard().setElement(getFromX(), getFromY(), new Piece(CheckersConstants.emptyCell));
         chgs.getGridBoard().setElement(getToX(), getToY(),new Piece(CheckersConstants.playerMapping.get(playerID).toString(),isKing));
-        chgs.getTurnOrder().endPlayerTurn(chgs);
+
+        // TODO: hiernaar kijken!
+//        chgs.getTurnOrder().endPlayerTurn(chgs);
 
         return true;
     }

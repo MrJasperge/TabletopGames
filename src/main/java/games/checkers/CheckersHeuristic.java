@@ -2,8 +2,9 @@ package games.checkers;
 
 import core.AbstractGameState;
 import core.AbstractParameters;
+import core.CoreConstants;
 import core.interfaces.IStateHeuristic;
-import evaluation.TunableParameters;
+import evaluation.optimisation.TunableParameters;
 import utilities.Utils;
 
 public class CheckersHeuristic extends TunableParameters implements IStateHeuristic {
@@ -12,12 +13,12 @@ public class CheckersHeuristic extends TunableParameters implements IStateHeuris
     public double evaluateState(AbstractGameState gs, int playerId) {
         // simple heuristic: amount of player's pieces should be more than opponent's
         CheckersGameState chgs = (CheckersGameState) gs;
-        Utils.GameResult playerResult = gs.getPlayerResults()[playerId];
+        CoreConstants.GameResult playerResult = gs.getPlayerResults()[playerId];
 
-        if(playerResult == Utils.GameResult.LOSE) {
+        if(playerResult == CoreConstants.GameResult.LOSE_GAME) {
             return -1;
         }
-        if(playerResult == Utils.GameResult.WIN) {
+        if(playerResult == CoreConstants.GameResult.WIN_GAME) {
             return 1;
         }
 

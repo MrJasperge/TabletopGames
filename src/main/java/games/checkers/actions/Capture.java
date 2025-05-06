@@ -35,8 +35,8 @@ public class Capture extends AbstractAction {
     @Override
     public boolean execute(AbstractGameState gs) {
         CheckersGameState chgs = (CheckersGameState) gs;
-        boolean isKing = chgs.getGridBoard().getElement(getFromX(), getFromY()).isKing();
-        if (((playerID == 0) && (getToY() == (chgs.getHeight() - 1))) || ((playerID == 1) && (getToY() == 0))) {
+        boolean isKing = chgs.getCheckersBoard().getElement(getFromX(), getFromY()).isKing();
+        if (((playerID == 0) && (getToY() == (chgs.getCheckersBoard().getHeight() - 1))) || ((playerID == 1) && (getToY() == 0))) {
             isKing = true;
         }
         chgs.getGridBoard().setElement(getFromX(), getFromY(), new Piece(CheckersConstants.emptyCell));
@@ -45,7 +45,8 @@ public class Capture extends AbstractAction {
         }
         chgs.getGridBoard().setElement(getToX(), getToY(), new Piece(CheckersConstants.playerMapping.get(playerID).toString(),isKing));
 
-        if (endOfTurn)  chgs.getTurnOrder().endPlayerTurn(chgs);
+        // TODO: naar kijken hoe dit zit!
+//        if (endOfTurn)  chgs.getTurnOrder().endPlayerTurn(chgs);
         return true;
     }
 

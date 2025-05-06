@@ -5,9 +5,10 @@ import core.components.GridBoard;
 import core.components.Token;
 import games.checkers.actions.Capture;
 import games.checkers.actions.Move;
+import games.checkers.components.CheckersBoard;
 import games.checkers.components.Piece;
 import games.checkers.CheckersForwardModel;
-import gui.ScreenHighlight;
+import gui.IScreenHighlight;
 import gui.views.ComponentView;
 
 import java.awt.*;
@@ -18,7 +19,7 @@ import java.util.List;
 
 import static gui.GUI.defaultItemSize;
 
-public class CheckersBoardView extends ComponentView implements ScreenHighlight {
+public class CheckersBoardView extends ComponentView implements IScreenHighlight {
 
     Rectangle[] rects;
     ArrayList<Rectangle> highlight;
@@ -27,9 +28,9 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
     List<AbstractAction> actions;
 
 
-    public CheckersBoardView(GridBoard<Piece> gridBoard) {
-        super(gridBoard, gridBoard.getWidth() * defaultItemSize, gridBoard.getHeight() * defaultItemSize);
-        rects = new Rectangle[gridBoard.getWidth() * gridBoard.getHeight()];
+    public CheckersBoardView(CheckersBoard checkersBoard) {
+        super(checkersBoard, checkersBoard.getWidth() * defaultItemSize, checkersBoard.getHeight() * defaultItemSize);
+        rects = new Rectangle[checkersBoard.getWidth() * checkersBoard.getHeight()];
         highlight = new ArrayList<>();
         moveHighlight = new ArrayList<>();
         captureHighlight = new ArrayList<>();
@@ -56,7 +57,7 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
 
     @Override
     protected void paintComponent(Graphics g) {
-        drawGridBoard((Graphics2D)g, (GridBoard<Piece>) component, 0, 0);
+        drawGridBoard((Graphics2D)g, (CheckersBoard) component, 0, 0);
 
         if (highlight.size() > 0) {
             g.setColor(Color.green);
@@ -90,9 +91,9 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
         }
     }
 
-    public void drawGridBoard(Graphics2D g, GridBoard<Piece> gridBoard, int x, int y) {
-        int width = gridBoard.getWidth() * defaultItemSize;
-        int height = gridBoard.getHeight() * defaultItemSize;
+    public void drawGridBoard(Graphics2D g, CheckersBoard checkersBoard, int x, int y) {
+        int width = checkersBoard.getWidth() * defaultItemSize;
+        int height = checkersBoard.getHeight() * defaultItemSize;
 
         // Draw background
         g.setColor(Color.lightGray);
@@ -100,14 +101,14 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
         g.setColor(Color.black);
 
         // Draw cells
-        for (int i = 0; i < gridBoard.getHeight(); i++) {
-            for (int j = 0; j < gridBoard.getWidth(); j++) {
+        for (int i = 0; i < checkersBoard.getHeight(); i++) {
+            for (int j = 0; j < checkersBoard.getWidth(); j++) {
                 int xC = x + j * defaultItemSize;
                 int yC = y + i * defaultItemSize;
-                drawCell(g, gridBoard.getElement(j, i), xC, yC);
+                drawCell(g, checkersBoard.getElement(j, i), xC, yC);
 
                 // Save rect where cell is drawn
-                int idx = i * gridBoard.getWidth() + j;
+                int idx = i * checkersBoard.getWidth() + j;
                 if (rects[idx] == null) {
                     rects[idx] = new Rectangle(xC, yC, defaultItemSize, defaultItemSize);
                 }
@@ -115,7 +116,7 @@ public class CheckersBoardView extends ComponentView implements ScreenHighlight 
         }
     }
 
-    private void drawCell(Graphics2D g, Token element, int x, int y) {
+    private void drawCell(Graphics2D g, Piece element, int x, int y) {
         // Paint cell background
         g.setColor(Color.lightGray);
         g.fillRect(x, y, defaultItemSize, defaultItemSize);

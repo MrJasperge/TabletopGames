@@ -1,7 +1,6 @@
 package games.checkers;
 
-import core.AbstractPlayer;
-import core.Game;
+import core.*;
 import games.GameType;
 import players.human.ActionController;
 import players.human.HumanGUIPlayer;
@@ -20,11 +19,13 @@ import java.util.List;
 
 public class CheckersGame extends Game {
 
-    public CheckersGame(CheckersGameParameters params) {
-        super(GameType.Checkers, new CheckersForwardModel(), new CheckersGameState(params, 2));
+    public CheckersGame(List<AbstractPlayer> agents, AbstractForwardModel forwardModel, CheckersGameState gameState) {
+        super(GameType.Checkers, agents, forwardModel, gameState);
+//        super(GameType.Checkers, new CheckersForwardModel(), new CheckersGameState(params, 2));
     }
-    public CheckersGame(List<AbstractPlayer> agents, CheckersGameParameters params) {
-        super(GameType.Checkers, agents, new CheckersForwardModel(), new CheckersGameState(params, agents.size()));
+
+    public CheckersGame(AbstractForwardModel forwardModel, AbstractGameState gameState) {
+        super(GameType.Checkers, forwardModel, gameState);
     }
 
 

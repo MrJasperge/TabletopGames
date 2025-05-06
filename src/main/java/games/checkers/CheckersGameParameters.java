@@ -1,7 +1,9 @@
 package games.checkers;
 
 import core.AbstractParameters;
-import evaluation.TunableParameters;
+import core.Game;
+import evaluation.optimisation.TunableParameters;
+import games.GameType;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -17,7 +19,7 @@ public class CheckersGameParameters extends TunableParameters {
     }
 
     public CheckersGameParameters(long seed) {
-        super(seed);
+
         addTunableParameter("gridWidth", 10, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
         addTunableParameter("gridHeight", 10, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
         addTunableParameter("fileName", fileName);
@@ -55,7 +57,7 @@ public class CheckersGameParameters extends TunableParameters {
     }
 
     @Override
-    public CheckersGame instantiate() {
-        return new CheckersGame(this);
+    public Object instantiate() {
+        return new Game(GameType.Checkers, new CheckersForwardModel(), new CheckersGameState(this, 2));
     }
 }
