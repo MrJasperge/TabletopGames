@@ -6,6 +6,8 @@ import core.components.Component;
 import core.components.GridBoard;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CheckersBoard extends GridBoard {
 
@@ -26,8 +28,54 @@ public class CheckersBoard extends GridBoard {
             Arrays.fill(grid[y], defaultPiece);
     }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
     @Override
     public Piece getElement(int x, int y) {
-        return new Piece(".", true);
+        if (x >= 0 && x < width && y >= 0 && y < height)
+            return grid[y][x];
+        return null;
+    }
+//    @Override
+//    public CheckersBoard copy() {
+//        Piece[][] gridCopy = new Piece[getHeight()][getWidth()];
+//        Map<Integer, Piece> nodeCopies = new HashMap<>();
+//        for (int i = 0; i < height; i++) {
+//            for (int j = 0; j < width; j++) {
+//                if (grid[i][j] != null) {
+//                    gridCopy[i][j] = new Piece(grid[i][j]);
+//                    nodeCopies.put(gridCopy[i][j].componentID, gridCopy[i][j]);
+//                }
+//            }
+//        }
+//        for (int i = 0; i < height; i++) {
+//            for (int j = 0; j < width; j++) {
+//                if (grid[i][j] != null) {
+//                    for (Map.Entry<Piece, Double> neighbour : grid[i][j].getNeighbours().entrySet()) {
+//                        gridCopy[i][j].addNeighbourWithCost(nodeCopies.get(neighbour.getKey().componentID), neighbour.getValue());
+//                    }
+//                    for (Map.Entry<Piece, Integer> neighbour : grid[i][j].getNeighbourSideMapping().entrySet()) {
+//                        gridCopy[i][j].addNeighbourOnSide(nodeCopies.get(neighbour.getKey().componentID), neighbour.getValue());
+//                    }
+//                }
+//            }
+//        }
+//        GridBoard g = new GridBoard(gridCopy, componentID);
+//        copyComponentTo(g);
+//        return g;
+//    }
+
+    public boolean setElement(int x, int y, Piece value) {
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            grid[y][x] = value;
+            return true;
+        } else
+            return false;
     }
 }

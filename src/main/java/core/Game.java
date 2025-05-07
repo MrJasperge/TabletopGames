@@ -847,19 +847,20 @@ public class Game {
     public static void main(String[] args) {
         String gameType = Utils.getArg(args, "game", "Checkers");
         boolean useGUI = Utils.getArg(args, "gui", true);
-        int turnPause = Utils.getArg(args, "turnPause", 0);
+        int turnPause = Utils.getArg(args, "turnPause", 300);
         long seed = Utils.getArg(args, "seed", System.currentTimeMillis());
+
         ActionController ac = new ActionController();
 
         /* Set up players for the game */
         ArrayList<AbstractPlayer> players = new ArrayList<>();
 
-//        players.add(new RandomPlayer());
-//        players.add(new RandomPlayer());
+        players.add(new RandomPlayer());
+        players.add(new RandomPlayer());
 
-        players.add(new MCTSPlayer());
-        MCTSParams params1 = new MCTSParams();
-        players.add(new MCTSPlayer(params1));
+//        players.add(new MCTSPlayer());
+//        MCTSParams params1 = new MCTSParams();
+//        players.add(new MCTSPlayer());
 //        players.add(new OSLAPlayer());
 //        players.add(new RMHCPlayer());
 //        players.add(new HumanGUIPlayer(ac));

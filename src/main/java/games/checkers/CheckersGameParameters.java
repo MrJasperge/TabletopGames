@@ -14,12 +14,12 @@ public class CheckersGameParameters extends TunableParameters {
     public int gridHeight = 10;
 
     public String fileName = "experiments/test6.csv";
+
     public CheckersGameParameters() {
         this(0);
     }
 
     public CheckersGameParameters(long seed) {
-
         addTunableParameter("gridWidth", 10, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
         addTunableParameter("gridHeight", 10, Arrays.asList(6, 7, 8, 9, 10, 11, 12));
         addTunableParameter("fileName", fileName);
@@ -58,6 +58,6 @@ public class CheckersGameParameters extends TunableParameters {
 
     @Override
     public Object instantiate() {
-        return new Game(GameType.Checkers, new CheckersForwardModel(), new CheckersGameState(this, 2));
+        return GameType.Checkers.createGameInstance(2, this);
     }
 }

@@ -1,8 +1,11 @@
 package games.checkers.components;
 
+import core.CoreConstants;
 import core.components.BoardNode;
 import core.components.Token;
 import utilities.Pair;
+
+import java.util.HashMap;
 
 public class Piece extends BoardNode {
 
