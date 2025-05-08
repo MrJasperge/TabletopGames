@@ -27,8 +27,8 @@ public class Move extends AbstractAction {
 
         CheckersGameState chgs = (CheckersGameState) gs;
 
-        boolean isKing = chgs.getCheckersBoard().getElement(getFromX(), getFromY()).isKing();
-        if (((playerID == 0) && (getToY() == (chgs.getCheckersBoard().getHeight() - 1))) || ((playerID == 1) && (getToY() == 0))) {
+        boolean isKing = ((Piece)chgs.getGridBoard().getElement(getFromX(), getFromY())).isKing();
+        if (((playerID == 0) && (getToY() == (chgs.getGridBoard().getHeight() - 1))) || ((playerID == 1) && (getToY() == 0))) {
             isKing = true;
         }
         chgs.getGridBoard().setElement(getFromX(), getFromY(), new Piece(CheckersConstants.emptyCell));

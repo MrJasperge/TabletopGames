@@ -3,55 +3,83 @@ package games.checkers.components;
 import core.CoreConstants;
 import core.components.BoardNode;
 import core.components.Token;
+import dev.langchain4j.service.V;
 import utilities.Pair;
+import utilities.Vector2D;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class Piece extends BoardNode {
 
-    private boolean canCaptureBackwards;
-    private boolean canJumpAsKing;
-    private boolean bKing;
-//    private Pair<Integer, Integer> currentPosition;
+    protected boolean bKing;
+    protected String name;
+    protected Vector2D position;
 
     public Piece(String name) {
         super(name);
+        this.name = name;
         this.bKing = false;
-//        this.currentPosition = new Pair<>(0, 0);
+        this.position = new Vector2D(0, 0);
+
     }
     public Piece(String name, boolean bKing) {
         super(name);
+        this.name = name;
         this.bKing = bKing;
-//        this.currentPosition = new Pair<>(0, 0);
+        this.position = new Vector2D(0, 0);
     }
 
-//    public Piece(String name, boolean bKing, Pair<Integer, Integer> position) {
-//        super(name);
-//        this.bKing = bKing;
-////        this.currentPosition = position;
-//    }
+    public Piece(String name, boolean bKing, Vector2D position) {
+        super(name);
+        this.name = name;
+        this.bKing = bKing;
+        this.position = position;
+    }
 
     public void makeKing() {
-        bKing = true;
+        this.bKing = true;
     }
+
     public boolean isKing() {
         return bKing;
     }
 
-//    public void setCurrentPosition(Pair<Integer, Integer> newPosition) {
-//        currentPosition = newPosition;
-//    }
-//    public void setCurrentPosition(int a, int b) {
-//        currentPosition.a = a;
-//        currentPosition.b = b;
-//    }
-//    public Pair<Integer, Integer> getCurrentPosition() {
-//        return currentPosition;
-//    }
-//    public int getCurrentA() {
-//        return currentPosition.a;
-//    }
-//    public int getCurrentB() {
-//        return currentPosition.b;
-//    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public Piece copy() {
+        Piece copy = new Piece(name, bKing);
+        copyComponentTo(copy);
+        return copy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name, bKing);
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public Vector2D getPiecePosition() {
+        return position;
+    }
+
+    public void setPiecePosition(Vector2D position) {
+        this.position = position;
+    }
 }

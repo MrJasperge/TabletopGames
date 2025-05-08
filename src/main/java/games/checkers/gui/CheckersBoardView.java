@@ -2,12 +2,9 @@ package games.checkers.gui;
 
 import core.actions.AbstractAction;
 import core.components.GridBoard;
-import core.components.Token;
 import games.checkers.actions.Capture;
 import games.checkers.actions.Move;
-import games.checkers.components.CheckersBoard;
 import games.checkers.components.Piece;
-import games.checkers.CheckersForwardModel;
 import gui.IScreenHighlight;
 import gui.views.ComponentView;
 
@@ -28,7 +25,7 @@ public class CheckersBoardView extends ComponentView implements IScreenHighlight
     List<AbstractAction> actions;
 
 
-    public CheckersBoardView(CheckersBoard checkersBoard) {
+    public CheckersBoardView(GridBoard checkersBoard) {
         super(checkersBoard, checkersBoard.getWidth() * defaultItemSize, checkersBoard.getHeight() * defaultItemSize);
         rects = new Rectangle[checkersBoard.getWidth() * checkersBoard.getHeight()];
         highlight = new ArrayList<>();
@@ -57,7 +54,7 @@ public class CheckersBoardView extends ComponentView implements IScreenHighlight
 
     @Override
     protected void paintComponent(Graphics g) {
-        drawGridBoard((Graphics2D)g, (CheckersBoard) component, 0, 0);
+        drawGridBoard((Graphics2D)g, (GridBoard) component, 0, 0);
 
         if (highlight.size() > 0) {
             g.setColor(Color.green);
@@ -91,7 +88,7 @@ public class CheckersBoardView extends ComponentView implements IScreenHighlight
         }
     }
 
-    public void drawGridBoard(Graphics2D g, CheckersBoard checkersBoard, int x, int y) {
+    public void drawGridBoard(Graphics2D g, GridBoard checkersBoard, int x, int y) {
         int width = checkersBoard.getWidth() * defaultItemSize;
         int height = checkersBoard.getHeight() * defaultItemSize;
 
@@ -105,7 +102,7 @@ public class CheckersBoardView extends ComponentView implements IScreenHighlight
             for (int j = 0; j < checkersBoard.getWidth(); j++) {
                 int xC = x + j * defaultItemSize;
                 int yC = y + i * defaultItemSize;
-                drawCell(g, checkersBoard.getElement(j, i), xC, yC);
+                drawCell(g, (Piece)checkersBoard.getElement(j, i), xC, yC);
 
                 // Save rect where cell is drawn
                 int idx = i * checkersBoard.getWidth() + j;

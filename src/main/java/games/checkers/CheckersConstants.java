@@ -2,6 +2,7 @@ package games.checkers;
 
 import games.checkers.components.Piece;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class CheckersConstants {
@@ -11,4 +12,11 @@ public class CheckersConstants {
     }};
 
     public static final String emptyCell = ".";
+
+//    public enum PieceSetups{
+//        Setup1 {
+//            @Override
+//            protected ArrayList<Piece> get
+//        }
+//    }
 }

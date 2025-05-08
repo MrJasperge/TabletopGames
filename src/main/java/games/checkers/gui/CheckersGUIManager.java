@@ -34,7 +34,7 @@ public class CheckersGUIManager extends AbstractGUIManager {
 
         // Checkers GameState
         CheckersGameState chgs = (CheckersGameState) game.getGameState();
-        view = new CheckersBoardView(chgs.getCheckersBoard());
+        view = new CheckersBoardView(chgs.getGridBoard());
 
         // Set width and height of display
         this.width = Math.max(defaultDisplayWidth, defaultItemSize * chgs.getGridBoard().getWidth());

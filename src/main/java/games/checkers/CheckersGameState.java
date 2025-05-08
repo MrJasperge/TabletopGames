@@ -2,23 +2,20 @@ package games.checkers;
 
 import core.AbstractGameState;
 import core.AbstractParameters;
+import core.components.BoardNode;
 import core.components.Component;
 import core.components.GridBoard;
-import core.interfaces.IGridGameState;
-import core.turnorders.AlternatingTurnOrder;
 import games.GameType;
 import games.checkers.components.Piece;
 import utilities.Pair;
-import games.checkers.components.CheckersBoard;
 
-import javax.annotation.RegEx;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class CheckersGameState extends AbstractGameState {
 
-    public CheckersBoard checkersBoard;
+//    public CheckersBoard checkersBoard;
     GridBoard gridBoard;
 
     public CheckersGameState(AbstractParameters gameParameters, int nPlayers) {
@@ -26,12 +23,12 @@ public class CheckersGameState extends AbstractGameState {
     }
 
     public GridBoard getGridBoard() {
-        return gridBoard;
+        return this.gridBoard;
     }
 
-    public CheckersBoard getCheckersBoard() {
-        return checkersBoard;
-    }
+//    public CheckersBoard getCheckersBoard() {
+//        return checkersBoard;
+//    }
 
     @Override
     protected GameType _getGameType() {
@@ -47,9 +44,21 @@ public class CheckersGameState extends AbstractGameState {
 
     @Override
     protected AbstractGameState _copy(int playerId) {
-        CheckersGameState chgs = new CheckersGameState(gameParameters.copy(), getNPlayers());
-        chgs.gridBoard = gridBoard.copy();
-        return chgs;
+        CheckersGameState copy = new CheckersGameState(gameParameters.copy(), getNPlayers());
+        copy.gridBoard = gridBoard.copy();
+
+        // Copy the grid board
+        for (int x = 0; x < gridBoard.getWidth(); x++) {
+            for (int y = 0; y < gridBoard.getHeight(); y++) {
+                Piece piece = (Piece) gridBoard.getElement(x, y);
+                if (piece != null) {
+                    copy.gridBoard.setElement(x, y, piece.copy());
+                }
+            }
+        }
+
+
+        return copy;
     }
 
     @Override
