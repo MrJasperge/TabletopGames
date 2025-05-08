@@ -88,7 +88,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                 for (int y = 0; y < board.getHeight(); y++) {
 
                     // check if piece of player its own piece
-                    if (chgs.getGridBoard().getElement(x, y).getType().equals(CheckersConstants.playerMapping.get(player).getType())) {
+                    if (((Piece) chgs.getGridBoard().getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(player).getName())) {
                         pPieces.add(new Pair<>(x, y));  // player's pieces
                     }
                 }
@@ -129,9 +129,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                 // calculate available moves
                 for (Pair<Integer, Integer> p : pPieces) {
                     ArrayList<Move> moves = getMoveActions(chgs, p);
-                    for (Move m : moves) {
-                        actions.add(m);
-                    }
+                    actions.addAll(moves);
                 }
             }
         }
@@ -139,13 +137,11 @@ public class CheckersForwardModel extends StandardForwardModel {
         if (debug) {
             System.out.println("Actions:");
             for (AbstractAction a : actions) {
-                if (a instanceof Move) {
-                    Move m = (Move) a;
+                if (a instanceof Move m) {
                     System.out.print("([" + m.getFromX() + "," + m.getFromY() + "] to ["
                             + m.getToX() + "," + m.getToY() + "]) ");
                 }
-                if (a instanceof Capture) {
-                    Capture c = (Capture) a;
+                if (a instanceof Capture c) {
                     ArrayList<Pair<Integer, Integer>> cells = c.getCapturedCells();
                     System.out.print("([" + c.getFromX() + "," + c.getFromY() + "] to ["
                             + c.getToX() + "," + c.getToY() + "] capturing [");
@@ -160,12 +156,13 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         prevActions = actions;
 
-//        if (!actions.isEmpty())
+        if (!actions.isEmpty())
             return actions;
 
         // TODO: no available moves, game ends with other player winning
 
-//        return null;
+        System.out.println("No available actions");
+        return actions;
     }
 
     private ArrayList<Move> getMoveActions(CheckersGameState gs, Pair<Integer, Integer> p) {
@@ -229,13 +226,13 @@ public class CheckersForwardModel extends StandardForwardModel {
                         System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
 
                     // check if own piece
-                    if (piece.getType().equals(CheckersConstants.playerMapping.get(player).getType())) {
+                    if (piece.getName().equals(CheckersConstants.playerMapping.get(player).getName())) {
                         // stop checking this direction
                         if (debug)   System.out.print("p");
                         break;
                     }
                     // check if opponent piece
-                    if (piece.getType().equals(CheckersConstants.playerMapping.get(1 - player).getType())) {
+                    if (piece.getName().equals(CheckersConstants.playerMapping.get(1 - player).getName())) {
                         if (markCaptured) {
                             if (debug)  System.out.print("c");
                             break;
@@ -246,7 +243,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                     }
 
                     // check if empty square
-                    if (piece.getComponentName().equals(CheckersConstants.emptyCell)) {
+                    if (piece.getName().equals(CheckersConstants.emptyCell)) {
                         // if no king
                         if (!piece.isKing() && !markCaptured) {
                             if (debug)  System.out.print("nk");
@@ -271,6 +268,21 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         if (debug)  System.out.println(captures.size() + " captures");
         return captures;
+    }
+
+    @Override
+    protected void _afterAction(AbstractGameState currentState, AbstractAction action) {
+        if (currentState.getGameStatus() == CoreConstants.GameResult.GAME_END || currentState.isActionInProgress()) {
+            return;
+        }
+
+        CheckersGameState chgs = (CheckersGameState) currentState;
+        endPlayerTurn(chgs);
+
+//        moves++;
+//        action.execute(currentState);
+//        checkGameEnd(chgs);
+
     }
 
     protected AbstractForwardModel _copy() {
