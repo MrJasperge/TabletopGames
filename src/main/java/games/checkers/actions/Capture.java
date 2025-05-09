@@ -8,6 +8,7 @@ import games.checkers.components.Piece;
 import utilities.Pair;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Capture extends AbstractAction {
 
@@ -45,8 +46,6 @@ public class Capture extends AbstractAction {
         }
         chgs.getGridBoard().setElement(getToX(), getToY(), new Piece(CheckersConstants.playerMapping.get(playerID).toString(),isKing));
 
-        // TODO: naar kijken hoe dit zit!
-//        if (endOfTurn)  chgs.getTurnOrder().endPlayerTurn(chgs);
         return true;
     }
 
@@ -99,7 +98,10 @@ public class Capture extends AbstractAction {
         if (this == obj) return true;
         if (!(obj instanceof Capture)) return false;
         Capture capt = (Capture) obj;
-        return playerID == capt.playerID && fromCell == capt.fromCell && toCell == capt.toCell && capturedCells == capt.capturedCells;
+        return playerID == capt.playerID
+                && Objects.equals(fromCell, capt.fromCell)
+                && Objects.equals(toCell, capt.toCell)
+                && Objects.equals(capturedCells, capt.capturedCells);
     }
 
     @Override

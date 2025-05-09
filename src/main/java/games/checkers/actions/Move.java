@@ -7,6 +7,8 @@ import games.checkers.CheckersGameState;
 import games.checkers.components.Piece;
 import utilities.Pair;
 
+import java.util.Objects;
+
 public class Move extends AbstractAction {
 
     private final int playerID;
@@ -66,12 +68,13 @@ public class Move extends AbstractAction {
         if (this == obj) return true;
         if (!(obj instanceof Move)) return false;
         Move move = (Move) obj;
-        return playerID == move.playerID && fromCell == move.fromCell && toCell == move.toCell;
+        return getFromX() == move.getFromX() && getFromY() == move.getFromY()
+                && getToX() == move.getToX() && getToY() == move.getToY();
     }
 
     @Override
     public int hashCode() {
-        return 0;
+        return Objects.hash(fromCell, toCell);
     }
 
     @Override

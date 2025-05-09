@@ -38,7 +38,7 @@ public class CheckersForwardModel extends StandardForwardModel {
             }
         }
 
-        System.out.println("gridboard w+h: " + chgs.getGridBoard().getWidth() + "+" + chgs.getGridBoard().getHeight());
+//        System.out.println("gridboard w+h: " + chgs.getGridBoard().getWidth() + "+" + chgs.getGridBoard().getHeight());
 
         for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
             for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
@@ -162,6 +162,7 @@ public class CheckersForwardModel extends StandardForwardModel {
         // TODO: no available moves, game ends with other player winning
 
         System.out.println("No available actions");
+//        registerWinner(chgs, player);
         return actions;
     }
 
@@ -207,8 +208,8 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
 
-        if (debug)
-            System.out.println(": "+p.a +","+p.b);
+//        if (debug)
+//            System.out.println(": "+p.a +","+p.b);
 
         // 4 directions
         for (int i = -1; i <= 1; i+=2) {
@@ -222,13 +223,13 @@ public class CheckersForwardModel extends StandardForwardModel {
                 while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
                     Piece piece = (Piece)board.getElement(p.a+i*dist, p.b+j*dist);
 
-                    if (debug)
-                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
+//                    if (debug)
+//                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
 
                     // check if own piece
                     if (piece.getName().equals(CheckersConstants.playerMapping.get(player).getName())) {
                         // stop checking this direction
-                        if (debug)   System.out.print("p");
+//                        if (debug)   System.out.print("p");
                         break;
                     }
                     // check if opponent piece
@@ -237,7 +238,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                             if (debug)  System.out.print("c");
                             break;
                         }
-                        if (debug)  System.out.print("O");
+//                        if (debug)  System.out.print("O");
                         capturedPiece = new Pair<>(p.a+i*dist, p.b+j*dist);
                         markCaptured = true;
                     }
@@ -246,7 +247,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                     if (piece.getName().equals(CheckersConstants.emptyCell)) {
                         // if no king
                         if (!piece.isKing() && !markCaptured) {
-                            if (debug)  System.out.print("nk");
+//                            if (debug)  System.out.print("nk");
                             break;
                         }
                         // capture action possible
@@ -263,10 +264,10 @@ public class CheckersForwardModel extends StandardForwardModel {
             }
         }
 
-        if (debug)
-            System.out.println();
+//        if (debug)
+//            System.out.println();
 
-        if (debug)  System.out.println(captures.size() + " captures");
+//        if (debug)  System.out.println(captures.size() + " [getCaptureActions] captures");
         return captures;
     }
 
@@ -281,7 +282,7 @@ public class CheckersForwardModel extends StandardForwardModel {
 
 //        moves++;
 //        action.execute(currentState);
-//        checkGameEnd(chgs);
+        checkGameEnd(chgs);
 
     }
 
@@ -289,15 +290,17 @@ public class CheckersForwardModel extends StandardForwardModel {
         return new CheckersForwardModel();
     }
 
-//    protected void _next(AbstractGameState currentState, AbstractAction action) {
-//        moves++;
-//        action.execute(currentState);
-//        CheckersGameState chgs = (CheckersGameState) currentState;
-//        CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
-//        gridWidth = chgp.gridWidth;
-//        gridHeight = chgp.gridHeight;
-//        checkGameEnd(chgs);
-//    }
+    /*
+    protected void _next(AbstractGameState currentState, AbstractAction action) {
+        moves++;
+        action.execute(currentState);
+        CheckersGameState chgs = (CheckersGameState) currentState;
+        CheckersGameParameters chgp = (CheckersGameParameters) currentState.getGameParameters();
+        gridWidth = chgp.gridWidth;
+        gridHeight = chgp.gridHeight;
+        checkGameEnd(chgs);
+    }
+     */
 
     private void checkGameEnd(CheckersGameState gameState) {
         GridBoard board = gameState.getGridBoard();
@@ -305,8 +308,8 @@ public class CheckersForwardModel extends StandardForwardModel {
         int bPiece = 0, wPiece = 0;
         for (int x = 0; x < board.getWidth(); x++)
             for (int y = 0; y < board.getHeight(); y++) {
-                if (board.getElement(x, y).getType().equals(CheckersConstants.playerMapping.get(0).getType())) bPiece++;
-                if (board.getElement(x, y).getType().equals(CheckersConstants.playerMapping.get(1).getType())) wPiece++;
+                if (((Piece)board.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(0).getName())) bPiece++;
+                if (((Piece)board.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(1).getName())) wPiece++;
             }
 
 //        System.out.println("bPiece: " + bPiece + ", wPiece: " + wPiece + "\n");

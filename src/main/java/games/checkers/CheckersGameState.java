@@ -2,12 +2,10 @@ package games.checkers;
 
 import core.AbstractGameState;
 import core.AbstractParameters;
-import core.components.BoardNode;
 import core.components.Component;
 import core.components.GridBoard;
 import games.GameType;
 import games.checkers.components.Piece;
-import utilities.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +13,6 @@ import java.util.Objects;
 
 public class CheckersGameState extends AbstractGameState {
 
-//    public CheckersBoard checkersBoard;
     GridBoard gridBoard;
 
     public CheckersGameState(AbstractParameters gameParameters, int nPlayers) {
@@ -26,10 +23,6 @@ public class CheckersGameState extends AbstractGameState {
         return this.gridBoard;
     }
 
-//    public CheckersBoard getCheckersBoard() {
-//        return checkersBoard;
-//    }
-
     @Override
     protected GameType _getGameType() {
         return GameType.Checkers;
@@ -37,7 +30,7 @@ public class CheckersGameState extends AbstractGameState {
 
     @Override
     protected List<Component> _getAllComponents() {
-        return new ArrayList<Component>() {{
+        return new ArrayList<>() {{
             add(gridBoard);
         }};
     }
@@ -68,7 +61,7 @@ public class CheckersGameState extends AbstractGameState {
 
     @Override
     public double getGameScore(int playerId) {
-        return 0;
+        return playerResults[playerId].value;
     }
 
     protected void _reset() {
@@ -78,8 +71,7 @@ public class CheckersGameState extends AbstractGameState {
     @Override
     protected boolean _equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CheckersGameState)) return false;
-        CheckersGameState that = (CheckersGameState) o;
+        if (!(o instanceof CheckersGameState that)) return false;
         return Objects.equals(gridBoard, that.gridBoard);
     }
 
@@ -90,28 +82,16 @@ public class CheckersGameState extends AbstractGameState {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(Objects.hash(gameParameters)).append("|");
-//        sb.append(Objects.hash(turnOrder)).append("|");
-        sb.append(Objects.hash(getAllComponents())).append("|");
-        sb.append(Objects.hash(gameStatus)).append("|");
-        sb.append(Objects.hash(gamePhase)).append("|*|");
-        sb.append(Objects.hash(gridBoard));
-        return sb.toString();
+        String sb = Objects.hash(gameParameters) + "|" +
+                Objects.hash(getAllComponents()) + "|" +
+                Objects.hash(gameStatus) + "|" +
+                Objects.hash(gamePhase) + "|*|" +
+                Objects.hash(gridBoard);
+        return sb;
     }
 
     public void printToConsole() {
         System.out.println(gridBoard.toString());
     }
 
-    public class Capture extends games.checkers.actions.Capture {
-        public Capture(int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, ArrayList<Pair<Integer, Integer>> capturedCells, boolean endOfTurn) {
-            super(playerID, fromCell, toCell, capturedCells, endOfTurn);
-        }
-    }
-
-    public int getNumberOfPieces(int player) {
-
-        return 0;
-    }
 }

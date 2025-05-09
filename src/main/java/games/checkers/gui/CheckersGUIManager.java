@@ -5,6 +5,7 @@ import core.AbstractPlayer;
 import core.CoreConstants;
 import core.Game;
 import core.actions.AbstractAction;
+import games.checkers.CheckersConstants;
 import games.checkers.CheckersGameState;
 import games.checkers.actions.Capture;
 import games.checkers.actions.Move;
@@ -66,13 +67,13 @@ public class CheckersGUIManager extends AbstractGUIManager {
             List<AbstractAction> actionList = new ArrayList<>();
 
             int start = actions.size();
-            if (highlight.size() > 0) {
+            if (!highlight.isEmpty()) {
                 Rectangle r = highlight.get(0);
                 for (AbstractAction abstractAction : actions) {
-                    if (abstractAction instanceof Move) {
-                        Move action = (Move) abstractAction;
+
+                    if (abstractAction instanceof Move action) {
                         if (action.getToX() == r.x/defaultItemSize && action.getToY() == r.y/defaultItemSize) {
-                            actionList.add(abstractAction);
+                            actionList.add(action);
 //                            actionButtons[0].setVisible(true);
 //                            actionButtons[0].setButtonAction(action, "Move "
 //                                    + TicTacToeConstants.playerMapping.get(player.getPlayerID())
@@ -80,10 +81,9 @@ public class CheckersGUIManager extends AbstractGUIManager {
 //                                    + action.getToX() + "," + action.getToY() + "]");
                         }
                     }
-                    if (abstractAction instanceof Capture) {
-                        Capture action = (Capture) abstractAction;
+                    if (abstractAction instanceof Capture action) {
                         if (action.getToX() == r.x/defaultItemSize && action.getToY() == r.y/defaultItemSize) {
-                            actionList.add(abstractAction);
+                            actionList.add(action);
 //                            actionButtons[0].setVisible(true);
 //                            actionButtons[0].setButtonAction(action, "Capture "
 //                                    + TicTacToeConstants.playerMapping.get(1 - player.getPlayerID())
@@ -99,21 +99,23 @@ public class CheckersGUIManager extends AbstractGUIManager {
             }
             for (int i = 0; i < actionList.size(); i++) {
                 AbstractAction abstractAction = actionList.get(i);
-                if (abstractAction instanceof Move) {
-                    Move action = (Move) abstractAction;
+                if (abstractAction instanceof Move action) {
                     actionButtons[i].setVisible(true);
-                    actionButtons[i].setButtonAction(action, "Move "
-                            + TicTacToeConstants.playerMapping.get(player.getPlayerID())
+                    actionButtons[i].setEnabled(true);
+//                    actionButtons[i].setButtonAction(abstractAction, gameState);
+                    actionButtons[i].setButtonAction(abstractAction, "Move "
+                            + CheckersConstants.playerMapping.get(player.getPlayerID())
                             + " from[" + action.getFromX() + "," + action.getFromY() + "] to ["
                             + action.getToX() + "," + action.getToY() + "]");
                 }
-                if (abstractAction instanceof Capture) {
-                    Capture action = (Capture) abstractAction;
+                if (abstractAction instanceof Capture action) {
                     actionButtons[i].setVisible(true);
-                    actionButtons[i].setButtonAction(action, "Capture "
-                            + TicTacToeConstants.playerMapping.get(1 - player.getPlayerID())
-                            + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
-                            + action.getToX() + "," + action.getToY() + "]");
+                    actionButtons[i].setEnabled(true);
+                    actionButtons[i].setButtonAction(abstractAction, gameState);
+//                    actionButtons[i].setButtonAction(abstractAction, "Capture "
+//                            + CheckersConstants.playerMapping.get(1 - player.getPlayerID())
+//                            + " from[" + action.getFromX() + "," + action.getFromY() + "] to["
+//                            + action.getToX() + "," + action.getToY() + "]");
                 }
             }
         }
