@@ -5,6 +5,7 @@ import core.actions.DoNothing;
 import core.interfaces.IExtendedSequence;
 import core.interfaces.IPrintable;
 import core.turnorders.ReactiveTurnOrder;
+import evaluation.RunGames;
 import evaluation.listeners.IGameListener;
 import evaluation.metrics.Event;
 import evaluation.summarisers.TAGNumericStatSummary;
@@ -19,6 +20,8 @@ import players.human.HumanConsolePlayer;
 import players.human.HumanGUIPlayer;
 import players.mcts.MCTSParams;
 import players.mcts.MCTSPlayer;
+import players.rhea.RHEAParams;
+import players.rhea.RHEAPlayer;
 import players.rmhc.RMHCParams;
 import players.rmhc.RMHCPlayer;
 import players.simple.OSLAPlayer;
@@ -847,33 +850,55 @@ public class Game {
     public static void main(String[] args) {
         String gameType = Utils.getArg(args, "game", "Checkers");
         boolean useGUI = Utils.getArg(args, "gui", true);
-        int turnPause = Utils.getArg(args, "turnPause", 300);
+        int turnPause = Utils.getArg(args, "turnPause", 0);
         long seed = Utils.getArg(args, "seed", System.currentTimeMillis());
+        List<IGameListener> listeners = new ArrayList<>();
+//        listeners.add
 
         ActionController ac = new ActionController();
+
+
 
         /* Set up players for the game */
         ArrayList<AbstractPlayer> players = new ArrayList<>();
 
-        players.add(new RandomPlayer());
-        players.add(new RandomPlayer());
+//        players.add(new RandomPlayer());
+
 
 //        players.add(new MCTSPlayer());
 //        MCTSParams params1 = new MCTSParams();
+//        params1.exploreEpsilon = 0.05;
 //        players.add(new MCTSPlayer());
 //        players.add(new OSLAPlayer());
+//        players.add(new OSLAPlayer());
+       players.add(new MCTSPlayer());
+//        players.add(new HumanGUIPlayer(ac));
+        // players.add(new BasicMCTSPlayer());
+        players.add(new OSLAPlayer());
+        // RHEAParams params = new RHEAParams();
+        // players.add(new RHEAPlayer(params));
 //        players.add(new RMHCPlayer());
 //        players.add(new HumanGUIPlayer(ac));
 //        players.add(new HumanGUIPlayer(ac));
-//        players.add(new MCTSPlayer());
+
 //        players.add(new HumanConsolePlayer());
 //        players.add(new FirstActionPlayer());
+
+        // Print out the players
+        for (AbstractPlayer player : players) {
+            String[] split = player.getClass().toString().split("\\.");
+            String agentName = split[split.length - 1];
+            System.out.println("Player: " + agentName);
+        }
 
         /* Game parameter configuration. Set to null to ignore and use default parameters */
         String gameParams = null;
 
         /* Run! */
+//        for (int i = 0; i < 10; i++) {
         runOne(GameType.valueOf(gameType), gameParams, players, seed, false, null, useGUI ? ac : null, turnPause);
+
+//        }
 
         /* Run multiple games */
 //        ArrayList<GameType> games = new ArrayList<>();

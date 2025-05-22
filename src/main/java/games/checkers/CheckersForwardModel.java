@@ -161,7 +161,7 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         // TODO: no available moves, game ends with other player winning
 
-        System.out.println("No available actions");
+//        System.out.println("No available actions");
 //        registerWinner(chgs, player);
         return actions;
     }
@@ -278,10 +278,16 @@ public class CheckersForwardModel extends StandardForwardModel {
         }
 
         CheckersGameState chgs = (CheckersGameState) currentState;
+
+        // print current player
+        if (debug) {
+            System.out.println("Current player: " + chgs.getCurrentPlayer());
+//            System.out.println("Action: " + action);
+        }
+
         endPlayerTurn(chgs);
 
 //        moves++;
-//        action.execute(currentState);
         checkGameEnd(chgs);
 
     }
@@ -333,6 +339,7 @@ public class CheckersForwardModel extends StandardForwardModel {
         // check if draw
         if (_computeAvailableActions(gameState).isEmpty()) {
             int winner = 1 - gameState.getCurrentPlayer();
+//            System.out.println("Winner: " + winner);
             registerWinner(gameState, winner);
             if (chfm != null) chfm.WriteData(Integer.toString(bPiece + wPiece) + "," + moves + '\n');
         }
