@@ -126,15 +126,15 @@ public class CheckersForwardModel extends StandardForwardModel {
                     System.out.print("([" + m.getFromX() + "," + m.getFromY() + "] to ["
                             + m.getToX() + "," + m.getToY() + "]) ");
                 }
-                if (a instanceof Capture c) {
-                    ArrayList<Pair<Integer, Integer>> cells = c.getCapturedCells();
-                    System.out.print("([" + c.getFromX() + "," + c.getFromY() + "] to ["
-                            + c.getToX() + "," + c.getToY() + "] capturing [");
-                    for (Pair<Integer, Integer> cell : cells) {
-                        System.out.print("[" + cell.a + "," + cell.b + "] ");
-                    }
-                    System.out.print("]) ");
-                }
+//                if (a instanceof Capture c) {
+//                    ArrayList<Pair<Integer, Integer>> cells = c.getCapturedCells();
+//                    System.out.print("([" + c.getFromX() + "," + c.getFromY() + "] to ["
+//                            + c.getToX() + "," + c.getToY() + "] capturing [");
+//                    for (Pair<Integer, Integer> cell : cells) {
+//                        System.out.print("[" + cell.a + "," + cell.b + "] ");
+//                    }
+//                    System.out.print("]) ");
+//                }
             }
             System.out.println("");
         }
@@ -191,6 +191,7 @@ public class CheckersForwardModel extends StandardForwardModel {
         GridBoard board = gs.getGridBoard();
 
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
+        Piece startPieceObj = (Piece) board.getElement(p.a, p.b);
 
 //        if (debug)
 //            System.out.println(": "+p.a +","+p.b);
@@ -224,21 +225,20 @@ public class CheckersForwardModel extends StandardForwardModel {
                             break;
                         }
 //                        if (debug)  System.out.print("O");
-                        capturedPiece = new Pair<>(p.a+i*dist, p.b+j*dist);
                         markCaptured = true;
                     }
 
                     // check if empty square
                     if (piece.getName().equals(CheckersConstants.emptyCell)) {
                         // if no king
-                        if (!piece.isKing() && !markCaptured) {
+                        if (!startPieceObj.isKing() && !markCaptured) {
                             break;
                         }
                         // capture action possible
-                        if (markCaptured && (!markAction || piece.isKing())) {
+                        if (markCaptured && (!markAction || startPieceObj.isKing())) {
                             if (debug)  System.out.print("C");
                             Pair<Integer, Integer> endPiece = new Pair<>(p.a + i * dist, p.b + j * dist);
-                            Capture c = new Capture(player, startPiece, endPiece, capturedPiece, false);
+                            Capture c = new Capture(player, startPiece, endPiece);
                             captures.add(c);
                             markAction = true;
                         }
@@ -274,11 +274,11 @@ public class CheckersForwardModel extends StandardForwardModel {
             chgs.setSkipTurn(!getCaptureActions(chgs, c.getToCell()).isEmpty());
         }
 
+        checkGameEnd(chgs);
         endPlayerTurn(chgs, chgs.getNextPlayer());
         chgs.setSkipTurn(false);
 
 //        moves++;
-        checkGameEnd(chgs);
 
     }
 
@@ -301,37 +301,37 @@ public class CheckersForwardModel extends StandardForwardModel {
     private void checkGameEnd(CheckersGameState gameState) {
         GridBoard board = gameState.getGridBoard();
         // count number of pieces
-        int bPiece = 0, wPiece = 0;
+        int xPiece = 0, oPiece = 0;
         for (int x = 0; x < board.getWidth(); x++)
             for (int y = 0; y < board.getHeight(); y++) {
-                if (((Piece)board.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(0).getName())) bPiece++;
-                if (((Piece)board.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(1).getName())) wPiece++;
+                if (((Piece)board.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(0).getName())) xPiece++;
+                if (((Piece)board.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(1).getName())) oPiece++;
             }
 
 //        System.out.println("bPiece: " + bPiece + ", wPiece: " + wPiece + "\n");
 
         // black "X" player wins
-        if (wPiece == 0) {
-            registerWinner(gameState, 1);
+        if (oPiece == 0) {
+            registerWinner(gameState, 0);
             if (chfm != null)
-                chfm.WriteData(Integer.toString(bPiece) + "," + moves + '\n'); // number of pieces and moves
+                chfm.WriteData(Integer.toString(xPiece) + "," + moves + '\n'); // number of pieces and moves
 //            System.out.println("1," + bPiece + "," + moves);
             return;
         }
         // white "O" player wins
-        if (bPiece == 0) {
-            registerWinner(gameState, 0);
+        if (xPiece == 0) {
+            registerWinner(gameState, 1);
             if (chfm != null)
-                chfm.WriteData(Integer.toString(wPiece) + "," + moves + '\n');
+                chfm.WriteData(Integer.toString(oPiece) + "," + moves + '\n');
 //            System.out.println("0," + wPiece + "," + moves);
             return;
         }
         // check if draw
         if (actionList.isEmpty()) {
             int winner = 1 - gameState.getCurrentPlayer();
-//            System.out.println("Winner: " + winner);
+            System.out.println("Winner: " + winner);
             registerWinner(gameState, winner);
-            if (chfm != null) chfm.WriteData(Integer.toString(bPiece + wPiece) + "," + moves + '\n');
+            if (chfm != null) chfm.WriteData(Integer.toString(xPiece + oPiece) + "," + moves + '\n');
         }
     }
 

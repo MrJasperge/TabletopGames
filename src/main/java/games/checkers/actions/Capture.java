@@ -15,23 +15,13 @@ public class Capture extends AbstractAction {
     private final int playerID;
     private final Pair<Integer, Integer> fromCell;
     private final Pair<Integer, Integer> toCell;
-    private final ArrayList<Pair<Integer, Integer>> capturedCells;
 
-    public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, ArrayList<Pair<Integer, Integer>> capturedCells, boolean endOfTurn) {
+    public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell) {
         this.playerID = playerID;
         this.fromCell = fromCell;
         this.toCell = toCell;
-        this.capturedCells = capturedCells;
-        this.endOfTurn = endOfTurn;
     }
-    public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, Pair<Integer, Integer> capturedCell, boolean endOfTurn) {
-        this.playerID = playerID;
-        this.fromCell = fromCell;
-        this.toCell = toCell;
-        this.capturedCells = new ArrayList<>();
-        this.capturedCells.add(capturedCell);
-        this.endOfTurn = endOfTurn;
-    }
+
     @Override
     public boolean execute(AbstractGameState gs) {
         CheckersGameState chgs = (CheckersGameState) gs;
@@ -40,12 +30,38 @@ public class Capture extends AbstractAction {
             isKing = true;
         }
         chgs.getGridBoard().setElement(getFromX(), getFromY(), new Piece(CheckersConstants.emptyCell));
-        for (Pair<Integer, Integer> cell : capturedCells) {
-            chgs.getGridBoard().setElement(cell.a, cell.b, new Piece(CheckersConstants.emptyCell));
+
+        // Capture the piece in between
+        Pair<Integer, Integer> cell = new Pair<>((getFromX() + getToX()) / 2, (getFromY() + getToY()) / 2);
+        chgs.getGridBoard().setElement(cell.a, cell.b, new Piece(CheckersConstants.emptyCell));
+
+        // capture all pieces in between
+        ArrayList<Pair<Integer, Integer>> cellsBetween = getCellsBetween(fromCell, toCell);
+        for (Pair<Integer, Integer> c : cellsBetween) {
+            chgs.getGridBoard().setElement(c.a, c.b, new Piece(CheckersConstants.emptyCell));
         }
+
+
         chgs.getGridBoard().setElement(getToX(), getToY(), new Piece(CheckersConstants.playerMapping.get(playerID).toString(),isKing));
 
         return true;
+    }
+
+    // get cells between two cells
+    private ArrayList<Pair<Integer, Integer>> getCellsBetween(Pair<Integer, Integer> from, Pair<Integer, Integer> to) {
+        ArrayList<Pair<Integer, Integer>> cells = new ArrayList<>();
+        int dx = (to.a - from.a) / Math.max(1, Math.abs(to.a - from.a));
+        int dy = (to.b - from.b) / Math.max(1, Math.abs(to.b - from.b));
+        int x = from.a + dx;
+        int y = from.b + dy;
+
+        while (x != to.a || y != to.b) {
+            cells.add(new Pair<>(x, y));
+            x += dx;
+            y += dy;
+        }
+
+        return cells;
     }
 
     public int getFromX() {
@@ -71,11 +87,6 @@ public class Capture extends AbstractAction {
         return toCell;
     }
 
-    // TODO: return list of captured cells
-    public ArrayList<Pair<Integer, Integer>> getCapturedCells() {
-        return capturedCells;
-    }
-
     public int getCapturedX() {
         return 0;
     }
@@ -96,8 +107,7 @@ public class Capture extends AbstractAction {
         Capture capt = (Capture) obj;
         return playerID == capt.playerID
                 && Objects.equals(fromCell, capt.fromCell)
-                && Objects.equals(toCell, capt.toCell)
-                && Objects.equals(capturedCells, capt.capturedCells);
+                && Objects.equals(toCell, capt.toCell);
     }
 
     @Override
