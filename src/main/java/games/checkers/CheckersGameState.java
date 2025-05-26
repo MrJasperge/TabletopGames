@@ -14,6 +14,7 @@ import java.util.Objects;
 public class CheckersGameState extends AbstractGameState {
 
     GridBoard gridBoard;
+    private boolean skipTurn = false;
 
     public CheckersGameState(AbstractParameters gameParameters, int nPlayers) {
         super(gameParameters, nPlayers);
@@ -39,6 +40,7 @@ public class CheckersGameState extends AbstractGameState {
     protected AbstractGameState _copy(int playerId) {
         CheckersGameState copy = new CheckersGameState(gameParameters.copy(), getNPlayers());
         copy.gridBoard = gridBoard.copy();
+        copy.skipTurn = skipTurn;
 
         // Copy the grid board
         for (int x = 0; x < gridBoard.getWidth(); x++) {
@@ -53,6 +55,23 @@ public class CheckersGameState extends AbstractGameState {
 
         return copy;
     }
+
+    public int getNextPlayer() {
+        int nextPlayer = 1 - getCurrentPlayer();
+        if (skipTurn) {
+            nextPlayer = getCurrentPlayer();
+        }
+        return nextPlayer;
+    }
+
+    public boolean isSkipTurn() {
+        return skipTurn;
+    }
+
+    public void setSkipTurn(boolean skipTurn) {
+        this.skipTurn = skipTurn;
+    }
+
 
     @Override
     protected double _getHeuristicScore(int playerId) {

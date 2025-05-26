@@ -16,7 +16,6 @@ public class Capture extends AbstractAction {
     private final Pair<Integer, Integer> fromCell;
     private final Pair<Integer, Integer> toCell;
     private final ArrayList<Pair<Integer, Integer>> capturedCells;
-    private boolean endOfTurn;
 
     public Capture (int playerID, Pair<Integer, Integer> fromCell, Pair<Integer, Integer> toCell, ArrayList<Pair<Integer, Integer>> capturedCells, boolean endOfTurn) {
         this.playerID = playerID;
@@ -70,9 +69,6 @@ public class Capture extends AbstractAction {
     }
     public Pair<Integer, Integer> getToCell() {
         return toCell;
-    }
-    public void setEndOfTurn(boolean end) {
-        this.endOfTurn = end;
     }
 
     // TODO: return list of captured cells
