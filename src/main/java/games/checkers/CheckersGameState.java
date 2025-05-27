@@ -109,6 +109,19 @@ public class CheckersGameState extends AbstractGameState {
         return sb;
     }
 
+    public int getPieceCount(int playerId) {
+        int count = 0;
+        for (int x = 0; x < gridBoard.getWidth(); x++) {
+            for (int y = 0; y < gridBoard.getHeight(); y++) {
+                Piece piece = (Piece) gridBoard.getElement(x, y);
+                if (piece != null && piece.getName().equals(CheckersConstants.playerMapping.get(playerId).getName())) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     public void printToConsole() {
         System.out.println(gridBoard.toString());
     }

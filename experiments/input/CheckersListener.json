@@ -3,14 +3,13 @@
   "args": [
     {"enum": "evaluation.metrics.IDataLogger$ReportDestination", "value": "ToFile"},
     [
-      {"enum": "evaluation.metrics.IDataLogger$ReportType", "value": "Plot"}
+      {"enum": "evaluation.metrics.IDataLogger$ReportType", "value": "RawData"}
     ],
     [
-      {"class": "evaluation.metrics.GameMetrics$ActionsReduced"},
       {"class": "evaluation.metrics.GameMetrics$FinalScore"},
       {"class": "evaluation.metrics.GameMetrics$OrdinalPosition"},
       {"class": "evaluation.metrics.GameMetrics$PlayerType"},
-      {"class": "evaluation.metrics.GameMetrics$Winner"}
+      {"class": "games.checkers.stats.CheckersMetrics$CheckersActions"}
     ]
   ]
 }
