@@ -36,9 +36,6 @@ public class Move extends AbstractAction {
         chgs.getGridBoard().setElement(getFromX(), getFromY(), new Piece(CheckersConstants.emptyCell));
         chgs.getGridBoard().setElement(getToX(), getToY(),new Piece(CheckersConstants.playerMapping.get(playerID).toString(),isKing));
 
-        // TODO: hiernaar kijken!
-//        chgs.getTurnOrder().endPlayerTurn(chgs);
-
         return true;
     }
 
@@ -60,7 +57,7 @@ public class Move extends AbstractAction {
 
     @Override
     public AbstractAction copy() {
-        return this;
+        return new Move(playerID, new Pair<>(fromCell.a, fromCell.b), new Pair<>(toCell.a, toCell.b));
     }
 
     @Override

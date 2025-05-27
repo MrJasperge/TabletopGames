@@ -7,6 +7,7 @@ import core.components.BoardNode;
 import core.components.GridBoard;
 import games.checkers.actions.Capture;
 import games.checkers.actions.Move;
+import games.checkers.actions.Remove;
 import games.checkers.components.Piece;
 import utilities.Pair;
 
@@ -19,7 +20,6 @@ public class CheckersForwardModel extends StandardForwardModel {
     private CheckersFileManager chfm;
     private int moves = 0;
     public ArrayList<AbstractAction> prevActions;
-    private List<AbstractAction> actionList;
 
     @Override
     protected void _setup(AbstractGameState firstState) {
@@ -46,7 +46,6 @@ public class CheckersForwardModel extends StandardForwardModel {
                 if (y < 3) {    // black pieces
                     if ((x + y) % 2 == 1) {
                         Piece p = new Piece(CheckersConstants.playerMapping.get(0).getName());
-                        p.makeKing(); // make all pieces kings
                         chgs.gridBoard.setElement(x, y, p);
                     }
                 }
@@ -54,7 +53,6 @@ public class CheckersForwardModel extends StandardForwardModel {
                     if ((x + y) % 2 == 1) {
 //                        chgs.checkersBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
                         Piece p = new Piece(CheckersConstants.playerMapping.get(1).getName());
-                        p.makeKing(); // make all pieces kings
                         chgs.gridBoard.setElement(x, y, p);
                     }
                 }
@@ -67,14 +65,13 @@ public class CheckersForwardModel extends StandardForwardModel {
         CheckersGameState chgs = (CheckersGameState) gameState;
         // list of available actions
         ArrayList<AbstractAction> actions = new ArrayList<>();
-        actionList = new ArrayList<>(actions);
+        ArrayList<Pair<Integer, Integer>> pPieces = new ArrayList<>();
 
         int player = chgs.getCurrentPlayer();
         GridBoard board = chgs.getGridBoard();
 
         if (chgs.isNotTerminal()){
             // all pieces of the player
-            ArrayList<Pair<Integer, Integer>> pPieces = new ArrayList<>();
 
             // check if player has pieces
             for (int x = 0; x < board.getWidth(); x++)
@@ -139,14 +136,12 @@ public class CheckersForwardModel extends StandardForwardModel {
             System.out.println("");
         }
 
-        prevActions = actions;
-
-        actionList = new ArrayList<>(actions); // store actions for next turn
-
-        // if only one action, add it twice to allow for duplicate action
-        if (actionList.size() == 1) {
-            actions.add(actionList.get(0)); // add duplicate action to list
+        if (actions.isEmpty()) {
+            actions.add(new Remove(pPieces)); // no actions available, remove all pieces
+            if(debug)
+                System.out.println("No actions available, removing " + pPieces.size() + " pieces of player " + player);
         }
+        prevActions = actions; // store previous actions
         return actions;
     }
 
@@ -262,6 +257,7 @@ public class CheckersForwardModel extends StandardForwardModel {
         }
 
         CheckersGameState chgs = (CheckersGameState) currentState;
+        checkGameEnd(chgs);
 
         // print current player
         if (debug) {
@@ -274,7 +270,6 @@ public class CheckersForwardModel extends StandardForwardModel {
             chgs.setSkipTurn(!getCaptureActions(chgs, c.getToCell()).isEmpty());
         }
 
-        checkGameEnd(chgs);
         endPlayerTurn(chgs, chgs.getNextPlayer());
         chgs.setSkipTurn(false);
 
@@ -321,17 +316,18 @@ public class CheckersForwardModel extends StandardForwardModel {
         // white "O" player wins
         if (xPiece == 0) {
             registerWinner(gameState, 1);
-            if (chfm != null)
-                chfm.WriteData(Integer.toString(oPiece) + "," + moves + '\n');
+//            if (chfm != null)
+//                chfm.WriteData(Integer.toString(oPiece) + "," + moves + '\n');
 //            System.out.println("0," + wPiece + "," + moves);
             return;
         }
         // check if draw
-        if (actionList.isEmpty()) {
+        if (prevActions.isEmpty()) {
             int winner = 1 - gameState.getCurrentPlayer();
             System.out.println("Winner: " + winner);
             registerWinner(gameState, winner);
-            if (chfm != null) chfm.WriteData(Integer.toString(xPiece + oPiece) + "," + moves + '\n');
+            return;
+//            if (chfm != null) chfm.WriteData(Integer.toString(xPiece + oPiece) + "," + moves + '\n');
         }
     }
 
@@ -340,12 +336,13 @@ public class CheckersForwardModel extends StandardForwardModel {
         if (gameState.getCoreGameParameters().verbose) {
             System.out.println(Arrays.toString(gameState.getPlayerResults()));
         }
+
     }
 
     private void registerWinner(CheckersGameState gameState, int winningPlayer) {
         if (chfm != null) chfm.WriteData(winningPlayer+",");
-        gameState.setGameStatus(CoreConstants.GameResult.GAME_END);
         gameState.setPlayerResult(CoreConstants.GameResult.WIN_GAME, winningPlayer);
         gameState.setPlayerResult(CoreConstants.GameResult.LOSE_GAME, 1 - winningPlayer);
+        gameState.setGameStatus(CoreConstants.GameResult.GAME_END);
     }
 }
