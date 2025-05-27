@@ -1,0 +1,10 @@
+GameSeed,GameName,Round,Event,Tick,Turn,PlayerCount,GameID,PlayerName-0,Player-1,Player-0,PlayerName-1
+199125142,Checkers,0,GAME_OVER,92,91,2,2,MCTSPlayerConfig,1.0,-1.0,MCTSPlayerConfig
+199125142,Checkers,0,GAME_OVER,111,110,2,3,MCTSPlayerConfig,-1.0,1.0,OSLA
+199125142,Checkers,0,GAME_OVER,106,105,2,4,MCTSPlayerConfig,1.0,-1.0,RandomPlayerConfig
+199125142,Checkers,0,GAME_OVER,119,118,2,5,OSLA,1.0,-1.0,MCTSPlayerConfig
+199125142,Checkers,0,GAME_OVER,99,98,2,6,OSLA,1.0,-1.0,OSLA
+199125142,Checkers,0,GAME_OVER,82,81,2,7,OSLA,1.0,-1.0,RandomPlayerConfig
+199125142,Checkers,0,GAME_OVER,112,111,2,8,RandomPlayerConfig,1.0,-1.0,MCTSPlayerConfig
+199125142,Checkers,0,GAME_OVER,89,88,2,9,RandomPlayerConfig,1.0,-1.0,OSLA
+199125142,Checkers,0,GAME_OVER,90,89,2,10,RandomPlayerConfig,1.0,-1.0,RandomPlayerConfig
