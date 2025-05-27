@@ -1,8 +1,0 @@
-{
-  "game": "Checkers",
-  "nPlayers": 2,
-  "playerDirectory" : "F:\\Unity Projects\\TabletopGames\\experiments\\players",
-  "mode": "exhaustive",
-  "matchups": 10,
-  "destDir": "F:\\Unity Projects\\TabletopGames\\experiments\\results"
-}

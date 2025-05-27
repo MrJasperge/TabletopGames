@@ -13,7 +13,7 @@ public class CheckersGameParameters extends TunableParameters {
     public int gridWidth = 10;
     public int gridHeight = 10;
 
-    public String fileName = "experiments/test6.csv";
+    public String fileName = "F:\\Unity Projects\\TabletopGames\\experiments\\test6.csv";
 
     public CheckersGameParameters() {
         this(0);

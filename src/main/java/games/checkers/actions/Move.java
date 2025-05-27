@@ -76,6 +76,7 @@ public class Move extends AbstractAction {
 
     @Override
     public String getString(AbstractGameState gameState) {
-        return "Move";
+        return "Move from [" + getFromX() + "," + getFromY() + "] to ["
+                + getToX() + "," + getToY() + "]";
     }
 }
