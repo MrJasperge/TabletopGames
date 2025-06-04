@@ -26,34 +26,81 @@ public class CheckersForwardModel extends StandardForwardModel {
         CheckersGameParameters chgp = (CheckersGameParameters) firstState.getGameParameters();
         chfm = new CheckersFileManager();
 //        System.out.println("CheckersForwardModel: CreateFile");
-        chfm.CreateFile(chgp.fileName);
-        gridWidth = chgp.gridWidth;
-        gridHeight = chgp.gridHeight;
-        prevActions = new ArrayList<>();
+
         CheckersGameState chgs = (CheckersGameState) firstState;
-        chgs.gridBoard = new GridBoard(gridWidth, gridHeight);
-        // Initialize empty cells first
-        for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
-            for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
-                chgs.gridBoard.setElement(x, y, new Piece(CheckersConstants.emptyCell));
-            }
+
+
+
+        // read board setup from file
+        if (chgp.inputFileName == null || chgp.inputFileName.isEmpty()) {
+            chgp.inputFileName = "checkers.csv"; // default file name TODO
         }
+        if (debug) System.out.println("CheckersForwardModel: inputFileName = " + chgp.inputFileName);
 
-//        System.out.println("gridboard w+h: " + chgs.getGridBoard().getWidth() + "+" + chgs.getGridBoard().getHeight());
+        if(chfm.ReadFile(chgp.inputFileName)) {
 
-        for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
-            for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
-                if (y < 3) {    // black pieces
-                    if ((x + y) % 2 == 1) {
-                        Piece p = new Piece(CheckersConstants.playerMapping.get(0).getName());
-                        chgs.gridBoard.setElement(x, y, p);
+            // read 2d array from file TODO
+            String[][] boardData = chfm.getData();
+            gridWidth = boardData[0].length;
+            gridHeight = boardData.length;
+            chgs.gridBoard = new GridBoard(gridWidth, gridHeight);
+
+            for (int x = 0; x < gridWidth; x++) {
+                for (int y = 0; y < gridHeight; y++) {
+                    String pieceName = boardData[y][x];
+                    if (!pieceName.equals(CheckersConstants.emptyCell)) {
+                        if (!pieceName.equals(CheckersConstants.playerMapping.get(0).getName()) &&
+                                !pieceName.equals(CheckersConstants.playerMapping.get(1).getName())) {
+                            System.out.println("CheckersForwardModel: Invalid piece name: " + pieceName);
+                            // set empty cell if invalid piece name
+                            chgs.gridBoard.setElement(x, y, new Piece(CheckersConstants.emptyCell));
+                        }
+                        Piece piece = new Piece(pieceName);
+                        chgs.gridBoard.setElement(x, y, piece);
+                    } else {
+                        chgs.gridBoard.setElement(x, y, new Piece(CheckersConstants.emptyCell));
                     }
                 }
-                if (y > (gridHeight - 4)) {    // white pieces
-                    if ((x + y) % 2 == 1) {
-//                        chgs.checkersBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
-                        Piece p = new Piece(CheckersConstants.playerMapping.get(1).getName());
-                        chgs.gridBoard.setElement(x, y, p);
+            }
+            if (!debug) {
+                System.out.println("CheckersForwardModel: Read board from file: " + chgp.inputFileName);
+                System.out.println("Grid width: " + gridWidth + ", height: " + gridHeight);
+                System.out.println("Grid board: \n" + chgs.gridBoard.toString());
+            }
+
+        } else {
+
+
+            chfm.CreateFile(chgp.fileName);
+            gridWidth = chgp.gridWidth;
+            gridHeight = chgp.gridHeight;
+            prevActions = new ArrayList<>();
+
+            chgs.gridBoard = new GridBoard(gridWidth, gridHeight);
+
+            // Initialize empty cells first
+            for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
+                for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
+                    chgs.gridBoard.setElement(x, y, new Piece(CheckersConstants.emptyCell));
+                }
+            }
+
+    //        System.out.println("gridboard w+h: " + chgs.getGridBoard().getWidth() + "+" + chgs.getGridBoard().getHeight());
+
+            for (int x = 0; x < chgs.getGridBoard().getWidth(); x++) {
+                for (int y = 0; y < chgs.getGridBoard().getHeight(); y++) {
+                    if (y < 3) {    // black pieces
+                        if ((x + y) % 2 == 1) {
+                            Piece p = new Piece(CheckersConstants.playerMapping.get(0).getName());
+                            chgs.gridBoard.setElement(x, y, p);
+                        }
+                    }
+                    if (y > (gridHeight - 4)) {    // white pieces
+                        if ((x + y) % 2 == 1) {
+    //                        chgs.checkersBoard.setElement(x, y, CheckersConstants.playerMapping.get(1));
+                            Piece p = new Piece(CheckersConstants.playerMapping.get(1).getName());
+                            chgs.gridBoard.setElement(x, y, p);
+                        }
                     }
                 }
             }
@@ -161,7 +208,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                     BoardNode piece = board.getElement(x, y);
 
                     // check if empty cell
-                    if (!piece.getComponentName().equals(CheckersConstants.emptyCell)) {
+                    if (!piece.getComponentName().equals(CheckersConstants.emptyCell)) { // TODO check of dit goed gaat met ComponentName ipv Name
                         break;
                     }
 
@@ -308,8 +355,8 @@ public class CheckersForwardModel extends StandardForwardModel {
         // black "X" player wins
         if (oPiece == 0) {
             registerWinner(gameState, 0);
-            if (chfm != null)
-                chfm.WriteData(Integer.toString(xPiece) + "," + moves + '\n'); // number of pieces and moves
+//            if (chfm != null)
+//                chfm.WriteData(Integer.toString(xPiece) + "," + moves + '\n'); // number of pieces and moves
 //            System.out.println("1," + bPiece + "," + moves);
             return;
         }
@@ -340,7 +387,7 @@ public class CheckersForwardModel extends StandardForwardModel {
     }
 
     private void registerWinner(CheckersGameState gameState, int winningPlayer) {
-        if (chfm != null) chfm.WriteData(winningPlayer+",");
+//        if (chfm != null) chfm.WriteData(winningPlayer+",");
         gameState.setPlayerResult(CoreConstants.GameResult.WIN_GAME, winningPlayer);
         gameState.setPlayerResult(CoreConstants.GameResult.LOSE_GAME, 1 - winningPlayer);
         gameState.setGameStatus(CoreConstants.GameResult.GAME_END);

@@ -1,8 +1,11 @@
 package games.checkers;
 
+import com.formdev.flatlaf.util.StringUtils;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class CheckersFileManager {
 
@@ -10,6 +13,20 @@ public class CheckersFileManager {
 
     public CheckersFileManager() {
         super();
+    }
+
+    public boolean FileExists(String fileName) {
+        fObj = new File(fileName);
+        return fObj.exists();
+    }
+
+    public boolean ReadFile(String inputFileName) {
+        fObj = new File(inputFileName);
+        if (!fObj.exists()) {
+            System.out.println("File does not exist: " + inputFileName);
+            return false;
+        }
+        return true;
     }
 
     public void CreateFile(String fileName) {
@@ -71,5 +88,48 @@ public class CheckersFileManager {
         }
 
         return true;
+    }
+
+    public String[][] getData() {
+        if (fObj == null || !fObj.exists()) {
+            System.out.println("File does not exist.");
+            return null;
+        }
+        String[][] tempData = new String[100][100]; // Assuming a max of 100 lines and 100 characters per line
+
+        StringBuilder data = new StringBuilder();
+        try (Scanner in = new Scanner(fObj)) {
+            in.useDelimiter("\n");
+
+            String line = "";
+            int lineCount = 0;
+
+            int lineWidth = 0;
+
+            while (in.hasNextLine()) {
+                line = in.nextLine();
+                lineWidth = Math.max(lineWidth, line.length());
+                
+                for (int i = 0; i < line.length(); i++) {
+                    tempData[lineCount][i] = String.valueOf(line.charAt(i));
+                }
+                lineCount++;
+            }
+            String[][] dataArray = new String[lineCount][lineWidth];
+            for (int i = 0; i < lineCount; i++) {
+                for (int j = 0; j < lineWidth; j++) {
+                    if (j < tempData[i].length && tempData[i][j] != null) {
+                        dataArray[i][j] = tempData[i][j];
+                    } else {
+                        dataArray[i][j] = ""; // Fill empty spaces with empty strings
+                    }
+                }
+            }
+            return dataArray;
+        } catch (IOException e) {
+            System.out.println("getData(): Error reading file");
+        }
+
+        return null;
     }
 }
