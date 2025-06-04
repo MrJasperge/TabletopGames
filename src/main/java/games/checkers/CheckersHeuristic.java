@@ -5,6 +5,7 @@ import core.AbstractParameters;
 import core.CoreConstants;
 import core.interfaces.IStateHeuristic;
 import evaluation.optimisation.TunableParameters;
+import games.checkers.components.Piece;
 import utilities.Utils;
 
 public class CheckersHeuristic extends TunableParameters implements IStateHeuristic {
@@ -26,8 +27,8 @@ public class CheckersHeuristic extends TunableParameters implements IStateHeuris
         int nPlayer = 0, nOpponent = 0;
         for (int x = 0; x < chgs.gridBoard.getWidth(); x++)
             for (int y = 0; y < chgs.gridBoard.getHeight(); y++) {
-                if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(0))) nPlayer++;
-                if (chgs.gridBoard.getElement(x, y).equals(CheckersConstants.playerMapping.get(1))) nOpponent++;
+                if (((Piece)chgs.gridBoard.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(playerId).getName())) nPlayer++;
+                if (((Piece)chgs.gridBoard.getElement(x, y)).getName().equals(CheckersConstants.playerMapping.get(1-playerId).getName())) nOpponent++;
             }
 
         if (nOpponent == 0 && nPlayer == 0) return 0;   // theoretically impossible to have 0 pieces
