@@ -183,6 +183,9 @@ public class CheckersForwardModel extends StandardForwardModel {
                 System.out.println("No actions available, removing " + pPieces.size() + " pieces of player " + player);
         }
         prevActions = actions; // store previous actions
+
+        boolean HumanGUI = true;
+        if (HumanGUI && actions.size() == 1) actions.add(actions.get(0)); // add a dummy action to avoid issues with single action
         return actions;
     }
 
