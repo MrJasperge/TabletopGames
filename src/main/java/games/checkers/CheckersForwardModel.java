@@ -1,6 +1,5 @@
 package games.checkers;
 
-import com.google.apps.card.v1.Grid;
 import core.*;
 import core.actions.AbstractAction;
 import core.components.BoardNode;
@@ -30,14 +29,9 @@ public class CheckersForwardModel extends StandardForwardModel {
         CheckersGameState chgs = (CheckersGameState) firstState;
 
 
-
-        // read board setup from file
-        if (chgp.inputFileName == null || chgp.inputFileName.isEmpty()) {
-            chgp.inputFileName = "checkers.csv"; // default file name TODO
-        }
         if (debug) System.out.println("CheckersForwardModel: inputFileName = " + chgp.inputFileName);
 
-        if(chfm.ReadFile(chgp.inputFileName)) {
+        if(chfm.ReadFile(chgp.getInputPath())) {
 
             // read 2d array from file TODO
             String[][] boardData = chfm.getData();
@@ -69,9 +63,9 @@ public class CheckersForwardModel extends StandardForwardModel {
             }
 
         } else {
+            System.out.println("CheckersForwardModel: File not found: " + chgp.getInputPath());
 
-
-            chfm.CreateFile(chgp.fileName);
+//            chfm.CreateFile(chgp.getInputPath());
             gridWidth = chgp.gridWidth;
             gridHeight = chgp.gridHeight;
             prevActions = new ArrayList<>();

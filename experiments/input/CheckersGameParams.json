@@ -1,0 +1,4 @@
+{
+  "class": "games.checkers.CheckersGameParameters",
+  "inputFileName": "classic8x8.txt"
+}

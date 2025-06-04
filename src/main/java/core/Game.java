@@ -893,7 +893,7 @@ public class Game {
         }
 
         /* Game parameter configuration. Set to null to ignore and use default parameters */
-        String gameParams = null;
+        String gameParams = "F:\\Unity Projects\\TabletopGames\\experiments\\input\\CheckersGameParams.json";
 
         /* Run! */
 //        for (int i = 0; i < 10; i++) {

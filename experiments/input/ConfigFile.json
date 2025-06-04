@@ -5,5 +5,6 @@
   "mode": "exhaustive",
   "matchups": 2,
   "destDir": "F:\\Unity Projects\\TabletopGames\\experiments\\results",
-  "listener": "F:\\Unity Projects\\TabletopGames\\experiments\\input\\CheckersListener.json"
+  "listener": "F:\\Unity Projects\\TabletopGames\\experiments\\input\\CheckersListener.json",
+  "gameParams": "F:\\Unity Projects\\TabletopGames\\experiments\\input\\CheckersGameParams.json"
 }
