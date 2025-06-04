@@ -36,15 +36,15 @@ public class CheckersMetrics implements IMetricsCollection {
         public Map<String, Class<?>> getColumns(int nPlayersPerGame, Set<String> playerNames) {
             this.playerNames = playerNames;
             Map<String, Class<?>> columns = new HashMap<>();
-            columns.put("Player", String.class);
-            columns.put("PlayerType", String.class);
-            columns.put("Action", String.class);
+            columns.put("Player", Integer.class);
+//            columns.put("Action", String.class);
             columns.put("ActionClass", String.class);
             columns.put("ActionDescription", String.class);
             columns.put("ActionSize", Integer.class);
 
             for (int i = 0; i < nPlayersPerGame; i++) {
                 columns.put("PiecesLeft-" + i, Integer.class);
+                columns.put("PlayerType-" + i, String.class);
             }
             return columns;
         }
@@ -61,12 +61,13 @@ public class CheckersMetrics implements IMetricsCollection {
             int otherPlayerPiecesLeft = chgs.getPieceCount(1 - e.playerID);
 
             records.put("Player", e.playerID);
-            records.put("PlayerType", currentPlayer.toString());
-            records.put("Action", e.action == null ? null : e.action.toString());
+//            records.put("Action", e.action == null ? null : e.action.toString());
             records.put("ActionClass", e.action.getClass().getSimpleName());
             records.put("ActionDescription", e.action == null ? null : e.action.getString(e.state));
             records.put("ActionSize", actionSize);
 
+            records.put("PlayerType-" + e.playerID, currentPlayer.toString());
+            records.put("PlayerType-" + (1 - e.playerID), g.getPlayers().get(1 - e.playerID).toString());
             records.put("PiecesLeft-" + e.playerID, e.action == null ? null : currentPlayerPiecesLeft);
             records.put("PiecesLeft-" + (1 - e.playerID), e.action == null ? null : otherPlayerPiecesLeft);
 

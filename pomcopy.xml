@@ -178,7 +178,7 @@
                 <version>2.22.2</version>
                 <configuration>
                     <excludes>
-            <!---            <exclude>test.players.mcts.MultiTreeMCTSTests</exclude> -->
+                        <!---            <exclude>test.players.mcts.MultiTreeMCTSTests</exclude> -->
                     </excludes>
                 </configuration>
             </plugin>
@@ -202,25 +202,25 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.3.0</version>
                 <executions>
-<!--                    <execution>-->
-<!--                        <id>frontend</id>-->
-<!--                        <configuration>-->
-<!--                            <descriptorRefs>-->
-<!--                                <descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--                            </descriptorRefs>-->
-<!--                            <archive>-->
-<!--                                <manifest>-->
-<!--                                    <mainClass>gui.Frontend</mainClass>-->
-<!--                                </manifest>-->
-<!--                            </archive>-->
-<!--                            <finalName>FrontEnd</finalName>-->
-<!--                            <appendAssemblyId>false</appendAssemblyId>-->
-<!--                        </configuration>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
+                    <execution>
+                        <id>frontend</id>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>gui.Frontend</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>FrontEnd</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>RunGames</id>
                         <configuration>
@@ -240,63 +240,63 @@
                             <goal>single</goal>
                         </goals>
                     </execution>
-<!--                    <execution>-->
-<!--                        <id>ParameterSearch</id>-->
-<!--                        <configuration>-->
-<!--                            <descriptorRefs>-->
-<!--                                <descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--                            </descriptorRefs>-->
-<!--                            <archive>-->
-<!--                                <manifest>-->
-<!--                                    <mainClass>evaluation.optimisation.ParameterSearch</mainClass>-->
-<!--                                </manifest>-->
-<!--                            </archive>-->
-<!--                            <finalName>ParameterSearch</finalName>-->
-<!--                            <appendAssemblyId>false</appendAssemblyId>-->
-<!--                        </configuration>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                    <execution>-->
-<!--                        <id>MetaNTBEA</id>-->
-<!--                        <configuration>-->
-<!--                            <descriptorRefs>-->
-<!--                                <descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--                            </descriptorRefs>-->
-<!--                            <archive>-->
-<!--                                <manifest>-->
-<!--                                    <mainClass> evaluation.optimisation.ntbea.functions.MetaNTBEA</mainClass>-->
-<!--                                </manifest>-->
-<!--                            </archive>-->
-<!--                            <finalName>MetaNTBEA</finalName>-->
-<!--                            <appendAssemblyId>false</appendAssemblyId>-->
-<!--                        </configuration>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                    <execution>-->
-<!--                        <id>SkillLadder</id>-->
-<!--                        <configuration>-->
-<!--                            <descriptorRefs>-->
-<!--                                <descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--                            </descriptorRefs>-->
-<!--                            <archive>-->
-<!--                                <manifest>-->
-<!--                                    <mainClass>evaluation.tournaments.SkillLadder</mainClass>-->
-<!--                                </manifest>-->
-<!--                            </archive>-->
-<!--                            <finalName>SkillLadder</finalName>-->
-<!--                            <appendAssemblyId>false</appendAssemblyId>-->
-<!--                        </configuration>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>single</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
+                    <execution>
+                        <id>ParameterSearch</id>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>evaluation.optimisation.ParameterSearch</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>ParameterSearch</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>MetaNTBEA</id>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass> evaluation.optimisation.ntbea.functions.MetaNTBEA</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>MetaNTBEA</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>SkillLadder</id>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>evaluation.tournaments.SkillLadder</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>SkillLadder</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

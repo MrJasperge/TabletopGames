@@ -117,6 +117,6 @@ public class Capture extends AbstractAction {
 
     @Override
     public String getString(AbstractGameState gameState) {
-        return "Capture";
+        return "Capture from [" + getFromX() + "," + getFromY() + "] to [" + getToX() + "," + getToY() + "]";
     }
 }
