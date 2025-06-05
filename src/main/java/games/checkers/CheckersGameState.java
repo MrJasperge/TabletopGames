@@ -128,10 +128,12 @@ public class CheckersGameState extends AbstractGameState {
     public ArrayList<Move> getMoveActions(Pair<Integer, Integer> p, int gridWidth, int gridHeight) {
         ArrayList<Move> moves = new ArrayList<>();
 
-        int player = getCurrentPlayer();
         GridBoard board = getGridBoard();
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
+        Piece startPieceObj = (Piece) board.getElement(p.a, p.b);
+        int player = startPieceObj.getPlayerID();
         boolean isKing = ((Piece) board.getElement(p.a, p.b)).isKing();
+
 
         for (int i = -1; i <= 1; i+=2) {
             for (int j = -1; j <= 1; j += 2) {

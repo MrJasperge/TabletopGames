@@ -4,6 +4,7 @@ import core.CoreConstants;
 import core.components.BoardNode;
 import core.components.Token;
 import dev.langchain4j.service.V;
+import games.checkers.CheckersConstants;
 import utilities.Pair;
 import utilities.Vector2D;
 
@@ -81,5 +82,15 @@ public class Piece extends BoardNode {
 
     public void setPiecePosition(Vector2D position) {
         this.position = position;
+    }
+
+    public int getPlayerID() {
+        if( CheckersConstants.playerMapping.get(0).getName().equals(name) ) {
+            return 0;
+        } else if (CheckersConstants.playerMapping.get(1).getName().equals(name)) {
+            return 1;
+        } else {
+            return -1; // Undefined player ID
+        }
     }
 }
