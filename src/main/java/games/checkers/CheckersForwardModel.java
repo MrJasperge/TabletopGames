@@ -33,7 +33,7 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         if(chfm.ReadFile(chgp.getInputPath())) {
 
-            // read 2d array from file TODO
+            // read 2d array from file
             String[][] boardData = chfm.getData();
             gridWidth = boardData[0].length;
             gridHeight = boardData.length;
@@ -143,15 +143,14 @@ public class CheckersForwardModel extends StandardForwardModel {
 
             // calculate available captures
             for (Pair<Integer, Integer> p : pPieces) {
-                ArrayList<Capture> captures = getCaptureActions(chgs, p);
+                ArrayList<Capture> captures = chgs.getCaptureActions(p, gridWidth, gridHeight);
                 actions.addAll(captures);
             }
 
-            // if no captures
+            // if no captures, calculate available moves
             if (actions.isEmpty()) {
-                // calculate available moves
                 for (Pair<Integer, Integer> p : pPieces) {
-                    ArrayList<Move> moves = getMoveActions(chgs, p);
+                    ArrayList<Move> moves = chgs.getMoveActions(p, gridWidth, gridHeight);
                     actions.addAll(moves);
                 }
             }
@@ -177,121 +176,17 @@ public class CheckersForwardModel extends StandardForwardModel {
             System.out.println("");
         }
 
+        prevActions = actions; // store previous actions
+
         if (actions.isEmpty()) {
             actions.add(new Remove(pPieces)); // no actions available, remove all pieces
             if(debug)
                 System.out.println("No actions available, removing " + pPieces.size() + " pieces of player " + player);
         }
-        prevActions = actions; // store previous actions
 
-        boolean HumanGUI = true;
+        boolean HumanGUI = true; // local variable, no access to players via gamestate
         if (HumanGUI && actions.size() == 1) actions.add(actions.get(0)); // add a dummy action to avoid issues with single action
         return actions;
-    }
-
-    private ArrayList<Move> getMoveActions(CheckersGameState gs, Pair<Integer, Integer> p) {
-        ArrayList<Move> moves = new ArrayList<>();
-
-        int player = gs.getCurrentPlayer();
-        GridBoard board = gs.getGridBoard();
-        Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
-        boolean isKing = ((Piece) board.getElement(p.a, p.b)).isKing();
-
-        for (int i = -1; i <= 1; i+=2) {
-            for (int j = -1; j <= 1; j += 2) {
-                int dist = 1;
-                while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
-                    int x = p.a+i*dist, y = p.b+j*dist;
-                    BoardNode piece = board.getElement(x, y);
-
-                    // check if empty cell
-                    if (!piece.getComponentName().equals(CheckersConstants.emptyCell)) { // TODO check of dit goed gaat met ComponentName ipv Name
-                        break;
-                    }
-
-                    // only king can go backwards
-                    if ((p.b < y == (player == 1)) && !isKing)  break;
-
-                    // only one step for regular piece
-                    if (dist == 1 || isKing) {
-                        moves.add(new Move(player, startPiece, new Pair<>(p.a+i*dist, p.b+j*dist)));
-                    }
-                    dist++;
-                }
-            }
-        }
-        return moves;
-    }
-
-    private ArrayList<Capture> getCaptureActions (CheckersGameState gs, Pair<Integer, Integer> p) {
-        ArrayList<Capture> captures = new ArrayList<>();
-
-        int player = gs.getCurrentPlayer();
-        GridBoard board = gs.getGridBoard();
-
-        Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
-        Piece startPieceObj = (Piece) board.getElement(p.a, p.b);
-
-//        if (debug)
-//            System.out.println(": "+p.a +","+p.b);
-
-        // 4 directions
-        for (int i = -1; i <= 1; i+=2) { // horizontal
-            for (int j = -1; j<=1; j+=2) { // vertical
-                int dist = 1; // distance from start piece
-                boolean markCaptured = false;
-                boolean markAction = false;
-                Pair<Integer, Integer> capturedPiece = new Pair<>(0,0);
-
-                // check if inside board area
-                while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
-                    Piece piece = (Piece)board.getElement(p.a+i*dist, p.b+j*dist);
-
-//                    if (debug)
-//                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
-
-                    // check if own piece
-                    if (piece.getName().equals(CheckersConstants.playerMapping.get(player).getName())) {
-                        // stop checking this direction
-                        if (debug)   System.out.print("p");
-                        break;
-                    }
-                    // check if opponent piece
-                    if (piece.getName().equals(CheckersConstants.playerMapping.get(1 - player).getName())) {
-                        if (markCaptured) {
-                            // if already marked a piece, stop checking this direction. 2 opponent pieces in a row
-                            if (debug)  System.out.print("c");
-                            break;
-                        }
-//                        if (debug)  System.out.print("O");
-                        markCaptured = true;
-                    }
-
-                    // check if empty square
-                    if (piece.getName().equals(CheckersConstants.emptyCell)) {
-                        // if no king
-                        if (!startPieceObj.isKing() && !markCaptured) {
-                            break;
-                        }
-                        // capture action possible
-                        if (markCaptured && (!markAction || startPieceObj.isKing())) {
-                            if (debug)  System.out.print("C");
-                            Pair<Integer, Integer> endPiece = new Pair<>(p.a + i * dist, p.b + j * dist);
-                            Capture c = new Capture(player, startPiece, endPiece);
-                            captures.add(c);
-                            markAction = true;
-                        }
-                    }
-                    dist++;
-                }
-            }
-        }
-
-//        if (debug)
-//            System.out.println();
-
-//        if (debug)  System.out.println(captures.size() + " [getCaptureActions] captures");
-        return captures;
     }
 
     @Override
@@ -311,7 +206,7 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         // check if turn should be skipped
         if (action instanceof Capture c) {
-            chgs.setSkipTurn(!getCaptureActions(chgs, c.getToCell()).isEmpty());
+            chgs.setSkipTurn(!chgs.getCaptureActions(c.getToCell(), gridWidth, gridHeight).isEmpty());
         }
 
         endPlayerTurn(chgs, chgs.getNextPlayer());
