@@ -56,14 +56,15 @@ public class CheckersForwardModel extends StandardForwardModel {
                     }
                 }
             }
-            if (!debug) {
+            if (debug) {
                 System.out.println("CheckersForwardModel: Read board from file: " + chgp.inputFileName);
                 System.out.println("Grid width: " + gridWidth + ", height: " + gridHeight);
                 System.out.println("Grid board: \n" + chgs.gridBoard.toString());
             }
 
         } else {
-            System.out.println("CheckersForwardModel: File not found: " + chgp.getInputPath());
+            if (debug)
+                System.out.println("CheckersForwardModel: File not found: " + chgp.getInputPath());
 
 //            chfm.CreateFile(chgp.getInputPath());
             gridWidth = chgp.gridWidth;
@@ -184,7 +185,7 @@ public class CheckersForwardModel extends StandardForwardModel {
                 System.out.println("No actions available, removing " + pPieces.size() + " pieces of player " + player);
         }
 
-        boolean HumanGUI = true; // local variable, no access to players via gamestate
+        boolean HumanGUI = false; // local variable, no access to players via gamestate
         if (HumanGUI && actions.size() == 1) actions.add(actions.get(0)); // add a dummy action to avoid issues with single action
         return actions;
     }

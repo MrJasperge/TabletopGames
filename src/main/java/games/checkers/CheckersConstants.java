@@ -12,11 +12,5 @@ public class CheckersConstants {
     }};
 
     public static final String emptyCell = ".";
-
-//    public enum PieceSetups{
-//        Setup1 {
-//            @Override
-//            protected ArrayList<Piece> get
-//        }
-//    }
+    public static final boolean DEBUG = false;
 }
