@@ -144,14 +144,14 @@ public class CheckersForwardModel extends StandardForwardModel {
 
             // calculate available captures
             for (Pair<Integer, Integer> p : pPieces) {
-                ArrayList<Capture> captures = chgs.getCaptureActions(p, gridWidth, gridHeight);
+                ArrayList<Capture> captures = chgs.getCaptureActions(p);
                 actions.addAll(captures);
             }
 
             // if no captures, calculate available moves
             if (actions.isEmpty()) {
                 for (Pair<Integer, Integer> p : pPieces) {
-                    ArrayList<Move> moves = chgs.getMoveActions(p, gridWidth, gridHeight);
+                    ArrayList<Move> moves = chgs.getMoveActions(p);
                     actions.addAll(moves);
                 }
             }
@@ -207,7 +207,7 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         // check if turn should be skipped
         if (action instanceof Capture c) {
-            chgs.setSkipTurn(!chgs.getCaptureActions(c.getToCell(), gridWidth, gridHeight).isEmpty());
+            chgs.setSkipTurn(!chgs.getCaptureActions(c.getToCell()).isEmpty());
         }
 
         endPlayerTurn(chgs, chgs.getNextPlayer());

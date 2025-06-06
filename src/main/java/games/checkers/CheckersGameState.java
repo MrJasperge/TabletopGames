@@ -125,10 +125,13 @@ public class CheckersGameState extends AbstractGameState {
         return count;
     }
 
-    public ArrayList<Move> getMoveActions(Pair<Integer, Integer> p, int gridWidth, int gridHeight) {
+    public ArrayList<Move> getMoveActions(Pair<Integer, Integer> p) {
         ArrayList<Move> moves = new ArrayList<>();
 
         GridBoard board = getGridBoard();
+        int gridWidth = board.getWidth();
+        int gridHeight = board.getHeight();
+
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
         Piece startPieceObj = (Piece) board.getElement(p.a, p.b);
         int player = startPieceObj.getPlayerID();
@@ -161,14 +164,16 @@ public class CheckersGameState extends AbstractGameState {
         return moves;
     }
 
-    public ArrayList<Capture> getCaptureActions (Pair<Integer, Integer> p, int gridWidth, int gridHeight) {
+    public ArrayList<Capture> getCaptureActions (Pair<Integer, Integer> p) {
         ArrayList<Capture> captures = new ArrayList<>();
 
-        int player = getCurrentPlayer();
         GridBoard board = getGridBoard();
+        int gridWidth = board.getWidth();
+        int gridHeight = board.getHeight();
 
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
         Piece startPieceObj = (Piece) board.getElement(p.a, p.b);
+        int player = startPieceObj.getPlayerID();
 
 //        if (debug)
 //            System.out.println(": "+p.a +","+p.b);
