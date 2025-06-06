@@ -2,6 +2,8 @@ import csv
 import matplotlib.pyplot as plt
 import sys
 import os
+import numpy as np
+import math
 
 def read_csv(file_path):
     data = []
@@ -99,6 +101,8 @@ def get_all_games_data(data):
 
     player_combinations = set()
 
+    matchup_data = {}
+
     for row in data[1:]:
         player_0 = row[headers.index('PlayerType-0')]
         player_1 = row[headers.index('PlayerType-1')]
@@ -148,31 +152,61 @@ def get_all_games_data(data):
             print(f"No game data found for player combination: {player_0} vs {player_1}")
             continue
         else:
-            print(f"game_turns for {player_0} vs {player_1}: {game_turns}")
+            print(f"game_turns for {player_0} vs {player_1}: {len(game_turns)} games found")
         
-    return player_combinations, game_turns
+        matchup_data[player_pair] = game_turns
 
-def plot_mean_games(player_combinations, game_turns, output_path):
+    return matchup_data
+
+def plot_mean_games(matchup_data, resolution, output_path):
     # Calculate the mean for each turn
-    for player_pair in player_combinations:
+    for player_pair, game_turns in matchup_data.items():
         player_0, player_1 = player_pair
 
-        max_turns = max(len(turns['y0']) for turns in game_turns.values())
-        mean_y0 = [0] * max_turns
-        mean_y1 = [0] * max_turns
-        game_count = len(game_turns)
-        for turns in game_turns.values():
-            for i in range(max_turns):
-                if i < len(turns['y0']):
-                    mean_y0[i] += turns['y0'][i]
-                if i < len(turns['y1']):
-                    mean_y1[i] += turns['y1'][i]
+        new_y0s = []
+        new_y1s = []
+
+        # first normalize the turns to game percentage
+        for game_id, turns in game_turns.items():
+            stepSize = (len(turns['y0']) - 1) / (resolution - 1)
+            new_y0 = []
+            new_y1 = []
+
+            for i in range(resolution - 1):
+                index = i * stepSize
+                low = math.floor(index)
+                high = low + 1
+                fraction = max(0, index - low)
+
+                # Interpolate the value
+                new_y0.append(turns['y0'][low] * (1 - fraction) + turns['y0'][high] * fraction)
+                new_y1.append(turns['y1'][low] * (1 - fraction) + turns['y1'][high] * fraction)
+
+            new_y0.append(turns['y0'][-1])  # Append the last value
+            new_y0s.append(new_y0)
+            new_y1.append(turns['y1'][-1])  # Append the last value
+            new_y1s.append(new_y1)
 
         # Now we have the mean for each turn, we can plot it
         plt.figure(figsize=(10, 6))
-        plt.plot(mean_y0, label=f"{player_0} (Mean)", color='blue')
-        plt.plot(mean_y1, label=f"{player_1} (Mean)", color='orange')
-        plt.xlabel("Turn")
+
+        # Uncomment the following lines to plot all individual games
+        # for new_y0 in new_y0s:
+        #     plt.plot(new_y0, color='blue', alpha=0.1)
+        # for new_y1 in new_y1s:
+        #     plt.plot(new_y1, color='orange', alpha=0.1)
+        
+        # Calculate the mean for each turn
+        mean_y0 = np.mean(new_y0s, axis=0)
+        mean_y1 = np.mean(new_y1s, axis=0)
+        plt.plot(mean_y0, label=f'Mean Interpolated {player_0}', color='blue', linewidth=2)
+        plt.plot(mean_y1, label=f'Mean Interpolated {player_1}', color='orange', linewidth=2)
+        # plot the standard deviation as a shaded area
+        std_y0 = np.std(new_y0s, axis=0)
+        std_y1 = np.std(new_y1s, axis=0)
+        plt.fill_between(range(len(mean_y0)), mean_y0 - std_y0, mean_y0 + std_y0, color='blue', alpha=0.1)
+        plt.fill_between(range(len(mean_y1)), mean_y1 - std_y1, mean_y1 + std_y1, color='orange', alpha=0.1)
+        plt.xlabel("Game Percentage")
         plt.ylabel("Pieces Left")
         plt.title(f"Mean Pieces Left: {player_0} vs {player_1}")
         plt.legend()
@@ -180,8 +214,8 @@ def plot_mean_games(player_combinations, game_turns, output_path):
         plt.savefig(f"{output_path}/mean_{player_0}_vs_{player_1}.png")
         plt.close()
 
-def plot_all_games(player_combinations, game_turns, output_path):
-    for player_pair in player_combinations:
+def plot_all_games(matchup_data, output_path):
+    for player_pair, game_turns in matchup_data.items():
         player_0, player_1 = player_pair
 
         plt.figure(figsize=(10, 6))
@@ -202,6 +236,7 @@ def plot_all_games(player_combinations, game_turns, output_path):
 def main():
     input_path = './results/CheckersActions.csv'  # Default input path
     output_path = './output/plots/'  # Default output path
+    resolution = 101  # Default resolution for interpolation
     # Check if the script is run with command line arguments
     
     # get command line arguments for input and output paths
@@ -235,16 +270,16 @@ def main():
     
     print("\n")
 
-    player_combinations, game_turns = get_all_games_data(data)
+    matchup_data = get_all_games_data(data)
 
     # get command line arguments for functionality
     if len(sys.argv) > 1:
         if sys.argv[1] == 'mean':
             print("Plotting all games mean...")
-            plot_mean_games(player_combinations, game_turns, output_path)
+            plot_mean_games(matchup_data, resolution, output_path)
         elif sys.argv[1] == 'all':
             print("Plotting all games for each player combination...")
-            plot_all_games(player_combinations, game_turns, output_path)
+            plot_all_games(matchup_data, output_path)
         else:
             print(f"Unknown command line argument: {sys.argv[1]}")
             return
