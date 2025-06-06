@@ -4,7 +4,6 @@ import sys
 import os
 
 def read_csv(file_path):
-    print("Reading CSV file...")
     data = []
     with open(file_path, 'r') as file:
         reader = csv.reader(file)
@@ -69,7 +68,7 @@ def plot_first_game(data, output_path):
     plt.savefig(full_path)
     plt.close()
 
-def plot_all_games_mean(data, output_path):
+def get_all_games_data(data):
     # plot the mean of all games
     print("Plotting the mean of all games...")
     headers = data[0]
@@ -88,85 +87,137 @@ def plot_all_games_mean(data, output_path):
     # Get unique Player Types from data
     player_types = set(row[headers.index('PlayerType-0')] for row in data[1:])
 
-    # Create a dictionary to hold mean pieces left for each player type
-    mean_pieces_left = {player_type: {'turns': [], 'pieces_left': []} for player_type in player_types}
+    # this is the data we want to record:
+    # player_types: {OSLA, MCTS, Random} these are the lines in the plot
+    # Actually, we want only two players playing each other, 
+    #   we don't want to plot OLSA vs Random and OSLA vs MCTS
+    #   because OLSA might perform differently against different players
+    #   we want seperate plots for each player type against each other
+    #   so first, get all unique player combinations
+    #   then, for each combination, get all games where those two players played against each other
+    #   this can be done by checking the PlayerType-0 and PlayerType-1 columns and filtering on GameID
 
-    # Plot the mean pieces left for each player
-    plt.figure(figsize=(10, 5))
+    player_combinations = set()
 
-    # TODO: fix this
+    for row in data[1:]:
+        player_0 = row[headers.index('PlayerType-0')]
+        player_1 = row[headers.index('PlayerType-1')]
+        player_combinations.add(tuple((player_0, player_1)))
 
-    for game_id in set(row[game_id_index] for row in data[1:]):
-        # Filter data for the current game ID
-        game_data = [row for row in data[1:] if row[game_id_index] == game_id]
+    print(f"Found {len(player_combinations)} unique player combinations: {player_combinations}")
 
-        # Initialize lists to hold pieces left for each player
-        pieces_left_0 = []
-        pieces_left_1 = []
-        turns = []
+    # Now, for each player combination, we will plot the mean of all games in a separate plot
+    for player_pair in player_combinations:
+        player_0, player_1 = player_pair
 
-        for row in game_data:
-            turns.append(int(row[turn_index]))
-            pieces_left_0.append(int(row[headers.index('PiecesLeft-0')]))
-            pieces_left_1.append(int(row[headers.index('PiecesLeft-1')]))
-
-        # Calculate mean pieces left for each turn
-        mean_pieces_left_0 = [sum(pieces_left_0) / len(pieces_left_0)] * len(turns)
-        mean_pieces_left_1 = [sum(pieces_left_1) / len(pieces_left_1)] * len(turns)
-
-
-        # Get player names
-        playername_0 = game_data[0][headers.index('PlayerType-0')]
-        playername_1 = game_data[0][headers.index('PlayerType-1')]
-
-        print(f"Processing GameID: {game_id} for players {playername_0} and {playername_1}")
-        for turn, pieces_left_0_val, pieces_left_1_val in zip(turns, mean_pieces_left_0, mean_pieces_left_1):
-            print(f"Turn: {turn}, {playername_0}: {pieces_left_0_val}, {playername_1}: {pieces_left_1_val}")
-        
-        print(f"Mean Pieces Left for {playername_0}: {mean_pieces_left_0}")
-        print(f"Mean Pieces Left for {playername_1}: {mean_pieces_left_1}")
-        
-        # put the mean pieces left in the dictionary
-        mean_pieces_left[playername_0]['turns'].extend(turns)
-        mean_pieces_left[playername_0]['pieces_left'].extend(mean_pieces_left_0)
-        mean_pieces_left[playername_1]['turns'].extend(turns)
-        mean_pieces_left[playername_1]['pieces_left'].extend(mean_pieces_left_1)
-
-    # Plot the mean pieces left for each player type
-    for player_type, values in mean_pieces_left.items():
-        plt.plot(values['turns'], values['pieces_left'], label=player_type)
+        # Filter data for the current player pair
+        filtered_data = [row for row in data[1:] if row[headers.index('PlayerType-0')] == player_0 and row[headers.index('PlayerType-1')] == player_1]
     
+        if not filtered_data:
+            print(f"No data found for player combination: {player_0} vs {player_1}")
+            continue
 
-    plt.title('Mean Pieces Left Over Time Across All Games')
-    plt.xlabel('Turn')
-    plt.ylabel('Mean Pieces Left')
-    plt.legend()
-    plt.grid()
-    # Save the plot
-    filename = "mean_pieces_left_all_games.png"
-    full_path = output_path + filename
-    plt.savefig(full_path)
-    plt.close()
+        # Plot the mean for the current player pair
+        
+        # get every game by GameID
+        game_ids = set(row[game_id_index] for row in filtered_data)
+
+        game_turns = {}
+
+        # for each game, get the turns and pieces left for both players
+        for game_id in game_ids:
+            game_data = [row for row in filtered_data if row[game_id_index] == game_id]
+            if not game_data:
+                continue
+            
+            # x axis is the Turn column
+            x = [int(row[turn_index]) for row in game_data]
+
+            # y axis is the PiecesLeft-0 and PiecesLeft-1 columns
+            y0 = [int(row[headers.index('PiecesLeft-0')]) for row in game_data]
+            y1 = [int(row[headers.index('PiecesLeft-1')]) for row in game_data]
+
+            # save this data for later averaging
+            game_turns[game_id] = {
+                'y0': y0,
+                'y1': y1
+            }
+        
+        # Now we have all the game data for the current player pair, we can calculate the mean
+        if not game_turns:
+            print(f"No game data found for player combination: {player_0} vs {player_1}")
+            continue
+        else:
+            print(f"game_turns for {player_0} vs {player_1}: {game_turns}")
+        
+    return player_combinations, game_turns
+
+def plot_mean_games(player_combinations, game_turns, output_path):
+    # Calculate the mean for each turn
+    for player_pair in player_combinations:
+        player_0, player_1 = player_pair
+
+        max_turns = max(len(turns['y0']) for turns in game_turns.values())
+        mean_y0 = [0] * max_turns
+        mean_y1 = [0] * max_turns
+        game_count = len(game_turns)
+        for turns in game_turns.values():
+            for i in range(max_turns):
+                if i < len(turns['y0']):
+                    mean_y0[i] += turns['y0'][i]
+                if i < len(turns['y1']):
+                    mean_y1[i] += turns['y1'][i]
+
+        # Now we have the mean for each turn, we can plot it
+        plt.figure(figsize=(10, 6))
+        plt.plot(mean_y0, label=f"{player_0} (Mean)", color='blue')
+        plt.plot(mean_y1, label=f"{player_1} (Mean)", color='orange')
+        plt.xlabel("Turn")
+        plt.ylabel("Pieces Left")
+        plt.title(f"Mean Pieces Left: {player_0} vs {player_1}")
+        plt.legend()
+        plt.grid()
+        plt.savefig(f"{output_path}/mean_{player_0}_vs_{player_1}.png")
+        plt.close()
+
+def plot_all_games(player_combinations, game_turns, output_path):
+    for player_pair in player_combinations:
+        player_0, player_1 = player_pair
+
+        plt.figure(figsize=(10, 6))
+
+        # Plot each game
+        for game_id, turns in game_turns.items():
+            plt.plot(turns['y0'], label=f"{player_0} (Game {game_id})", color='blue', alpha=0.5)
+            plt.plot(turns['y1'], label=f"{player_1} (Game {game_id})", color='orange', alpha=0.5)
+        plt.xlabel("Turn")
+        plt.ylabel("Pieces Left")
+        plt.title(f"Pieces Left: {player_0} vs {player_1}")
+        plt.legend()
+        plt.grid()
+        plt.savefig(f"{output_path}/all_{player_0}_vs_{player_1}.png")
+        plt.close()
     
 
 def main():
-    print("Starting the plot generation script...")
     input_path = './results/CheckersActions.csv'  # Default input path
     output_path = './output/plots/'  # Default output path
     # Check if the script is run with command line arguments
     
     # get command line arguments for input and output paths
+    if len(sys.argv) <= 2:
+        print("Usage: python3 generateplots.py [mean|first] [input_path] [output_path]\n")
     if len(sys.argv) > 2:
         input_path = sys.argv[2]
         print(f"Using input path: {input_path}")
     else:
-        print("No input path provided, using default: ./results/CheckersActions.csv")
+        print(f"No input path provided, using default: {input_path}")
     if len(sys.argv) > 3:
         output_path = sys.argv[3]
         print(f"Using output path: {output_path}")
     else:
-        print("No output path provided, using default: ./output/plots/")
-    
+        print(f"No output path provided, using default: {output_path}")
+
     # Ensure the output directory exists
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -182,15 +233,18 @@ def main():
         print("No data found in the CSV file.")
         return
     
+    print("\n")
+
+    player_combinations, game_turns = get_all_games_data(data)
 
     # get command line arguments for functionality
     if len(sys.argv) > 1:
         if sys.argv[1] == 'mean':
             print("Plotting all games mean...")
-            plot_all_games_mean(data, output_path)
-        elif sys.argv[1] == 'first':
-            print("Plotting the first game...")
-            plot_first_game(data, output_path)
+            plot_mean_games(player_combinations, game_turns, output_path)
+        elif sys.argv[1] == 'all':
+            print("Plotting all games for each player combination...")
+            plot_all_games(player_combinations, game_turns, output_path)
         else:
             print(f"Unknown command line argument: {sys.argv[1]}")
             return
