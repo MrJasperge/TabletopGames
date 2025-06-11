@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import numpy as np
+import scipy.stats as st
 import math
 
 def read_csv(file_path):
@@ -199,13 +200,20 @@ def plot_mean_games(matchup_data, resolution, output_path):
         # Calculate the mean for each turn
         mean_y0 = np.mean(new_y0s, axis=0)
         mean_y1 = np.mean(new_y1s, axis=0)
+
+        # Calculate the confidence intervals and plot them shaded
+        conf_y0 = st.t.interval(0.95, len(new_y0s)-1, loc=np.mean(new_y0s, axis=0), scale=st.sem(new_y0s, axis=0))
+        conf_y1 = st.t.interval(0.95, len(new_y1s)-1, loc=np.mean(new_y1s, axis=0), scale=st.sem(new_y1s, axis=0))
+        plt.fill_between(range(len(mean_y0)), conf_y0[0], conf_y0[1], color='blue', alpha=0.1, label='95% CI ' + player_0)
+        plt.fill_between(range(len(mean_y1)), conf_y1[0], conf_y1[1], color='orange', alpha=0.1, label='95% CI ' + player_1)
+
         plt.plot(mean_y0, label=f'Mean Interpolated {player_0}', color='blue', linewidth=2)
         plt.plot(mean_y1, label=f'Mean Interpolated {player_1}', color='orange', linewidth=2)
         # plot the standard deviation as a shaded area
-        std_y0 = np.std(new_y0s, axis=0)
-        std_y1 = np.std(new_y1s, axis=0)
-        plt.fill_between(range(len(mean_y0)), mean_y0 - std_y0, mean_y0 + std_y0, color='blue', alpha=0.1)
-        plt.fill_between(range(len(mean_y1)), mean_y1 - std_y1, mean_y1 + std_y1, color='orange', alpha=0.1)
+        # std_y0 = np.std(new_y0s, axis=0)
+        # std_y1 = np.std(new_y1s, axis=0)
+        # plt.fill_between(range(len(mean_y0)), mean_y0 - std_y0, mean_y0 + std_y0, color='blue', alpha=0.1)
+        # plt.fill_between(range(len(mean_y1)), mean_y1 - std_y1, mean_y1 + std_y1, color='orange', alpha=0.1)
         plt.xlabel("Game Percentage")
         plt.ylabel("Pieces Left")
         plt.title(f"Mean Pieces Left: {player_0} vs {player_1}")
