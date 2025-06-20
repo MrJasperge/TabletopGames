@@ -3,14 +3,20 @@ package games.checkers;
 import core.AbstractGameState;
 import core.AbstractParameters;
 import core.CoreConstants;
+import core.actions.AbstractAction;
 import core.interfaces.IStateHeuristic;
 import evaluation.optimisation.TunableParameters;
+import games.checkers.actions.Move;
 import games.checkers.components.Piece;
+import org.apache.spark.sql.catalyst.expressions.Abs;
 import org.apache.spark.sql.sources.In;
 import utilities.Pair;
 import utilities.Utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class CheckersHeuristic extends TunableParameters implements IStateHeuristic {
 
@@ -33,7 +39,45 @@ public class CheckersHeuristic extends TunableParameters implements IStateHeuris
         if(playerResult == CoreConstants.GameResult.LOSE_GAME) return -1;
         if(playerResult == CoreConstants.GameResult.WIN_GAME) return 1;
 
+        // Check if this exact game state has been evaluated before
+        // DONE: use gs.getHistory() to check if the game state has been evaluated before
 
+        // Okay, we need to recognise when two players are stuck in a loop
+        // To do this, we can check the history of actions taken by the player
+        // If the last so many actions are the same, we can assume the player is stuck in a loop
+        // Get the history of actions taken by the player
+
+        if (gs.getHistory().size() < 2) return 0; // Not enough history to determine a loop
+
+        int lastActionsCount = 15; // Number of last actions to check for loops
+        List<Pair<Integer, AbstractAction>> history = gs.getHistory();
+        List<AbstractAction> lastActions = new ArrayList<>();
+        for (int i = history.size() - 1; i >= 0 && lastActions.size() < lastActionsCount; i--) {
+            Pair<Integer, AbstractAction> actionPair = history.get(i);
+            if (actionPair.a == playerId) {
+                lastActions.add(actionPair.b);
+            }
+        }
+        // Check if the last actions are the same
+        boolean isLoop = false;
+        int counter = 0;
+        for (int i = 1; i < lastActions.size(); i++) {
+            if (lastActions.get(i).equals(lastActions.get(0))) {
+                counter++;
+            }
+            if (counter >= 3) {
+                isLoop = true; // If the last actions are the same, the player is stuck in a loop
+                break;
+            }
+        }
+        boolean debug = true; // Set to true to enable debug output
+        if (isLoop) {
+            // If the player is stuck in a loop, return a score of -1 so this state is not selected
+            if (CheckersConstants.DEBUG || debug) {
+                System.out.println("Player " + playerId + " is stuck in a loop: " + lastActions.get(0).toString() + " Returning score -1.");
+            }
+            return -1;
+        }
 
         // Compose list of pieces for each player
         ArrayList<Piece> playerPieces = new ArrayList<>();
