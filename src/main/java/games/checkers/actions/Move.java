@@ -79,4 +79,10 @@ public class Move extends AbstractAction {
         return "Move from [" + getFromX() + "," + getFromY() + "] to ["
                 + getToX() + "," + getToY() + "]";
     }
+
+    @Override
+    public String toString() {
+        return "Move from [" + getFromX() + "," + getFromY() + "] to ["
+                + getToX() + "," + getToY() + "]";
+    }
 }

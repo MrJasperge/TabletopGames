@@ -13,9 +13,11 @@ import utilities.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Stack;
 
 public class CheckersGameState extends AbstractGameState {
 
+    private Stack<GridBoard> gridBoardHistory = new Stack<>();
     GridBoard gridBoard;
     private boolean skipTurn = false;
 
@@ -43,6 +45,7 @@ public class CheckersGameState extends AbstractGameState {
     protected AbstractGameState _copy(int playerId) {
         CheckersGameState copy = new CheckersGameState(gameParameters.copy(), getNPlayers());
         copy.gridBoard = gridBoard.copy();
+        copy.gridBoardHistory = (Stack<GridBoard>) gridBoardHistory.clone();
         copy.skipTurn = skipTurn;
 
         // Copy the grid board
@@ -54,9 +57,12 @@ public class CheckersGameState extends AbstractGameState {
                 }
             }
         }
-
-
         return copy;
+    }
+
+    public void setGridBoard(GridBoard gridBoard) {
+        this.gridBoard = gridBoard;
+        this.gridBoardHistory.push(gridBoard);
     }
 
     public int getNextPlayer() {
