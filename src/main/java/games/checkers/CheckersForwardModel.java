@@ -12,6 +12,8 @@ import utilities.Pair;
 
 import java.util.*;
 
+import static java.lang.Character.isUpperCase;
+
 public class CheckersForwardModel extends StandardForwardModel {
 
     final boolean debug = false;
@@ -28,11 +30,9 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         CheckersGameState chgs = (CheckersGameState) firstState;
         GridBoard localGridBoard;
-
         if (debug) System.out.println("CheckersForwardModel: inputFileName = " + chgp.inputFileName);
 
-        if(chfm.ReadFile(chgp.getInputPath())) {
-
+        if (chfm.ReadFile(chgp.getInputPath())) {
             // read 2d array from file
             String[][] boardData = chfm.getData();
             gridWidth = boardData[0].length;
@@ -43,11 +43,18 @@ public class CheckersForwardModel extends StandardForwardModel {
                 for (int y = 0; y < gridHeight; y++) {
                     String pieceName = boardData[y][x];
                     if (!pieceName.equals(CheckersConstants.emptyCell)) {
-                        if (!pieceName.equals(CheckersConstants.playerMapping.get(0).getName()) &&
-                                !pieceName.equals(CheckersConstants.playerMapping.get(1).getName())) {
-                            System.out.println("CheckersForwardModel: Invalid piece name: " + pieceName);
-                            // set empty cell if invalid piece name
+                        // check if pieceName equals any of the player names in CheckersConstants.playerMapping
+                        if (CheckersConstants.playerMapping.stream().noneMatch(p -> p.getName().equals(pieceName))) {
+                            if (isUpperCase(pieceName.charAt(0))) {
+                                // if pieceName starts with uppercase, it is a king piece
+                                Piece piece = new Piece(pieceName.toLowerCase());
+                                localGridBoard.setElement(x, y, piece);
+                                continue;
+                            }
+                            if (debug)
+                                System.out.println("CheckersForwardModel: Unknown piece name: " + pieceName);
                             localGridBoard.setElement(x, y, new Piece(CheckersConstants.emptyCell));
+                            continue; // skip unknown pieces
                         }
                         Piece piece = new Piece(pieceName);
                         localGridBoard.setElement(x, y, piece);
@@ -64,7 +71,8 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         } else {
             if (debug)
-                System.out.println("CheckersForwardModel: File not found: " + chgp.getInputPath());
+                System.out.println("CheckersForwardModel: Cannot read file: " + chgp.getInputPath());
+//                System.out.println("CheckersForwardModel: File not found: " + chgp.getInputPath());
 
 //            chfm.CreateFile(chgp.getInputPath());
             gridWidth = chgp.gridWidth;
@@ -183,7 +191,7 @@ public class CheckersForwardModel extends StandardForwardModel {
 
         if (actions.isEmpty()) {
             actions.add(new Remove(pPieces)); // no actions available, remove all pieces
-            if(debug)
+            if (debug)
                 System.out.println("No actions available, removing " + pPieces.size() + " pieces of player " + player);
         }
 
@@ -254,27 +262,37 @@ public class CheckersForwardModel extends StandardForwardModel {
         // black "X" player wins
         if (oPiece == 0) {
             registerWinner(gameState, 0);
-//            if (chfm != null)
-//                chfm.WriteData(Integer.toString(xPiece) + "," + moves + '\n'); // number of pieces and moves
-//            System.out.println("1," + bPiece + "," + moves);
             return;
         }
         // white "O" player wins
         if (xPiece == 0) {
             registerWinner(gameState, 1);
-//            if (chfm != null)
-//                chfm.WriteData(Integer.toString(oPiece) + "," + moves + '\n');
-//            System.out.println("0," + wPiece + "," + moves);
             return;
         }
-        // check if draw
+        // check if win by no available actions
         if (prevActions.isEmpty()) {
             int winner = 1 - gameState.getCurrentPlayer();
             System.out.println("Winner: " + winner);
             registerWinner(gameState, winner);
             return;
-//            if (chfm != null) chfm.WriteData(Integer.toString(xPiece + oPiece) + "," + moves + '\n');
         }
+
+        // check if draw by testing for last 40 actions
+        int lastActionsCount = 40; // Number of last actions to check for loops
+        List<Pair<Integer, AbstractAction>> history = gameState.getHistory();
+        List<AbstractAction> lastActions = new ArrayList<>();
+        for (int i = history.size() - 1; i >= 0 && lastActions.size() < lastActionsCount; i--) {
+            Pair<Integer, AbstractAction> actionPair = history.get(i);
+            // check if no capture action
+            if (actionPair.b instanceof Capture) break;
+            lastActions.add(actionPair.b);
+        }
+        if (lastActions.size() == lastActionsCount) {
+            // 40 moves, no captures. game result: draw
+            registerDraw(gameState);
+            return;
+        }
+        // TODO: check for man moves towards king row
     }
 
     @Override
@@ -289,6 +307,12 @@ public class CheckersForwardModel extends StandardForwardModel {
 //        if (chfm != null) chfm.WriteData(winningPlayer+",");
         gameState.setPlayerResult(CoreConstants.GameResult.WIN_GAME, winningPlayer);
         gameState.setPlayerResult(CoreConstants.GameResult.LOSE_GAME, 1 - winningPlayer);
+        gameState.setGameStatus(CoreConstants.GameResult.GAME_END);
+    }
+
+    private void registerDraw(CheckersGameState gameState) {
+        gameState.setPlayerResult(CoreConstants.GameResult.DRAW_GAME, 0);
+        gameState.setPlayerResult(CoreConstants.GameResult.DRAW_GAME, 1);
         gameState.setGameStatus(CoreConstants.GameResult.GAME_END);
     }
 }

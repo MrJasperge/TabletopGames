@@ -70,7 +70,7 @@ public class CheckersHeuristic extends TunableParameters implements IStateHeuris
                 break;
             }
         }
-        boolean debug = true; // Set to true to enable debug output
+        boolean debug = false; // Set to true to enable debug output
         if (isLoop) {
             // If the player is stuck in a loop, return a score of -1 so this state is not selected
             if (CheckersConstants.DEBUG || debug) {
