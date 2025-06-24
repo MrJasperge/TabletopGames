@@ -157,7 +157,7 @@ public class CheckersGameState extends AbstractGameState {
                     }
 
                     // only king can go backwards
-                    if ((p.b < y == (player == 1)) && !isKing)  break;
+                    if ((p.b < y == (player == 1)) && !isKing)  break; // GENIUS
 
                     // only one step for regular piece
                     if (dist == 1 || isKing) {
@@ -180,9 +180,11 @@ public class CheckersGameState extends AbstractGameState {
         Pair<Integer, Integer> startPiece = new Pair<>(p.a, p.b);
         Piece startPieceObj = (Piece) board.getElement(p.a, p.b);
         int player = startPieceObj.getPlayerID();
+        boolean isKing = startPieceObj.isKing();
 
 //        if (debug)
 //            System.out.println(": "+p.a +","+p.b);
+
 
         // 4 directions
         for (int i = -1; i <= 1; i+=2) { // horizontal
@@ -194,10 +196,14 @@ public class CheckersGameState extends AbstractGameState {
 
                 // check if inside board area
                 while (p.a+i*dist >= 0 && p.a+i*dist <= (gridWidth-1) && p.b+j*dist >= 0 && p.b+j*dist <= (gridHeight-1)) {
-                    Piece piece = (Piece)board.getElement(p.a+i*dist, p.b+j*dist);
+                    int x = p.a+i*dist, y = p.b+j*dist;
+                    Piece piece = (Piece)board.getElement(x, y);
 
 //                    if (debug)
 //                        System.out.print("[" + (p.a+i*dist) + "," + (p.b+j*dist) + "]");
+
+                    // only king can go backwards
+                    if ((p.b < y == (player == 1)) && !isKing)  break;
 
                     // check if own piece
                     if (piece.getName().equals(CheckersConstants.playerMapping.get(player).getName())) {
