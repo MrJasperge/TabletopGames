@@ -850,7 +850,7 @@ public class Game {
     public static void main(String[] args) {
         String gameType = Utils.getArg(args, "game", "Checkers");
         boolean useGUI = Utils.getArg(args, "gui", true);
-        int turnPause = Utils.getArg(args, "turnPause", 500);
+        int turnPause = Utils.getArg(args, "turnPause", 50);
         long seed = Utils.getArg(args, "seed", System.currentTimeMillis());
         List<IGameListener> listeners = new ArrayList<>();
 //        listeners.add
@@ -862,9 +862,12 @@ public class Game {
         /* Set up players for the game */
         ArrayList<AbstractPlayer> players = new ArrayList<>();
 
-//        players.add(new RandomPlayer());
-//        players.add(new OSLAPlayer());
+//        players.add(new MCTSPlayer());
+//        players.add(new HumanGUIPlayer(ac));
+//        players.add(new HumanGUIPlayer(ac));
 
+//        players.add(new RandomPlayer());
+//        players.add(new RandomPlayer());
 
 //        players.add(new MCTSPlayer());
 //        MCTSParams params1 = new MCTSParams();
@@ -872,6 +875,7 @@ public class Game {
 //        players.add(new MCTSPlayer());
 //        players.add(new OSLAPlayer());
 //        players.add(new OSLAPlayer());
+
        players.add(new HumanGUIPlayer(ac));
        players.add(new HumanGUIPlayer(ac));
 //       players.add(new BasicMCTSPlayer());
