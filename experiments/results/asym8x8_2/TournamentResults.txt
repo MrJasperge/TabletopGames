@@ -1,0 +1,59 @@
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 999, GamesPerMatchup: 111
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	0,999	MCTS_v0
+	0,001	OSLAPlayer
+	0,000	Random
+
+Transition matrix for alpha = 10.0
+0,999	0,001	0,000	
+0,999	0,001	0,000	
+0,522	0,477	0,000	
+B matrix for alpha = 10.0
+3,270	1,249	0,523	
+1,249	1,227	0,522	
+0,523	0,522	0,501	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	0,999	MCTS_v0
+	0,001	OSLAPlayer
+	0,000	Random
+
+Transition matrix for alpha = 10.0
+0,999	0,001	0,000	
+0,999	0,001	0,000	
+0,522	0,477	0,000	
+B matrix for alpha = 10.0
+3,270	1,249	0,523	
+1,249	1,227	0,522	
+0,523	0,522	0,501	
+MCTS_v0 got 527,50 points. MCTS_v0 won 47,8% of the 999 games of the tournament. MCTS_v0 won 71,8% of the 666 games it played during the tournament.
+MCTS_v0 got a mean score of 0,58.
+MCTS_v0 won 82,4% of the 222 games against OSLAPlayer.
+MCTS_v0 won 100,0% of the 222 games against Random.
+
+OSLAPlayer got 359,50 points. OSLAPlayer won 33,3% of the 999 games of the tournament. OSLAPlayer won 50,0% of the 666 games it played during the tournament.
+OSLAPlayer got a mean score of 0,08.
+OSLAPlayer won 7,2% of the 222 games against MCTS_v0.
+OSLAPlayer won 99,5% of the 222 games against Random.
+
+Random got 112,00 points. Random won 11,2% of the 999 games of the tournament. Random won 16,8% of the 666 games it played during the tournament.
+Random got a mean score of -0,66.
+Random won 0,0% of the 222 games against MCTS_v0.
+Random won 0,5% of the 222 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTS_v0: Win rate 0,79 +/- 0,014	Mean Ordinal 1,13 +/- 0,01
+OSLAPlayer: Win rate 0,54 +/- 0,019	Mean Ordinal 1,42 +/- 0,02
+Random: Win rate 0,17 +/- 0,014	Mean Ordinal 1,83 +/- 0,01
+
+Alpha-rank by Win Rate
+	MCTS_v0                       	1,00
+	OSLAPlayer                    	0,00
+	Random                        	0,00
+
+Alpha-rank by Ordinal Position
+	MCTS_v0                       	1,00
+	OSLAPlayer                    	0,00
+	Random                        	0,00
+
