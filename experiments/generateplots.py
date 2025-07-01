@@ -1,10 +1,33 @@
-import csv
-import matplotlib.pyplot as plt
 import sys
 import os
+import math
+import csv
 import numpy as np
 import scipy.stats as st
-import math
+import matplotlib.pyplot as plt
+import matplotlib.colors as mc
+import colorsys
+
+
+# credit: https://www.reddit.com/r/learnpython/comments/ila9xp/nice_plots_for_scientific_papers_theses_and/
+import scienceplots
+plt.style.use(['science', 'no-latex'])
+
+colors = {
+    'OSLA': 'blue',
+    'MCTS': 'red',
+    'Rand': 'green'
+}
+
+# Adjust the colors to be more distinct
+# credit: https://stackoverflow.com/questions/37765197/darken-or-lighten-a-color-in-matplotlib
+def adjust_lightness(color, amount=0.5):
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
 def read_csv(file_path):
     data = []
@@ -164,6 +187,14 @@ def plot_mean_games(matchup_data, resolution, output_path):
     for player_pair, game_turns in matchup_data.items():
         player_0, player_1 = player_pair
 
+        player_name_0 = player_0[0:4]
+        player_name_1 = player_1[0:4]
+        p_0_lightness = 1
+        p_1_lightness = 1
+        if player_name_0 == player_name_1:
+            p_0_lightness = 1.5
+            p_1_lightness = 0.5
+
         new_y0s = []
         new_y1s = []
 
@@ -204,19 +235,19 @@ def plot_mean_games(matchup_data, resolution, output_path):
         # Calculate the confidence intervals and plot them shaded
         conf_y0 = st.t.interval(0.95, len(new_y0s)-1, loc=np.mean(new_y0s, axis=0), scale=st.sem(new_y0s, axis=0))
         conf_y1 = st.t.interval(0.95, len(new_y1s)-1, loc=np.mean(new_y1s, axis=0), scale=st.sem(new_y1s, axis=0))
-        plt.fill_between(range(len(mean_y0)), conf_y0[0], conf_y0[1], color='blue', alpha=0.1, label='95% CI ' + player_0)
-        plt.fill_between(range(len(mean_y1)), conf_y1[0], conf_y1[1], color='orange', alpha=0.1, label='95% CI ' + player_1)
+        plt.fill_between(range(len(mean_y0)), conf_y0[0], conf_y0[1], color=adjust_lightness(colors[player_name_0], p_0_lightness), alpha=0.1)
+        plt.fill_between(range(len(mean_y1)), conf_y1[0], conf_y1[1], color=adjust_lightness(colors[player_name_1], p_1_lightness), alpha=0.1)
 
-        plt.plot(mean_y0, label=f'Mean Interpolated {player_0}', color='blue', linewidth=2)
-        plt.plot(mean_y1, label=f'Mean Interpolated {player_1}', color='orange', linewidth=2)
+        plt.plot(mean_y0, label='Player 1: ' + player_0, color=adjust_lightness(colors[player_name_0], p_0_lightness), linewidth=2)
+        plt.plot(mean_y1, label='Player 2: ' + player_1, color=adjust_lightness(colors[player_name_1], p_1_lightness), linewidth=2)
         # plot the standard deviation as a shaded area
         # std_y0 = np.std(new_y0s, axis=0)
         # std_y1 = np.std(new_y1s, axis=0)
-        # plt.fill_between(range(len(mean_y0)), mean_y0 - std_y0, mean_y0 + std_y0, color='blue', alpha=0.1)
-        # plt.fill_between(range(len(mean_y1)), mean_y1 - std_y1, mean_y1 + std_y1, color='orange', alpha=0.1)
+        # plt.fill_between(range(len(mean_y0)), mean_y0 - std_y0, mean_y0 + std_y0, color=adjust_lightness(colors[player_name_0], p_0_lightness), alpha=0.1)
+        # plt.fill_between(range(len(mean_y1)), mean_y1 - std_y1, mean_y1 + std_y1, color=adjust_lightness(colors[player_name_1], p_1_lightness), alpha=0.1)
         plt.xlabel("Game Percentage")
         plt.ylabel("Pieces Left")
-        plt.title(f"Mean Pieces Left: {player_0} vs {player_1}")
+        plt.title(f"Average Number of Pieces Left: {player_0} vs {player_1}")
         plt.legend()
         plt.grid()
         plt.savefig(f"{output_path}/mean_{player_0}_vs_{player_1}.png")
