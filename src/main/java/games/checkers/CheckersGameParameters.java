@@ -14,11 +14,11 @@ public class CheckersGameParameters extends TunableParameters {
     public int gridHeight = 10;
 
     // The folder where the input files are stored
-    private final String inputFolderName = "F:\\Unity Projects\\TabletopGames\\experiments\\input\\boardsetups\\";
+    private final String inputFolderName = "experiments/input/boardsetups/";
     public String inputFileName = "classic10x10.txt"; // Default input file
 
     // The folder where the output files are stored
-    private final String outputFolderName = "F:\\Unity Projects\\TabletopGames\\experiments\\output\\";
+    private final String outputFolderName = "experiments/output/";
     public String outputFileName = "checkers_output.csv"; // Default output file
 
     public CheckersGameParameters() {
