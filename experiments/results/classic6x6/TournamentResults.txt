@@ -1,59 +1,59 @@
-Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 999, GamesPerMatchup: 111
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 1800, GamesPerMatchup: 200
 Alpha calculations using Delta Ordinal
 Alpha: 10.0
-	1,000	MCTS_v0
-	0,000	OSLAPlayer
-	0,000	Random
+	1,000	MCTS_CheckersHeuristic
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
 
 Transition matrix for alpha = 10.0
 1,000	0,000	0,000	
 1,000	0,000	0,000	
-0,522	0,477	0,000	
+0,634	0,366	0,000	
 B matrix for alpha = 10.0
-3,272	1,249	0,523	
-1,249	1,228	0,522	
-0,523	0,522	0,501	
+3,401	1,232	0,634	
+1,232	1,134	0,634	
+0,634	0,634	0,536	
 Alpha calculations using Win Rate
 Alpha: 10.0
-	1,000	MCTS_v0
-	0,000	OSLAPlayer
-	0,000	Random
+	1,000	MCTS_CheckersHeuristic
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
 
 Transition matrix for alpha = 10.0
 1,000	0,000	0,000	
 1,000	0,000	0,000	
-0,522	0,477	0,000	
+0,634	0,366	0,000	
 B matrix for alpha = 10.0
-3,272	1,249	0,523	
-1,249	1,228	0,522	
-0,523	0,522	0,501	
-MCTS_v0 got 542,00 points. MCTS_v0 won 47,3% of the 999 games of the tournament. MCTS_v0 won 71,0% of the 666 games it played during the tournament.
-MCTS_v0 got a mean score of 0,63.
-MCTS_v0 won 89,2% of the 222 games against OSLAPlayer.
-MCTS_v0 won 100,0% of the 222 games against Random.
+3,401	1,232	0,634	
+1,232	1,134	0,634	
+0,634	0,634	0,536	
+MCTS_CheckersHeuristic got 979,50 points. MCTS_CheckersHeuristic won 48,5% of the 1800 games of the tournament. MCTS_CheckersHeuristic won 72,8% of the 1200 games it played during the tournament.
+MCTS_CheckersHeuristic got a mean score of 0,63.
+MCTS_CheckersHeuristic won 90,3% of the 400 games against OSLAPlayerConfig.
+MCTS_CheckersHeuristic won 100,0% of the 400 games against RandomPlayerConfig.
 
-OSLAPlayer got 345,00 points. OSLAPlayer won 32,2% of the 999 games of the tournament. OSLAPlayer won 48,3% of the 666 games it played during the tournament.
-OSLAPlayer got a mean score of 0,04.
-OSLAPlayer won 0,9% of the 222 games against MCTS_v0.
-OSLAPlayer won 99,5% of the 222 games against Random.
+OSLAPlayerConfig got 609,50 points. OSLAPlayerConfig won 31,7% of the 1800 games of the tournament. OSLAPlayerConfig won 47,6% of the 1200 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 0,02.
+OSLAPlayerConfig won 0,5% of the 400 games against MCTS_CheckersHeuristic.
+OSLAPlayerConfig won 97,3% of the 400 games against RandomPlayerConfig.
 
-Random got 112,00 points. Random won 11,2% of the 999 games of the tournament. Random won 16,8% of the 666 games it played during the tournament.
-Random got a mean score of -0,66.
-Random won 0,0% of the 222 games against MCTS_v0.
-Random won 0,5% of the 222 games against OSLAPlayer.
+RandomPlayerConfig got 211,00 points. RandomPlayerConfig won 11,7% of the 1800 games of the tournament. RandomPlayerConfig won 17,6% of the 1200 games it played during the tournament.
+RandomPlayerConfig got a mean score of -0,65.
+RandomPlayerConfig won 0,0% of the 400 games against MCTS_CheckersHeuristic.
+RandomPlayerConfig won 2,8% of the 400 games against OSLAPlayerConfig.
 
 ---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
-MCTS_v0: Win rate 0,81 +/- 0,012	Mean Ordinal 1,08 +/- 0,01
-OSLAPlayer: Win rate 0,52 +/- 0,019	Mean Ordinal 1,45 +/- 0,02
-Random: Win rate 0,17 +/- 0,014	Mean Ordinal 1,83 +/- 0,01
+MCTS_CheckersHeuristic: Win rate 0,82 +/- 0,009	Mean Ordinal 1,10 +/- 0,01
+OSLAPlayerConfig: Win rate 0,51 +/- 0,014	Mean Ordinal 1,46 +/- 0,01
+RandomPlayerConfig: Win rate 0,18 +/- 0,011	Mean Ordinal 1,82 +/- 0,01
 
 Alpha-rank by Win Rate
-	MCTS_v0                       	1,00
-	OSLAPlayer                    	0,00
-	Random                        	0,00
+	MCTS_CheckersHeuristic        	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
 
 Alpha-rank by Ordinal Position
-	MCTS_v0                       	1,00
-	OSLAPlayer                    	0,00
-	Random                        	0,00
+	MCTS_CheckersHeuristic        	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
 
