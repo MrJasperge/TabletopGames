@@ -3,12 +3,8 @@
   "nPlayers": 2,
   "playerDirectory" : "experiments/activeplayers",
   "mode": "exhaustiveSP",
-  "matchups": 1000,
-  "destDir": "F:\\Unity Projects\\TabletopGames\\experiments\\results",
-  "listener": "F:\\Unity Projects\\TabletopGames\\experiments\\input\\CheckersListener.json",
-  "gameParams": "F:\\Unity Projects\\TabletopGames\\experiments\\input\\CheckersGameParams.json",
   "matchups": 1800,
-  "destDir": "experiments/results/asym_unbal_3",
+  "destDir": "experiments/results/asym_unbal_4",
   "listener": "experiments/input/CheckersListener.json",
   "gameParams": "experiments/input/CheckersGameParams.json",
   "verbose": true
