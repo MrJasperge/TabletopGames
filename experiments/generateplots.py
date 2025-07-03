@@ -7,11 +7,12 @@ import scipy.stats as st
 import matplotlib.pyplot as plt
 import matplotlib.colors as mc
 import colorsys
-
+import pandas as pd
+import jinja2
 
 # credit: https://www.reddit.com/r/learnpython/comments/ila9xp/nice_plots_for_scientific_papers_theses_and/
 import scienceplots
-plt.style.use(['science', 'no-latex'])
+# plt.style.use(['science', 'no-latex'])
 
 colors = {
     'OSLA': 'blue',
@@ -271,6 +272,93 @@ def plot_all_games(matchup_data, output_path):
         plt.savefig(f"{output_path}/all_{player_0}_vs_{player_1}.png")
         plt.close()
     
+def plot_tables(matchup_data, output_path):
+    # Create a 3x3 table for game results
+    # horizontal header: MCTS, OSLA, Random
+    # vertical header: MCTS, OSLA, Random
+    # each cell contains the number of games won, lost and drawn between the two players
+    
+    table_data = []
+    for player_0 in ['MCTS', 'OSLA', 'Rand']:
+        for player_1 in ['MCTS', 'OSLA', 'Rand']:    
+            table_data.append([player_0, player_1, 0, 0, 0, 0])  # Wins player 0, Wins player 1, Draws, Total Games
+    # Count the number of games won, lost and drawn between the two players
+
+
+    for player_pair, game_turns in matchup_data.items():
+        player_0, player_1 = player_pair
+
+        # find the row in the table_data that matches the player pair
+        player_0 = player_0[0:4]  # Get the first 4 characters of the player name
+        player_1 = player_1[0:4]  # Get the first 4 characters of the player name
+
+        # get table row for player_0 vs player_1
+        index = next((i for i, row in enumerate(table_data) if row[0] == player_0 and row[1] == player_1), None)
+
+        if index is None:
+            print(f"Could not find table row for player pair: {player_0} vs {player_1}")
+            continue
+
+        for game_id, turns in game_turns.items():
+            # turns is in the format {'y0': [pieces_left_0], 'y1': [pieces_left_1]}
+            y0 = turns['y0'][-1]  # Last value for Player 0
+            y1 = turns['y1'][-1]  # Last value for Player 1
+
+            if y0 == 0:
+                # Player 1 won
+                table_data[index][3] += 1  # Increment wins for Player 0
+            elif y1 == 0:
+                # Player 0 won
+                table_data[index][2] += 1  # Increment wins for Player 1
+            else:
+                # Draw
+                table_data[index][4] += 1   # Increment draws
+            # Increment total games
+            table_data[index][5] += 1
+    
+    table_data.append(['Total', '', 0, 0, 0, 0])  # Add a total row
+    # Calculate totals
+    for row in table_data[:-1]:  # Exclude the total row
+        row[2] = int(row[2])  # Wins Player 1
+        row[3] = int(row[3])  # Wins Player 2
+        row[4] = int(row[4])  # Draws
+        row[5] = int(row[5])  # Total Games
+        table_data[-1][2] += row[2]  # Total Wins Player 1
+        table_data[-1][3] += row[3]  # Total Wins Player 2
+        table_data[-1][4] += row[4]  # Total Draws
+        table_data[-1][5] += row[5]  # Total Games
+
+    # Display percentages in the table
+    for row in table_data[:-1]:  # Exclude the total row
+        if row[5] > 0:
+            row[2] = f"{row[2]} ({row[2] / row[5] * 100:.1f}%)"
+            row[3] = f"{row[3]} ({row[3] / row[5] * 100:.1f}%)"
+            row[4] = f"{row[4]} ({row[4] / row[5] * 100:.1f}%)"
+    # Add the total row percentages
+    if table_data[-1][5] > 0:
+        table_data[-1][2] = f"{table_data[-1][2]} ({table_data[-1][2] / table_data[-1][5] * 100:.1f}%)"
+        table_data[-1][3] = f"{table_data[-1][3]} ({table_data[-1][3] / table_data[-1][5] * 100:.1f}%)"
+        table_data[-1][4] = f"{table_data[-1][4]} ({table_data[-1][4] / table_data[-1][5] * 100:.1f}%)"
+    
+    # Convert the table data to a DataFrame for better formatting
+    df = pd.DataFrame(table_data, columns=['Player 1', 'Player 2', 'Wins Player 1', 'Wins Player 2', 'Draws', 'Total Games'])
+    # display last row in bold
+    df.style.set_properties(subset=['Player 1', 'Player 2'], **{'font-weight': 'bold'})
+    df.style.set_properties(subset=[df.index[-1]], **{'font-weight': 'bold'})
+
+    df.to_csv(f"{output_path}/table_{player_0}_vs_{player_1}.csv", index=False)
+
+    # Plot the table
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.axis('tight')
+    ax.axis('off')
+    table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1.2, 1.2)
+    plt.title("Game Results Table")
+    plt.show()
+    plt.close()
 
 def main():
     input_path = './results/CheckersActions.csv'  # Default input path
@@ -316,9 +404,16 @@ def main():
         if sys.argv[1] == 'mean':
             print("Plotting all games mean...")
             plot_mean_games(matchup_data, resolution, output_path)
+        elif sys.argv[1] == 'tables':
+            print("Plotting all games tables...")
+            plot_tables(matchup_data, output_path)
         elif sys.argv[1] == 'all':
-            print("Plotting all games for each player combination...")
-            plot_all_games(matchup_data, output_path)
+            print("Plotting all games mean and tables")
+            plot_mean_games(matchup_data, resolution, output_path)
+            plot_tables(matchup_data, output_path)
+        elif sys.argv[1] == 'first':
+            print("Plotting the first game...")
+            plot_first_game(data, output_path)
         else:
             print(f"Unknown command line argument: {sys.argv[1]}")
             return
