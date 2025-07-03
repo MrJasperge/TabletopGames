@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mc
 import colorsys
 import pandas as pd
-import jinja2
+import tabulate
 
 # credit: https://www.reddit.com/r/learnpython/comments/ila9xp/nice_plots_for_scientific_papers_theses_and/
 import scienceplots
@@ -278,10 +278,18 @@ def plot_tables(matchup_data, output_path):
     # vertical header: MCTS, OSLA, Random
     # each cell contains the number of games won, lost and drawn between the two players
     
-    table_data = []
+    # game result data table
+    table_game_data = []
+    # game duration data table
+    table_duration_data = []
+    # pieces left data table
+    table_pieces_left_data = []
+
     for player_0 in ['MCTS', 'OSLA', 'Rand']:
-        for player_1 in ['MCTS', 'OSLA', 'Rand']:    
-            table_data.append([player_0, player_1, 0, 0, 0, 0])  # Wins player 0, Wins player 1, Draws, Total Games
+        for player_1 in ['MCTS', 'OSLA', 'Rand']:
+            table_game_data.append([player_0, player_1, 0, 0, 0, 0])  # Wins player 0, Wins player 1, Draws, Total Games
+            table_duration_data.append([player_0, player_1, 0, 0, 0, 0])  # Average Duration Player 0, Average Duration Player 1, Average Duration Draws, Total Duration
+            table_pieces_left_data.append([player_0, player_1, 0, 0, 0, 0])  # Total Pieces Left Player 0, Total Pieces Left Player 1, Average Pieces Left Draws, Average Total Pieces Left
     # Count the number of games won, lost and drawn between the two players
 
 
@@ -293,7 +301,7 @@ def plot_tables(matchup_data, output_path):
         player_1 = player_1[0:4]  # Get the first 4 characters of the player name
 
         # get table row for player_0 vs player_1
-        index = next((i for i, row in enumerate(table_data) if row[0] == player_0 and row[1] == player_1), None)
+        index = next((i for i, row in enumerate(table_game_data) if row[0] == player_0 and row[1] == player_1), None)
 
         if index is None:
             print(f"Could not find table row for player pair: {player_0} vs {player_1}")
@@ -306,45 +314,42 @@ def plot_tables(matchup_data, output_path):
 
             if y0 == 0:
                 # Player 1 won
-                table_data[index][3] += 1  # Increment wins for Player 0
+                table_game_data[index][3] += 1  # Increment wins for Player 0
             elif y1 == 0:
                 # Player 0 won
-                table_data[index][2] += 1  # Increment wins for Player 1
+                table_game_data[index][2] += 1  # Increment wins for Player 1
             else:
                 # Draw
-                table_data[index][4] += 1   # Increment draws
+                table_game_data[index][4] += 1   # Increment draws
             # Increment total games
-            table_data[index][5] += 1
+            table_game_data[index][5] += 1
     
-    table_data.append(['Total', '', 0, 0, 0, 0])  # Add a total row
+    table_game_data.append(['Total', '', 0, 0, 0, 0])  # Add a total row
     # Calculate totals
-    for row in table_data[:-1]:  # Exclude the total row
+    for row in table_game_data[:-1]:  # Exclude the total row
         row[2] = int(row[2])  # Wins Player 1
         row[3] = int(row[3])  # Wins Player 2
         row[4] = int(row[4])  # Draws
         row[5] = int(row[5])  # Total Games
-        table_data[-1][2] += row[2]  # Total Wins Player 1
-        table_data[-1][3] += row[3]  # Total Wins Player 2
-        table_data[-1][4] += row[4]  # Total Draws
-        table_data[-1][5] += row[5]  # Total Games
+        table_game_data[-1][2] += row[2]  # Total Wins Player 1
+        table_game_data[-1][3] += row[3]  # Total Wins Player 2
+        table_game_data[-1][4] += row[4]  # Total Draws
+        table_game_data[-1][5] += row[5]  # Total Games
 
     # Display percentages in the table
-    for row in table_data[:-1]:  # Exclude the total row
+    for row in table_game_data[:-1]:  # Exclude the total row
         if row[5] > 0:
             row[2] = f"{row[2]} ({row[2] / row[5] * 100:.1f}%)"
             row[3] = f"{row[3]} ({row[3] / row[5] * 100:.1f}%)"
             row[4] = f"{row[4]} ({row[4] / row[5] * 100:.1f}%)"
     # Add the total row percentages
-    if table_data[-1][5] > 0:
-        table_data[-1][2] = f"{table_data[-1][2]} ({table_data[-1][2] / table_data[-1][5] * 100:.1f}%)"
-        table_data[-1][3] = f"{table_data[-1][3]} ({table_data[-1][3] / table_data[-1][5] * 100:.1f}%)"
-        table_data[-1][4] = f"{table_data[-1][4]} ({table_data[-1][4] / table_data[-1][5] * 100:.1f}%)"
+    if table_game_data[-1][5] > 0:
+        table_game_data[-1][2] = f"{table_game_data[-1][2]} ({table_game_data[-1][2] / table_game_data[-1][5] * 100:.1f}%)"
+        table_game_data[-1][3] = f"{table_game_data[-1][3]} ({table_game_data[-1][3] / table_game_data[-1][5] * 100:.1f}%)"
+        table_game_data[-1][4] = f"{table_game_data[-1][4]} ({table_game_data[-1][4] / table_game_data[-1][5] * 100:.1f}%)"
     
     # Convert the table data to a DataFrame for better formatting
-    df = pd.DataFrame(table_data, columns=['Player 1', 'Player 2', 'Wins Player 1', 'Wins Player 2', 'Draws', 'Total Games'])
-    # display last row in bold
-    df.style.set_properties(subset=['Player 1', 'Player 2'], **{'font-weight': 'bold'})
-    df.style.set_properties(subset=[df.index[-1]], **{'font-weight': 'bold'})
+    df = pd.DataFrame(table_game_data, columns=['Player 1', 'Player 2', 'Wins Player 1', 'Wins Player 2', 'Draws', 'Total Games'])
 
     df.to_csv(f"{output_path}/table_{player_0}_vs_{player_1}.csv", index=False)
 
