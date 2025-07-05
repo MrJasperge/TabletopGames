@@ -1,0 +1,59 @@
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 1800, GamesPerMatchup: 200
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	1,000	MCTS_CheckersHeuristic
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,550	0,450	0,000	
+B matrix for alpha = 10.0
+3,300	1,247	0,550	
+1,247	1,202	0,550	
+0,550	0,550	0,505	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	1,000	MCTS_CheckersHeuristic
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,550	0,450	0,000	
+B matrix for alpha = 10.0
+3,300	1,247	0,550	
+1,247	1,202	0,550	
+0,550	0,550	0,505	
+MCTS_CheckersHeuristic got 962,00 points. MCTS_CheckersHeuristic won 49,5% of the 1800 games of the tournament. MCTS_CheckersHeuristic won 74,3% of the 1200 games it played during the tournament.
+MCTS_CheckersHeuristic got a mean score of 0,60.
+MCTS_CheckersHeuristic won 86,0% of the 400 games against OSLAPlayerConfig.
+MCTS_CheckersHeuristic won 100,0% of the 400 games against RandomPlayerConfig.
+
+OSLAPlayerConfig got 634,00 points. OSLAPlayerConfig won 32,4% of the 1800 games of the tournament. OSLAPlayerConfig won 48,7% of the 1200 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 0,06.
+OSLAPlayerConfig won 5,0% of the 400 games against MCTS_CheckersHeuristic.
+OSLAPlayerConfig won 99,0% of the 400 games against RandomPlayerConfig.
+
+RandomPlayerConfig got 204,00 points. RandomPlayerConfig won 11,3% of the 1800 games of the tournament. RandomPlayerConfig won 16,9% of the 1200 games it played during the tournament.
+RandomPlayerConfig got a mean score of -0,66.
+RandomPlayerConfig won 0,0% of the 400 games against MCTS_CheckersHeuristic.
+RandomPlayerConfig won 1,0% of the 400 games against OSLAPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTS_CheckersHeuristic: Win rate 0,80 +/- 0,010	Mean Ordinal 1,14 +/- 0,01
+OSLAPlayerConfig: Win rate 0,53 +/- 0,014	Mean Ordinal 1,43 +/- 0,01
+RandomPlayerConfig: Win rate 0,17 +/- 0,011	Mean Ordinal 1,83 +/- 0,01
+
+Alpha-rank by Win Rate
+	MCTS_CheckersHeuristic        	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Alpha-rank by Ordinal Position
+	MCTS_CheckersHeuristic        	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
