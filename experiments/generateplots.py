@@ -8,11 +8,10 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mc
 import colorsys
 import pandas as pd
-import tabulate
 
 # credit: https://www.reddit.com/r/learnpython/comments/ila9xp/nice_plots_for_scientific_papers_theses_and/
 import scienceplots
-# plt.style.use(['science', 'no-latex'])
+plt.style.use(['science'])
 
 colors = {
     'OSLA': 'blue',
@@ -152,6 +151,7 @@ def get_all_games_data(data):
         game_ids = set(row[game_id_index] for row in filtered_data)
 
         game_turns = {}
+        game_action_sizes = {}
 
         # for each game, get the turns and pieces left for both players
         for game_id in game_ids:
@@ -163,15 +163,56 @@ def get_all_games_data(data):
             x = [int(row[turn_index]) for row in game_data]
 
             # y axis is the PiecesLeft-0 and PiecesLeft-1 columns
-            y0 = [int(row[headers.index('PiecesLeft-0')]) for row in game_data]
-            y1 = [int(row[headers.index('PiecesLeft-1')]) for row in game_data]
+            pieces_0 = [int(row[headers.index('PiecesLeft-0')]) for row in game_data]
+            pieces_1 = [int(row[headers.index('PiecesLeft-1')]) for row in game_data]
 
             # save this data for later averaging
             game_turns[game_id] = {
-                'y0': y0,
-                'y1': y1
+                'turns_0': pieces_0,
+                'turns_1': pieces_1
             }
-        
+
+            action_size = [int(row[headers.index('ActionSize')]) for row in game_data]
+            game_action_sizes[game_id] = {
+                'action_size': action_size
+            }
+
+            # action_size is a bit weird, because it is one value per turn, but we have two players.
+            # if we want to split the action size by player, we can do that by looking at the Player column
+            # but the action size is not per se linked to the Player, but to the Player in the next turn
+            # for example: 
+            #       Player: 0, ActionClass: Move, ActionSize: 5.
+            #       Player: 1, ActionClass: Move, ActionSize: 1.
+            #       Player: 0, ActionClass: Capture, ActionsSize: 2.
+            #       Player: 1, ActionClass: Capture, ActionsSize: 5.
+            #       Player: 0, ActionClass: Move, ActionSize: 4.
+            # 
+            # Here, we look at the data of a Classic6x6 game.
+            # The first player makes a move. After that, the second player has an action size of 5.
+            # The second player makes a move. After that, the first player has an action size of 1, which turns out to be a capture.
+            # The first player makes a capture. After that, the second player has an action size of 2, which turns out to be two captures.
+            # The second player makes a capture. After that, the first player has an action size of 5.
+            # The first player makes a move. After that, the second player has an action size of 4. And so on.
+            # 
+            # How to split the action size by player?
+            # In this case, it would look like this:
+            # Player 0: [-, 1, -, 5, -]
+            # Player 1: [5, -, 2, -, 4]
+            #
+            # The first action of Player 0 is not counted, because it is the first action of the game.
+            # I think we can take the action size of player 1 and duplicate it for player 0 and 1 in front.
+            # Resulting in:
+            # Player 0: [5, -, 1, -, 5, -]
+            # Player 1: [5, 5, -, 2, -, 4]
+            #
+            # It is important to include the index of the turn in the action size, so we can plot it later.
+            # For multiple captures in a row, this will be very hard to do
+            # So if I really want this data, I will have to change the CheckersMetrics class to include the action size per player per turn.
+            # And then also run a lot of games. I have to think about this.
+            # Well, actually I don't have to run the experiments again, I can just use the data from the CheckersActions.csv file.
+            # It would still be a lot of work to extract the action size per player per turn.
+            # Nah actually, it's too much work to do this now.
+
         # Now we have all the game data for the current player pair, we can calculate the mean
         if not game_turns:
             print(f"No game data found for player combination: {player_0} vs {player_1}")
@@ -179,15 +220,48 @@ def get_all_games_data(data):
         else:
             print(f"game_turns for {player_0} vs {player_1}: {len(game_turns)} games found")
         
-        matchup_data[player_pair] = game_turns
+        matchup_data[player_pair] = {
+            'game_turns' : game_turns,
+            'game_action_sizes': game_action_sizes
+        }
 
     return matchup_data
 
-def plot_mean_games(matchup_data, resolution, output_path):
-    # Calculate the mean for each turn
-    for player_pair, game_turns in matchup_data.items():
+def plot_example_game(matchup_data, resolution, output_path):
+    # Plot an example game for each player pair
+    for player_pair, game_data in matchup_data.items():
         player_0, player_1 = player_pair
 
+        # Select one game to plot
+        game_turns = game_data['game_turns']
+        example_game = next(iter(game_turns.values()), None)
+        if not example_game:
+            continue
+
+        turns = len(example_game['turns_0'])
+        max_pieces = max(max(example_game['turns_0']), max(example_game['turns_1']))
+        plt.figure(figsize=(10, 6))
+        ax = plt.gca()
+        ax.yaxis.get_major_locator().set_params(integer=True)
+        ax.set_xlim(0, turns - 1)
+        ax.set_ylim(0, max_pieces + 0.5)
+        plt.plot(example_game['turns_0'], label=f"Player 1", color='blue')
+        plt.plot(example_game['turns_1'], label=f"Player 2", color='orange')
+        plt.xlabel("Turn Number", fontsize=16)
+        plt.ylabel("Remaining Pieces", fontsize=16)
+        plt.title(f"Example Game: Player 1 vs Player 2", fontsize=20)
+        plt.legend(fontsize=14)
+        plt.grid()
+        plt.savefig(f"{output_path}/example_{player_0}_vs_{player_1}.png")
+        plt.close()
+
+
+def plot_mean_games(matchup_data, resolution, output_path):
+    # Calculate the mean for each turn
+    for player_pair, game_data in matchup_data.items():
+        player_0, player_1 = player_pair
+
+        game_turns = game_data['game_turns']
         player_name_0 = player_0[0:4]
         player_name_1 = player_1[0:4]
         p_0_lightness = 1
@@ -201,7 +275,7 @@ def plot_mean_games(matchup_data, resolution, output_path):
 
         # first normalize the turns to game percentage
         for game_id, turns in game_turns.items():
-            stepSize = (len(turns['y0']) - 1) / (resolution - 1)
+            stepSize = (len(turns['turns_0']) - 1) / (resolution - 1)
             new_y0 = []
             new_y1 = []
 
@@ -212,12 +286,12 @@ def plot_mean_games(matchup_data, resolution, output_path):
                 fraction = max(0, index - low)
 
                 # Interpolate the value
-                new_y0.append(turns['y0'][low] * (1 - fraction) + turns['y0'][high] * fraction)
-                new_y1.append(turns['y1'][low] * (1 - fraction) + turns['y1'][high] * fraction)
+                new_y0.append(turns['turns_0'][low] * (1 - fraction) + turns['turns_0'][high] * fraction)
+                new_y1.append(turns['turns_1'][low] * (1 - fraction) + turns['turns_1'][high] * fraction)
 
-            new_y0.append(turns['y0'][-1])  # Append the last value
+            new_y0.append(turns['turns_0'][-1])  # Append the last value
             new_y0s.append(new_y0)
-            new_y1.append(turns['y1'][-1])  # Append the last value
+            new_y1.append(turns['turns_1'][-1])  # Append the last value
             new_y1s.append(new_y1)
 
         # Now we have the mean for each turn, we can plot it
@@ -255,15 +329,15 @@ def plot_mean_games(matchup_data, resolution, output_path):
         plt.close()
 
 def plot_all_games(matchup_data, output_path):
-    for player_pair, game_turns in matchup_data.items():
+    for player_pair, game_data in matchup_data.items():
         player_0, player_1 = player_pair
-
+        game_turns = game_data['game_turns']
         plt.figure(figsize=(10, 6))
 
         # Plot each game
         for game_id, turns in game_turns.items():
-            plt.plot(turns['y0'], label=f"{player_0} (Game {game_id})", color='blue', alpha=0.5)
-            plt.plot(turns['y1'], label=f"{player_1} (Game {game_id})", color='orange', alpha=0.5)
+            plt.plot(turns['turns_0'], label=f"{player_0} (Game {game_id})", color='blue', alpha=0.5)
+            plt.plot(turns['turns_1'], label=f"{player_1} (Game {game_id})", color='orange', alpha=0.5)
         plt.xlabel("Turn")
         plt.ylabel("Pieces Left")
         plt.title(f"Pieces Left: {player_0} vs {player_1}")
@@ -293,7 +367,10 @@ def plot_tables(matchup_data, output_path):
     # Count the number of games won, lost and drawn between the two players
 
 
-    for player_pair, game_turns in matchup_data.items():
+    # Matchup data is only piece count per turn
+    for player_pair, game_data in matchup_data.items():
+        game_turns = game_data['game_turns']
+        game_action_sizes = game_data['game_action_sizes']
         player_0, player_1 = player_pair
 
         # find the row in the table_data that matches the player pair
@@ -419,6 +496,9 @@ def main():
         elif sys.argv[1] == 'first':
             print("Plotting the first game...")
             plot_first_game(data, output_path)
+        elif sys.argv[1] == 'example':
+            print("Plotting example game...")
+            plot_example_game(matchup_data, resolution, output_path)
         else:
             print(f"Unknown command line argument: {sys.argv[1]}")
             return
