@@ -41,3 +41,6 @@ treeRecorder*
 # experiment output files
 # experiments/output/
 experiments/activeplayers/
+experiments.code-workspace
+experiments/input/CheckersGameParams.json
+experiments/input/ConfigFile.json

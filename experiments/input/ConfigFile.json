@@ -4,8 +4,9 @@
   "playerDirectory" : "experiments/activeplayers",
   "mode": "exhaustiveSP",
   "matchups": 1800,
-  "destDir": "experiments/results/asym_unbal_4",
+  "destDir": "experiments/results/classic10x10",
   "listener": "experiments/input/CheckersListener.json",
   "gameParams": "experiments/input/CheckersGameParams.json",
-  "verbose": true
+  "verbose": true,
+  "addTimeStamp": true
 }
