@@ -1,0 +1,40 @@
+
+
+Results of experiments: Game results (win/loss/draw) per player per board setup.
+From the first player perspectieve
+
+Standard 6x6 Checkers setup
+First \ Second Player   |   MCTS        |   OSLA        |   Random 
+------------------------+---------------+---------------+--------------
+        MCTS            | W: 53 (26.5%) | W: 181 (90.5%)| W: 200 (100%)
+                        | L: 59 (29.5%) | L: 1   (0.5%) | L: 0   (0.0%)
+                        | D: 88 (44.0%) | D: 18  (9.0%) | D: 0   (0.0%)
+------------------------+---------------+---------------+--------------
+        OSLA            | W: 1   (0.5%) | W: 46  (23.0%)| W: 193 (96.5%)
+                        | L: 180 (90.0%)| L: 134 (67.0%)| L: 7   (3.5%)
+                        | D: 19  (9.5%) | D: 20  (10.0%)| D: 0   (0.0%)
+------------------------+---------------+---------------+--------------
+        Random          | W: 0   (0.0%) | W: 4   (2.0%) | W: 95  (47.5%)
+                        | L: 200 (100%) | L: 196 (98.0%)| L: 105 (52.5%)
+                        | D: 0   (0.0%) | D: 0   (0.0%) | D: 0   (0.0%)
+
+
+Standard 8x8 configuration
+First \ Second Player   |   MCTS        |   OSLA        |   Random 
+------------------------+---------------+---------------+--------------
+        MCTS            | W: 74 (37.0%) | W: 130 (65.0%)| W: 200 (100%)
+                        | L: 70 (35.0%) | L: 34 (17.0%) | L: 0   (0.0%)
+                        | D: 56 (28.0%) | D: 36 (18.0%) | D: 0   (0.0%)
+------------------------+---------------+---------------+--------------
+        OSLA            | W: 15 (7.5%)  | W: 85 (42.5%) | W: 200 (100%)
+                        | L: 169 (84.5%)| L: 86 (43.0%) | L: 0   (0.0%)
+                        | D: 16 (8.0%)  | D: 29 (14.5%) | D: 0   (0.0%)
+------------------------+---------------+---------------+--------------
+        Random          | W: 0   (0.0%) | W: 0   (0.0%) | W: 103 (51.5%)
+                        | L: 200 (100%) | L: 200 (100%) | L: 97 (48.5%)
+                        | D: 0   (0.0%) | D: 0   (0.0%) | D: 0   (0.0%)
+
+
+Now, for a comparison between OSLA and MCTS playing against Random on an 8x8 board, we need more than game result.
+We also need the number of moves it took on average to reach the game outcome.
+Because both MCTS vs Random and OSLA vs Random is 100% win rate for AI player.
