@@ -264,6 +264,12 @@ def plot_mean_games(matchup_data, resolution, output_path):
         game_turns = game_data['game_turns']
         player_name_0 = player_0[0:4]
         player_name_1 = player_1[0:4]
+
+        if player_name_0 == "Rand":
+            player_name_0 = "Random"
+        if player_name_1 == "Rand":
+            player_name_1 = "Random"
+
         p_0_lightness = 1
         p_1_lightness = 1
         if player_name_0 == player_name_1:
@@ -297,6 +303,14 @@ def plot_mean_games(matchup_data, resolution, output_path):
         # Now we have the mean for each turn, we can plot it
         plt.figure(figsize=(10, 6))
 
+        max_pieces = max(np.max(new_y0s[0]), np.max(new_y1s[0]))  # Get the maximum pieces left from the first game
+        ax = plt.gca()
+        ax.yaxis.get_major_locator().set_params(integer=True)
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, max_pieces + 0.5)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+
         # Uncomment the following lines to plot all individual games
         # for new_y0 in new_y0s:
         #     plt.plot(new_y0, color='blue', alpha=0.1)
@@ -310,22 +324,23 @@ def plot_mean_games(matchup_data, resolution, output_path):
         # Calculate the confidence intervals and plot them shaded
         conf_y0 = st.t.interval(0.95, len(new_y0s)-1, loc=np.mean(new_y0s, axis=0), scale=st.sem(new_y0s, axis=0))
         conf_y1 = st.t.interval(0.95, len(new_y1s)-1, loc=np.mean(new_y1s, axis=0), scale=st.sem(new_y1s, axis=0))
-        plt.fill_between(range(len(mean_y0)), conf_y0[0], conf_y0[1], color=adjust_lightness(colors[player_name_0], p_0_lightness), alpha=0.1)
-        plt.fill_between(range(len(mean_y1)), conf_y1[0], conf_y1[1], color=adjust_lightness(colors[player_name_1], p_1_lightness), alpha=0.1)
+        plt.fill_between(range(len(mean_y0)), conf_y0[0], conf_y0[1], color=adjust_lightness(colors[player_name_0[0:4]], p_0_lightness), alpha=0.1)
+        plt.fill_between(range(len(mean_y1)), conf_y1[0], conf_y1[1], color=adjust_lightness(colors[player_name_1[0:4]], p_1_lightness), alpha=0.1)
 
-        plt.plot(mean_y0, label='Player 1: ' + player_0, color=adjust_lightness(colors[player_name_0], p_0_lightness), linewidth=2)
-        plt.plot(mean_y1, label='Player 2: ' + player_1, color=adjust_lightness(colors[player_name_1], p_1_lightness), linewidth=2)
+
+        plt.plot(mean_y0, label='Player 1: ' + player_name_0, color=adjust_lightness(colors[player_name_0[0:4]], p_0_lightness), linewidth=2)
+        plt.plot(mean_y1, label='Player 2: ' + player_name_1, color=adjust_lightness(colors[player_name_1[0:4]], p_1_lightness), linewidth=2)
         # plot the standard deviation as a shaded area
         # std_y0 = np.std(new_y0s, axis=0)
         # std_y1 = np.std(new_y1s, axis=0)
         # plt.fill_between(range(len(mean_y0)), mean_y0 - std_y0, mean_y0 + std_y0, color=adjust_lightness(colors[player_name_0], p_0_lightness), alpha=0.1)
         # plt.fill_between(range(len(mean_y1)), mean_y1 - std_y1, mean_y1 + std_y1, color=adjust_lightness(colors[player_name_1], p_1_lightness), alpha=0.1)
-        plt.xlabel("Game Percentage")
-        plt.ylabel("Pieces Left")
-        plt.title(f"Average Number of Pieces Left: {player_0} vs {player_1}")
-        plt.legend()
+        plt.xlabel("Game Progress (\%)", fontsize=16)
+        plt.ylabel("Average Remaining Pieces", fontsize=16)
+        # plt.title(f"Average Number of Pieces Left: {player_name_0} vs {player_name_1}", fontsize=20)
+        plt.legend(fontsize=14)
         plt.grid()
-        plt.savefig(f"{output_path}/mean_{player_0}_vs_{player_1}.png")
+        plt.savefig(f"{output_path}/mean_{player_name_0}_vs_{player_name_1}.png")
         plt.close()
 
 def plot_all_games(matchup_data, output_path):
@@ -350,7 +365,9 @@ def plot_tables(matchup_data, output_path):
     # Create a 3x3 table for game results
     # horizontal header: MCTS, OSLA, Random
     # vertical header: MCTS, OSLA, Random
-    # each cell contains the number of games won, lost and drawn between the two players
+    # each cell of table_game_data contains the number of games won, lost and drawn between the two players
+    # each cell of table_duration_data contains the average duration of the games between the two players
+    # each cell of table_pieces_left_data contains the average pieces left at the end of the game between the two players
     
     # game result data table
     table_game_data = []
@@ -363,14 +380,12 @@ def plot_tables(matchup_data, output_path):
         for player_1 in ['MCTS', 'OSLA', 'Rand']:
             table_game_data.append([player_0, player_1, 0, 0, 0, 0])  # Wins player 0, Wins player 1, Draws, Total Games
             table_duration_data.append([player_0, player_1, 0, 0, 0, 0])  # Average Duration Player 0, Average Duration Player 1, Average Duration Draws, Total Duration
-            table_pieces_left_data.append([player_0, player_1, 0, 0, 0, 0])  # Total Pieces Left Player 0, Total Pieces Left Player 1, Average Pieces Left Draws, Average Total Pieces Left
-    # Count the number of games won, lost and drawn between the two players
-
+            table_pieces_left_data.append([player_0, player_1, 0, 0, 0, 0])  # Total Pieces Left Player 0, Total Pieces Left Player 1, Total Pieces Left Draws, Average Total Pieces Left
 
     # Matchup data is only piece count per turn
     for player_pair, game_data in matchup_data.items():
         game_turns = game_data['game_turns']
-        game_action_sizes = game_data['game_action_sizes']
+        # game_action_sizes = game_data['game_action_sizes'] # Not used in this function, but could be used for action size analysis
         player_0, player_1 = player_pair
 
         # find the row in the table_data that matches the player pair
@@ -383,24 +398,43 @@ def plot_tables(matchup_data, output_path):
         if index is None:
             print(f"Could not find table row for player pair: {player_0} vs {player_1}")
             continue
+        
+        max_moves = 0
+        min_moves = float('inf')
 
         for game_id, turns in game_turns.items():
-            # turns is in the format {'y0': [pieces_left_0], 'y1': [pieces_left_1]}
-            y0 = turns['y0'][-1]  # Last value for Player 0
-            y1 = turns['y1'][-1]  # Last value for Player 1
+            # turns is in the format {'turns_0': [pieces_left_0], 'turns_1': [pieces_left_1]}
+            y0 = turns['turns_0'][-1]  # Last value for Player 0
+            y1 = turns['turns_1'][-1]  # Last value for Player 1
+            # Calculate the average duration of the game
+            moves = len(turns['turns_0'])  # Number of turns in the game
+            if moves > max_moves:
+                max_moves = moves
+            if moves < min_moves:
+                min_moves = moves
 
             if y0 == 0:
                 # Player 1 won
-                table_game_data[index][3] += 1  # Increment wins for Player 0
+                table_game_data[index][3] += 1  # Increment wins for Player 1
+                table_pieces_left_data[index][3] += y1  # Total pieces left of Player 1
+                table_duration_data[index][3] += moves  # Total duration of Player 1
             elif y1 == 0:
                 # Player 0 won
-                table_game_data[index][2] += 1  # Increment wins for Player 1
+                table_game_data[index][2] += 1  # Increment wins for Player 0
+                table_pieces_left_data[index][2] += y0  # Total pieces left of Player 0
+                table_duration_data[index][2] += moves  # Total duration of Player 0
             else:
                 # Draw
                 table_game_data[index][4] += 1   # Increment draws
+                table_pieces_left_data[index][4] += y0 + y1  # Total pieces left in draw
+                table_duration_data[index][4] += moves  # Total duration of draw
             # Increment total games
             table_game_data[index][5] += 1
-    
+            table_pieces_left_data[index][5] += y0 + y1  # Total pieces left in the game
+            table_duration_data[index][5] += moves  # Total duration of the game
+
+        print(f"Processed game data for player pair: {player_0} vs {player_1}, max moves: {max_moves}, min moves: {min_moves}")
+
     table_game_data.append(['Total', '', 0, 0, 0, 0])  # Add a total row
     # Calculate totals
     for row in table_game_data[:-1]:  # Exclude the total row
@@ -412,6 +446,49 @@ def plot_tables(matchup_data, output_path):
         table_game_data[-1][3] += row[3]  # Total Wins Player 2
         table_game_data[-1][4] += row[4]  # Total Draws
         table_game_data[-1][5] += row[5]  # Total Games
+    
+    table_pieces_left_data.append(['Total', '', 0, 0, 0, 0])  # Add a total row
+    table_duration_data.append(['Total', '', 0, 0, 0, 0])  # Add a total row
+
+    # Calculate the average pieces left for each player
+    for piece_row, outcome_row, duration_row in zip(table_pieces_left_data[:-1], table_game_data[:-1], table_duration_data[:-1]):  # Exclude the total row
+        piece_row[2] = int(piece_row[2])  # Total Pieces Left Player 0
+        piece_row[3] = int(piece_row[3])  # Total Pieces Left Player 1
+        piece_row[4] = int(piece_row[4])  # Total Pieces Left Draw
+        piece_row[5] = int(piece_row[5])  # Total Pieces Left Total
+        outcome_row[2] = int(outcome_row[2])  # Total Wins Player 0
+        outcome_row[3] = int(outcome_row[3])  # Total Wins Player 1
+        outcome_row[4] = int(outcome_row[4])  # Total Draws
+        outcome_row[5] = int(outcome_row[5])  # Total Games
+        duration_row[2] = int(duration_row[2])  # Total Duration Player 0
+        duration_row[3] = int(duration_row[3])  # Total Duration Player 1
+        duration_row[4] = int(duration_row[4])  # Total Duration Draws
+        duration_row[5] = int(duration_row[5])  # Total Duration Total
+        # Calculate the average pieces left for each player
+        piece_row[2] = piece_row[2] / outcome_row[2] if outcome_row[2] > 0 else 0  # Average Pieces Left Player 0
+        piece_row[3] = piece_row[3] / outcome_row[3] if outcome_row[3] > 0 else 0  # Average Pieces Left Player 1
+        piece_row[4] = piece_row[4] / outcome_row[4] if outcome_row[4] > 0 else 0  # Average Pieces Left Draws
+        piece_row[5] = piece_row[5] / outcome_row[5] if outcome_row[5] > 0 else 0  # Average Pieces Left Total 
+        
+        table_pieces_left_data[-1][2] += piece_row[2]  # Total Average Pieces Left Player 0
+        table_pieces_left_data[-1][3] += piece_row[3]  # Total Average Pieces Left Player 1
+        table_pieces_left_data[-1][4] += piece_row[4]  # Total Average Pieces Left Draws
+        table_pieces_left_data[-1][5] += piece_row[5]  # Total Average Pieces Left Total
+
+        # Calculate the average duration for each player
+        duration_row[2] = duration_row[2] / outcome_row[2] if outcome_row[2] > 0 else 0  # Average Duration Player 0
+        duration_row[3] = duration_row[3] / outcome_row[3] if outcome_row[3] > 0 else 0  # Average Duration Player 1
+        duration_row[4] = duration_row[4] / outcome_row[4] if outcome_row[4] > 0 else 0  # Average Duration Draws
+        duration_row[5] = duration_row[5] / outcome_row[5] if outcome_row[5] > 0 else 0  # Average Duration Total
+
+        table_duration_data[-1][2] += duration_row[2]  # Total Average Duration Player 0
+        table_duration_data[-1][3] += duration_row[3]  # Total Average Duration Player 1
+        table_duration_data[-1][4] += duration_row[4]  # Total Average Duration Draws
+        table_duration_data[-1][5] += duration_row[5]  # Total Average Duration Total
+    
+    for row_i in range(2,6):
+        table_pieces_left_data[-1][row_i] = table_pieces_left_data[-1][row_i] / len(table_pieces_left_data)  # Average Total Pieces Left
+        table_duration_data[-1][row_i] = table_duration_data[-1][row_i] / len(table_duration_data)  # Average Total Duration
 
     # Display percentages in the table
     for row in table_game_data[:-1]:  # Exclude the total row
@@ -425,22 +502,33 @@ def plot_tables(matchup_data, output_path):
         table_game_data[-1][3] = f"{table_game_data[-1][3]} ({table_game_data[-1][3] / table_game_data[-1][5] * 100:.1f}%)"
         table_game_data[-1][4] = f"{table_game_data[-1][4]} ({table_game_data[-1][4] / table_game_data[-1][5] * 100:.1f}%)"
     
-    # Convert the table data to a DataFrame for better formatting
-    df = pd.DataFrame(table_game_data, columns=['Player 1', 'Player 2', 'Wins Player 1', 'Wins Player 2', 'Draws', 'Total Games'])
+    # change floats to two decimal places
+    for piece_row, duration_row in zip(table_pieces_left_data, table_duration_data):  # Exclude the total row
+        for col_i in range(2, 6):
+            piece_row[col_i] = round(piece_row[col_i], 2)
+            duration_row[col_i] = round(duration_row[col_i], 2)
 
-    df.to_csv(f"{output_path}/table_{player_0}_vs_{player_1}.csv", index=False)
+    # Convert the table data to DataFrames for better formatting
+    df_game_result = pd.DataFrame(table_game_data, columns=['Player 1', 'Player 2', 'Wins Player 1', 'Wins Player 2', 'Draws', 'Total Games'])
+    df_game_result.to_csv(f"{output_path}/table_game_result.csv", index=False)
+
+    df_pieces_left = pd.DataFrame(table_pieces_left_data, columns=['Player 1', 'Player 2', 'Total Pieces Left Player 1', 'Total Pieces Left Player 2', 'Total Pieces Left Draws', 'Average Total Pieces Left'])
+    df_pieces_left.to_csv(f"{output_path}/table_pieces_left.csv", index=False)
+    
+    df_duration = pd.DataFrame(table_duration_data, columns=['Player 1', 'Player 2', 'Average Duration Player 1', 'Average Duration Player 2', 'Average Duration Draws', 'Average Duration Total'])
+    df_duration.to_csv(f"{output_path}/table_duration.csv", index=False)
 
     # Plot the table
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.axis('tight')
-    ax.axis('off')
-    table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-    table.scale(1.2, 1.2)
-    plt.title("Game Results Table")
-    plt.show()
-    plt.close()
+    # fig, ax = plt.subplots(figsize=(8, 6))
+    # ax.axis('tight')
+    # ax.axis('off')
+    # table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+    # table.auto_set_font_size(False)
+    # table.set_fontsize(12)
+    # table.scale(1.2, 1.2)
+    # plt.title("Game Results Table")
+    # plt.show()
+    # plt.close()
 
 def main():
     input_path = './results/CheckersActions.csv'  # Default input path
