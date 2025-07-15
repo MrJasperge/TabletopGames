@@ -451,3 +451,467 @@ Alpha-rank by Ordinal Position
 	OSLAPlayerConfig              	0,00
 	RandomPlayerConfig            	0,00
 
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 9, GamesPerMatchup: 1
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	1,000	MCTSPlayerConfig
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+3,250	1,250	0,500	
+1,250	1,250	0,500	
+0,500	0,500	0,500	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	1,000	MCTSPlayerConfig
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+3,250	1,250	0,500	
+1,250	1,250	0,500	
+0,500	0,500	0,500	
+MCTSPlayerConfig got 5,00 points. MCTSPlayerConfig won 55,6% of the 9 games of the tournament. MCTSPlayerConfig won 83,3% of the 6 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,67.
+MCTSPlayerConfig won 100,0% of the 2 games against OSLAPlayerConfig.
+MCTSPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+OSLAPlayerConfig got 3,00 points. OSLAPlayerConfig won 33,3% of the 9 games of the tournament. OSLAPlayerConfig won 50,0% of the 6 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 0,00.
+OSLAPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+OSLAPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+RandomPlayerConfig got 1,00 points. RandomPlayerConfig won 11,1% of the 9 games of the tournament. RandomPlayerConfig won 16,7% of the 6 games it played during the tournament.
+RandomPlayerConfig got a mean score of -0,67.
+RandomPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+RandomPlayerConfig won 0,0% of the 2 games against OSLAPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 0,83 +/- 0,152	Mean Ordinal 1,17 +/- 0,15
+OSLAPlayerConfig: Win rate 0,50 +/- 0,204	Mean Ordinal 1,50 +/- 0,20
+RandomPlayerConfig: Win rate 0,17 +/- 0,152	Mean Ordinal 1,83 +/- 0,15
+
+Alpha-rank by Win Rate
+	MCTSPlayerConfig              	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Alpha-rank by Ordinal Position
+	MCTSPlayerConfig              	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 4, GamesPerMatchup: 1
+MCTSPlayerConfig got 3,00 points. MCTSPlayerConfig won 75,0% of the 4 games of the tournament. MCTSPlayerConfig won 75,0% of the 4 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,50.
+MCTSPlayerConfig won 100,0% of the 2 games against OSLAPlayerConfig.
+
+OSLAPlayerConfig got 1,00 points. OSLAPlayerConfig won 25,0% of the 4 games of the tournament. OSLAPlayerConfig won 25,0% of the 4 games it played during the tournament.
+OSLAPlayerConfig got a mean score of -0,50.
+OSLAPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 0,75 +/- 0,217	Mean Ordinal 1,25 +/- 0,22
+OSLAPlayerConfig: Win rate 0,25 +/- 0,217	Mean Ordinal 1,75 +/- 0,22
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 2, GamesPerMatchup: 1
+MCTSPlayerConfig got 2,00 points. MCTSPlayerConfig won 100,0% of the 2 games of the tournament. MCTSPlayerConfig won 100,0% of the 2 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 1,00.
+MCTSPlayerConfig won 100,0% of the 2 games against OSLAPlayerConfig.
+
+OSLAPlayerConfig got 0,00 points. OSLAPlayerConfig won 0,0% of the 2 games of the tournament. OSLAPlayerConfig won 0,0% of the 2 games it played during the tournament.
+OSLAPlayerConfig got a mean score of -1,00.
+OSLAPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 1,00 +/- 0,000	Mean Ordinal 1,00 +/- 0,00
+OSLAPlayerConfig: Win rate 0,00 +/- 0,000	Mean Ordinal 2,00 +/- 0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 100, GamesPerMatchup: 50
+MCTSPlayerConfig got 94,00 points. MCTSPlayerConfig won 94,0% of the 100 games of the tournament. MCTSPlayerConfig won 94,0% of the 100 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,88.
+MCTSPlayerConfig won 94,0% of the 100 games against OSLAPlayerConfig.
+
+OSLAPlayerConfig got 6,00 points. OSLAPlayerConfig won 6,0% of the 100 games of the tournament. OSLAPlayerConfig won 6,0% of the 100 games it played during the tournament.
+OSLAPlayerConfig got a mean score of -0,88.
+OSLAPlayerConfig won 6,0% of the 100 games against MCTSPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 0,94 +/- 0,024	Mean Ordinal 1,06 +/- 0,02
+OSLAPlayerConfig: Win rate 0,06 +/- 0,024	Mean Ordinal 1,94 +/- 0,02
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 2, GamesPerMatchup: 1
+MCTSPlayerConfig got 2,00 points. MCTSPlayerConfig won 100,0% of the 2 games of the tournament. MCTSPlayerConfig won 100,0% of the 2 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 1,00.
+MCTSPlayerConfig won 100,0% of the 2 games against OSLAPlayerConfig.
+
+OSLAPlayerConfig got 0,00 points. OSLAPlayerConfig won 0,0% of the 2 games of the tournament. OSLAPlayerConfig won 0,0% of the 2 games it played during the tournament.
+OSLAPlayerConfig got a mean score of -1,00.
+OSLAPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 1,00 +/- 0,000	Mean Ordinal 1,00 +/- 0,00
+OSLAPlayerConfig: Win rate 0,00 +/- 0,000	Mean Ordinal 2,00 +/- 0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 2, GamesPerMatchup: 1
+MCTSPlayerConfig got 1,00 points. MCTSPlayerConfig won 50,0% of the 2 games of the tournament. MCTSPlayerConfig won 50,0% of the 2 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,00.
+MCTSPlayerConfig won 50,0% of the 2 games against OSLAPlayerConfig.
+
+OSLAPlayerConfig got 1,00 points. OSLAPlayerConfig won 50,0% of the 2 games of the tournament. OSLAPlayerConfig won 50,0% of the 2 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 0,00.
+OSLAPlayerConfig won 50,0% of the 2 games against MCTSPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 0,50 +/- 0,354	Mean Ordinal 1,50 +/- 0,35
+OSLAPlayerConfig: Win rate 0,50 +/- 0,354	Mean Ordinal 1,50 +/- 0,35
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 2, GamesPerMatchup: 1
+OSLAPlayerConfig got 2,00 points. OSLAPlayerConfig won 100,0% of the 2 games of the tournament. OSLAPlayerConfig won 100,0% of the 2 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 1,00.
+OSLAPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+RandomPlayerConfig got 0,00 points. RandomPlayerConfig won 0,0% of the 2 games of the tournament. RandomPlayerConfig won 0,0% of the 2 games it played during the tournament.
+RandomPlayerConfig got a mean score of -1,00.
+RandomPlayerConfig won 0,0% of the 2 games against OSLAPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayerConfig: Win rate 1,00 +/- 0,000	Mean Ordinal 1,00 +/- 0,00
+RandomPlayerConfig: Win rate 0,00 +/- 0,000	Mean Ordinal 2,00 +/- 0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 6, GamesPerMatchup: 1
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	0,000	MCTSPlayerConfig
+	1,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+0,000	1,000	0,000	
+0,000	1,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+1,250	1,250	0,500	
+1,250	3,250	0,500	
+0,500	0,500	0,500	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	0,000	MCTSPlayerConfig
+	1,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+0,000	1,000	0,000	
+0,000	1,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+1,250	1,250	0,500	
+1,250	3,250	0,500	
+0,500	0,500	0,500	
+MCTSPlayerConfig got 2,00 points. MCTSPlayerConfig won 33,3% of the 6 games of the tournament. MCTSPlayerConfig won 50,0% of the 4 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,00.
+MCTSPlayerConfig won 0,0% of the 2 games against OSLAPlayerConfig.
+MCTSPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+OSLAPlayerConfig got 4,00 points. OSLAPlayerConfig won 66,7% of the 6 games of the tournament. OSLAPlayerConfig won 100,0% of the 4 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 1,00.
+OSLAPlayerConfig won 100,0% of the 2 games against MCTSPlayerConfig.
+OSLAPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+RandomPlayerConfig got 0,00 points. RandomPlayerConfig won 0,0% of the 6 games of the tournament. RandomPlayerConfig won 0,0% of the 4 games it played during the tournament.
+RandomPlayerConfig got a mean score of -1,00.
+RandomPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+RandomPlayerConfig won 0,0% of the 2 games against OSLAPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayerConfig: Win rate 1,00 +/- 0,000	Mean Ordinal 1,00 +/- 0,00
+MCTSPlayerConfig: Win rate 0,50 +/- 0,250	Mean Ordinal 1,50 +/- 0,25
+RandomPlayerConfig: Win rate 0,00 +/- 0,000	Mean Ordinal 2,00 +/- 0,00
+
+Alpha-rank by Win Rate
+	OSLAPlayerConfig              	1,00
+	MCTSPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Alpha-rank by Ordinal Position
+	OSLAPlayerConfig              	1,00
+	MCTSPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 9, GamesPerMatchup: 1
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	1,000	MCTSPlayerConfig
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+3,250	1,250	0,500	
+1,250	1,250	0,500	
+0,500	0,500	0,500	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	1,000	MCTSPlayerConfig
+	0,000	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+3,250	1,250	0,500	
+1,250	1,250	0,500	
+0,500	0,500	0,500	
+MCTSPlayerConfig got 5,00 points. MCTSPlayerConfig won 55,6% of the 9 games of the tournament. MCTSPlayerConfig won 83,3% of the 6 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,67.
+MCTSPlayerConfig won 100,0% of the 2 games against OSLAPlayerConfig.
+MCTSPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+OSLAPlayerConfig got 3,00 points. OSLAPlayerConfig won 33,3% of the 9 games of the tournament. OSLAPlayerConfig won 50,0% of the 6 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 0,00.
+OSLAPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+OSLAPlayerConfig won 100,0% of the 2 games against RandomPlayerConfig.
+
+RandomPlayerConfig got 1,00 points. RandomPlayerConfig won 11,1% of the 9 games of the tournament. RandomPlayerConfig won 16,7% of the 6 games it played during the tournament.
+RandomPlayerConfig got a mean score of -0,67.
+RandomPlayerConfig won 0,0% of the 2 games against MCTSPlayerConfig.
+RandomPlayerConfig won 0,0% of the 2 games against OSLAPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 0,83 +/- 0,152	Mean Ordinal 1,17 +/- 0,15
+OSLAPlayerConfig: Win rate 0,50 +/- 0,204	Mean Ordinal 1,50 +/- 0,20
+RandomPlayerConfig: Win rate 0,17 +/- 0,152	Mean Ordinal 1,83 +/- 0,15
+
+Alpha-rank by Win Rate
+	MCTSPlayerConfig              	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Alpha-rank by Ordinal Position
+	MCTSPlayerConfig              	1,00
+	OSLAPlayerConfig              	0,00
+	RandomPlayerConfig            	0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 30, GamesPerMatchup: 5
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	0,881	MCTSPlayerConfig
+	0,119	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+0,881	0,119	0,000	
+0,881	0,119	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+2,591	1,250	0,500	
+1,250	1,068	0,500	
+0,500	0,500	0,500	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	0,881	MCTSPlayerConfig
+	0,119	OSLAPlayerConfig
+	0,000	RandomPlayerConfig
+
+Transition matrix for alpha = 10.0
+0,881	0,119	0,000	
+0,881	0,119	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+2,591	1,250	0,500	
+1,250	1,068	0,500	
+0,500	0,500	0,500	
+MCTSPlayerConfig got 16,00 points. MCTSPlayerConfig won 53,3% of the 30 games of the tournament. MCTSPlayerConfig won 80,0% of the 20 games it played during the tournament.
+MCTSPlayerConfig got a mean score of 0,60.
+MCTSPlayerConfig won 60,0% of the 10 games against OSLAPlayerConfig.
+MCTSPlayerConfig won 100,0% of the 10 games against RandomPlayerConfig.
+
+OSLAPlayerConfig got 14,00 points. OSLAPlayerConfig won 46,7% of the 30 games of the tournament. OSLAPlayerConfig won 70,0% of the 20 games it played during the tournament.
+OSLAPlayerConfig got a mean score of 0,40.
+OSLAPlayerConfig won 40,0% of the 10 games against MCTSPlayerConfig.
+OSLAPlayerConfig won 100,0% of the 10 games against RandomPlayerConfig.
+
+RandomPlayerConfig got 0,00 points. RandomPlayerConfig won 0,0% of the 30 games of the tournament. RandomPlayerConfig won 0,0% of the 20 games it played during the tournament.
+RandomPlayerConfig got a mean score of -1,00.
+RandomPlayerConfig won 0,0% of the 10 games against MCTSPlayerConfig.
+RandomPlayerConfig won 0,0% of the 10 games against OSLAPlayerConfig.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTSPlayerConfig: Win rate 0,80 +/- 0,089	Mean Ordinal 1,20 +/- 0,09
+OSLAPlayerConfig: Win rate 0,70 +/- 0,102	Mean Ordinal 1,30 +/- 0,10
+RandomPlayerConfig: Win rate 0,00 +/- 0,000	Mean Ordinal 2,00 +/- 0,00
+
+Alpha-rank by Win Rate
+	MCTSPlayerConfig              	0,88
+	OSLAPlayerConfig              	0,12
+	RandomPlayerConfig            	0,00
+
+Alpha-rank by Ordinal Position
+	MCTSPlayerConfig              	0,88
+	OSLAPlayerConfig              	0,12
+	RandomPlayerConfig            	0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 10, GamesPerMatchup: 5
+MCTS_CheckersHeuristic got 4,00 points. MCTS_CheckersHeuristic won 40,0% of the 10 games of the tournament. MCTS_CheckersHeuristic won 40,0% of the 10 games it played during the tournament.
+MCTS_CheckersHeuristic got a mean score of -0,20.
+MCTS_CheckersHeuristic won 40,0% of the 10 games against MCTS_ScoreHeuristic.
+
+MCTS_ScoreHeuristic got 6,00 points. MCTS_ScoreHeuristic won 60,0% of the 10 games of the tournament. MCTS_ScoreHeuristic won 60,0% of the 10 games it played during the tournament.
+MCTS_ScoreHeuristic got a mean score of 0,20.
+MCTS_ScoreHeuristic won 60,0% of the 10 games against MCTS_CheckersHeuristic.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTS_ScoreHeuristic: Win rate 0,60 +/- 0,155	Mean Ordinal 1,40 +/- 0,15
+MCTS_CheckersHeuristic: Win rate 0,40 +/- 0,155	Mean Ordinal 1,60 +/- 0,15
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 10, GamesPerMatchup: 5
+MCTS_CheckersHeuristic got 4,00 points. MCTS_CheckersHeuristic won 40,0% of the 10 games of the tournament. MCTS_CheckersHeuristic won 40,0% of the 10 games it played during the tournament.
+MCTS_CheckersHeuristic got a mean score of -0,20.
+MCTS_CheckersHeuristic won 40,0% of the 10 games against MCTS_ScoreHeuristic.
+
+MCTS_ScoreHeuristic got 6,00 points. MCTS_ScoreHeuristic won 60,0% of the 10 games of the tournament. MCTS_ScoreHeuristic won 60,0% of the 10 games it played during the tournament.
+MCTS_ScoreHeuristic got a mean score of 0,20.
+MCTS_ScoreHeuristic won 60,0% of the 10 games against MCTS_CheckersHeuristic.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTS_ScoreHeuristic: Win rate 0,60 +/- 0,155	Mean Ordinal 1,40 +/- 0,15
+MCTS_CheckersHeuristic: Win rate 0,40 +/- 0,155	Mean Ordinal 1,60 +/- 0,15
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 100, GamesPerMatchup: 25
+OSLAPlayer got 50,00 points. OSLAPlayer won 50,0% of the 100 games of the tournament. OSLAPlayer won 50,0% of the 100 games it played during the tournament.
+OSLAPlayer got a mean score of 0,00.
+OSLAPlayer won 50,0% of the 50 games against RandomPlayer.
+
+RandomPlayer got 50,00 points. RandomPlayer won 50,0% of the 100 games of the tournament. RandomPlayer won 50,0% of the 100 games it played during the tournament.
+RandomPlayer got a mean score of 0,00.
+RandomPlayer won 50,0% of the 50 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayer: Win rate 0,50 +/- 0,050	Mean Ordinal 1,50 +/- 0,05
+RandomPlayer: Win rate 0,50 +/- 0,050	Mean Ordinal 1,50 +/- 0,05
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 100, GamesPerMatchup: 25
+OSLAPlayer got 75,00 points. OSLAPlayer won 50,0% of the 100 games of the tournament. OSLAPlayer won 50,0% of the 100 games it played during the tournament.
+OSLAPlayer got a mean score of 0,50.
+OSLAPlayer won 100,0% of the 50 games against RandomPlayer.
+
+RandomPlayer got 25,00 points. RandomPlayer won 25,0% of the 100 games of the tournament. RandomPlayer won 25,0% of the 100 games it played during the tournament.
+RandomPlayer got a mean score of -0,50.
+RandomPlayer won 0,0% of the 50 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayer: Win rate 0,75 +/- 0,025	Mean Ordinal 1,00 +/- 0,00
+RandomPlayer: Win rate 0,25 +/- 0,043	Mean Ordinal 1,75 +/- 0,04
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 99, GamesPerMatchup: 11
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	1,000	MCTS_ScoreHeuristic
+	0,000	OSLAPlayer
+	0,000	RandomPlayer
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+3,249	1,250	0,500	
+1,250	1,250	0,500	
+0,500	0,500	0,500	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	1,000	MCTS_ScoreHeuristic
+	0,000	OSLAPlayer
+	0,000	RandomPlayer
+
+Transition matrix for alpha = 10.0
+1,000	0,000	0,000	
+1,000	0,000	0,000	
+0,500	0,500	0,000	
+B matrix for alpha = 10.0
+3,249	1,250	0,500	
+1,250	1,250	0,500	
+0,500	0,500	0,500	
+MCTS_ScoreHeuristic got 53,50 points. MCTS_ScoreHeuristic won 53,5% of the 99 games of the tournament. MCTS_ScoreHeuristic won 80,3% of the 66 games it played during the tournament.
+MCTS_ScoreHeuristic got a mean score of 0,62.
+MCTS_ScoreHeuristic won 90,9% of the 22 games against OSLAPlayer.
+MCTS_ScoreHeuristic won 100,0% of the 22 games against RandomPlayer.
+
+OSLAPlayer got 34,50 points. OSLAPlayer won 34,3% of the 99 games of the tournament. OSLAPlayer won 51,5% of the 66 games it played during the tournament.
+OSLAPlayer got a mean score of 0,05.
+OSLAPlayer won 4,5% of the 22 games against MCTS_ScoreHeuristic.
+OSLAPlayer won 100,0% of the 22 games against RandomPlayer.
+
+RandomPlayer got 11,00 points. RandomPlayer won 11,1% of the 99 games of the tournament. RandomPlayer won 16,7% of the 66 games it played during the tournament.
+RandomPlayer got a mean score of -0,67.
+RandomPlayer won 0,0% of the 22 games against MCTS_ScoreHeuristic.
+RandomPlayer won 0,0% of the 22 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTS_ScoreHeuristic: Win rate 0,81 +/- 0,048	Mean Ordinal 1,18 +/- 0,05
+OSLAPlayer: Win rate 0,52 +/- 0,061	Mean Ordinal 1,47 +/- 0,06
+RandomPlayer: Win rate 0,17 +/- 0,046	Mean Ordinal 1,83 +/- 0,05
+
+Alpha-rank by Win Rate
+	MCTS_ScoreHeuristic           	1,00
+	OSLAPlayer                    	0,00
+	RandomPlayer                  	0,00
+
+Alpha-rank by Ordinal Position
+	MCTS_ScoreHeuristic           	1,00
+	OSLAPlayer                    	0,00
+	RandomPlayer                  	0,00
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 100, GamesPerMatchup: 25
+OSLAPlayer got 48,00 points. OSLAPlayer won 39,0% of the 100 games of the tournament. OSLAPlayer won 39,0% of the 100 games it played during the tournament.
+OSLAPlayer got a mean score of -0,04.
+OSLAPlayer won 40,0% of the 50 games against OSLAPlayer_heur.
+
+OSLAPlayer_heur got 52,00 points. OSLAPlayer_heur won 46,0% of the 100 games of the tournament. OSLAPlayer_heur won 46,0% of the 100 games it played during the tournament.
+OSLAPlayer_heur got a mean score of 0,04.
+OSLAPlayer_heur won 48,0% of the 50 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayer_heur: Win rate 0,52 +/- 0,047	Mean Ordinal 1,42 +/- 0,05
+OSLAPlayer: Win rate 0,48 +/- 0,045	Mean Ordinal 1,43 +/- 0,05
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 1000, GamesPerMatchup: 500
+OSLAPlayer got 513,00 points. OSLAPlayer won 44,1% of the 1000 games of the tournament. OSLAPlayer won 44,1% of the 1000 games it played during the tournament.
+OSLAPlayer got a mean score of 0,03.
+OSLAPlayer won 44,1% of the 1000 games against OSLAPlayer_heur.
+
+OSLAPlayer_heur got 487,00 points. OSLAPlayer_heur won 41,5% of the 1000 games of the tournament. OSLAPlayer_heur won 41,5% of the 1000 games it played during the tournament.
+OSLAPlayer_heur got a mean score of -0,03.
+OSLAPlayer_heur won 41,5% of the 1000 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayer: Win rate 0,51 +/- 0,015	Mean Ordinal 1,42 +/- 0,02
+OSLAPlayer_heur: Win rate 0,49 +/- 0,015	Mean Ordinal 1,44 +/- 0,02
+
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE, TotalGames: 1000, GamesPerMatchup: 500
+OSLAPlayer got 479,50 points. OSLAPlayer won 40,6% of the 1000 games of the tournament. OSLAPlayer won 40,6% of the 1000 games it played during the tournament.
+OSLAPlayer got a mean score of -0,04.
+OSLAPlayer won 40,6% of the 1000 games against OSLAPlayer_heur.
+
+OSLAPlayer_heur got 520,50 points. OSLAPlayer_heur won 44,7% of the 1000 games of the tournament. OSLAPlayer_heur won 44,7% of the 1000 games it played during the tournament.
+OSLAPlayer_heur got a mean score of 0,04.
+OSLAPlayer_heur won 44,7% of the 1000 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+OSLAPlayer_heur: Win rate 0,52 +/- 0,015	Mean Ordinal 1,41 +/- 0,02
+OSLAPlayer: Win rate 0,48 +/- 0,015	Mean Ordinal 1,45 +/- 0,02
+

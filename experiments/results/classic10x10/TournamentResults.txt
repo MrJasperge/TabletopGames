@@ -57,3 +57,62 @@ Alpha-rank by Ordinal Position
 	OSLAPlayer                    	0,12
 	Random                        	0,00
 
+Game: Checkers, Players: 2, Mode: EXHAUSTIVE_SELF_PLAY, TotalGames: 1800, GamesPerMatchup: 200
+Alpha calculations using Delta Ordinal
+Alpha: 10.0
+	0,711	MCTS_v0
+	0,289	OSLAPlayer
+	0,000	Random
+
+Transition matrix for alpha = 10.0
+0,711	0,289	0,000	
+0,711	0,289	0,000	
+0,506	0,494	0,000	
+B matrix for alpha = 10.0
+1,856	1,250	0,503	
+1,250	1,000	0,503	
+0,503	0,503	0,500	
+Alpha calculations using Win Rate
+Alpha: 10.0
+	0,711	MCTS_v0
+	0,289	OSLAPlayer
+	0,000	Random
+
+Transition matrix for alpha = 10.0
+0,711	0,289	0,000	
+0,711	0,289	0,000	
+0,506	0,494	0,000	
+B matrix for alpha = 10.0
+1,856	1,250	0,503	
+1,250	1,000	0,503	
+0,503	0,503	0,500	
+MCTS_v0 got 818,00 points. MCTS_v0 won 39,6% of the 1800 games of the tournament. MCTS_v0 won 59,4% of the 1200 games it played during the tournament.
+MCTS_v0 got a mean score of 0,36.
+MCTS_v0 won 45,0% of the 400 games against OSLAPlayer.
+MCTS_v0 won 100,0% of the 400 games against Random.
+
+OSLAPlayer got 781,50 points. OSLAPlayer won 38,8% of the 1800 games of the tournament. OSLAPlayer won 58,3% of the 1200 games it played during the tournament.
+OSLAPlayer got a mean score of 0,30.
+OSLAPlayer won 36,0% of the 400 games against MCTS_v0.
+OSLAPlayer won 99,8% of the 400 games against Random.
+
+Random got 200,50 points. Random won 11,1% of the 1800 games of the tournament. Random won 16,7% of the 1200 games it played during the tournament.
+Random got a mean score of -0,67.
+Random won 0,0% of the 400 games against MCTS_v0.
+Random won 0,0% of the 400 games against OSLAPlayer.
+
+---- Ranking ---- (+/- are standard errors on the mean calculated using a Normal approximation) 
+MCTS_v0: Win rate 0,68 +/- 0,012	Mean Ordinal 1,23 +/- 0,01
+OSLAPlayer: Win rate 0,65 +/- 0,013	Mean Ordinal 1,28 +/- 0,01
+Random: Win rate 0,17 +/- 0,011	Mean Ordinal 1,83 +/- 0,01
+
+Alpha-rank by Win Rate
+	MCTS_v0                       	0,71
+	OSLAPlayer                    	0,29
+	Random                        	0,00
+
+Alpha-rank by Ordinal Position
+	MCTS_v0                       	0,71
+	OSLAPlayer                    	0,29
+	Random                        	0,00
+
