@@ -1,0 +1,11 @@
+Player 1,Player 2,Average Duration Player 1,Average Duration Player 2,Average Duration Draws,Average Duration Total
+MCTS,MCTS,31.38,37.34,74.22,51.98
+MCTS,OSLA,28.81,25.0,70.22,32.52
+MCTS,Rand,20.7,0.0,0.0,20.7
+OSLA,MCTS,69.0,27.6,74.53,32.27
+OSLA,OSLA,30.96,24.92,72.75,31.09
+OSLA,Rand,23.36,22.71,0.0,23.34
+Rand,MCTS,0.0,19.73,0.0,19.73
+Rand,OSLA,21.75,23.16,0.0,23.14
+Rand,Rand,27.14,24.5,0.0,25.75
+Total,,25.31,20.5,29.17,26.05
