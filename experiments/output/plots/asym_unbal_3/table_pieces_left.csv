@@ -1,0 +1,11 @@
+Player 1,Player 2,Total Pieces Left Player 1,Total Pieces Left Player 2,Total Pieces Left Draws,Average Total Pieces Left
+MCTS,MCTS,4.98,3.77,3.61,4.35
+MCTS,OSLA,5.98,7.14,4.5,5.93
+MCTS,Rand,8.23,0.0,0.0,8.23
+OSLA,MCTS,7.41,4.08,6.65,4.74
+OSLA,OSLA,9.71,8.25,8.84,9.16
+OSLA,Rand,9.04,0.0,0.0,9.04
+Rand,MCTS,0.0,6.75,0.0,6.75
+Rand,OSLA,3.0,7.58,0.0,7.56
+Rand,Rand,6.12,4.92,0.0,5.74
+Total,,5.45,4.25,2.36,6.15
